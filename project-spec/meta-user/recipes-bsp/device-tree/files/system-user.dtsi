@@ -10,7 +10,8 @@
 
 
 };
-
+/delete-node/ &axi_dma_mm2s;
+/delete-node/ &axi_dma_s2mm;
 
 /* MathWorks AXI-DMA & AXI-lite nodes */
 #include "axistream.dtsi"
