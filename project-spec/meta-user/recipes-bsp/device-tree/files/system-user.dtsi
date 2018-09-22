@@ -1,0 +1,16 @@
+/include/ "system-conf.dtsi"
+/include/ "pl.dtsi"
+
+/ {
+	
+	chosen {
+		bootargs = "earlycon clk_ignore_unused root=/dev/ram rw cma=1700M cpuidle.off=1";
+		stdout-path = "serial0:115200n8";
+	};
+
+
+};
+
+
+/* MathWorks AXI-DMA & AXI-lite nodes */
+#include "axistream.dtsi"
