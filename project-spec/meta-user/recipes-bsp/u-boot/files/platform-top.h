@@ -162,12 +162,12 @@
 	SERIAL_MULTI \ 
 	CONSOLE_ARG \ 
 	PSSERIAL0 \
-  	"kernel_addr=0x80000\0" \
+  	"kernel_addr=0x10000000\0" \
 	"initrd_addr=0x2000000\0" \
 	"initrd_high=0x10000000\0" \
 	"initrd_size=0x2000000\0" \
 	"initrd_image=uramdisk.image.gz\0"	\
-	"fdt_addr=4000000\0" \
+	"fdt_addr=23fff000\0" \
 	"fdt_high=0x10000000\0" \
 	"fdt_image=devicetree.dtb\0"	\
 	"bitstream_addr=0x1000000\0"	\
