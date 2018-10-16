@@ -1,4 +1,4 @@
-CRIPTION = "C++ library for serial port support."
+DISCRIPTION = "C++ library for serial port support."
 SECTION = "libs"
 LICENSE = "LGPLv3+"
 HOMEPAGE = "http://sigrok.org/download/source/libserialport"
