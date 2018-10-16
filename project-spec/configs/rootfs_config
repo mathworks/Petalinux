@@ -4396,6 +4396,7 @@ CONFIG_rftool=y
 # user packages 
 #
 CONFIG_libiio=y
+CONFIG_libserialport=y
 CONFIG_rfdc=y
 CONFIG_rfdc-read-write=y
 CONFIG_rfdc-selftest=y
