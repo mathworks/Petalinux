@@ -5,6 +5,12 @@ HOMEPAGE = "http://sigrok.org/download/source/libserialport"
 
 #SRC_URI = "${SOURCEFORGE_MIRROR}/libserial/libserial-${PV}.tar.gz"
 SRC_URI = "https://sigrok.org/download/source/libserialport/libserialport-${PV}.tar.gz"
+LIC_FILES_CHKSUM = "file://COPYING;md5=e6a600fd5e1d9cbde2d983680233ad02"
+
+S = "${WORKDIR}/libserialport-${PV}"
+
+SRC_URI_append = " file://0001-uclinux-detection.patch"
+FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 inherit autotools pkgconfig
 
