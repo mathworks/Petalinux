@@ -2,6 +2,7 @@ ld/
 images/linux/
 .petalinux/*
 !.petalinux/metadata
+*.old
 *.o
 *.jou
 *.log
