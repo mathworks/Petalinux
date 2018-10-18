@@ -26,7 +26,7 @@ do_install() {
         install -m 0755 ${WORKDIR}/bootvars.conf ${D}${sysconfdir}/bootvars.conf
        
      # Replace default /etc/fw_env.config with one customized for MiniZed
-    install -m 0755 ${WORKDIR}/fw_env.config ${D}${sysconfdir}/fw_env.config
+   # install -m 0755 ${WORKDIR}/fw_env.config ${D}${sysconfdir}/fw_env.config
         
     # Place MathWorks API scripts in /usr/sbin
     install -d ${D}/${sbindir}
