@@ -8,7 +8,6 @@ RDEPENDS_${PN} += "u-boot-fw-utils"
 EXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI += "file://bootvars.conf \
-            file://fw_env.config \
             file://mw_setboot \
             file://_mw_setbootfile \
             file://fw_getbitstream \
@@ -42,7 +41,6 @@ do_install() {
 
 FILES_${PN} = " \
     ${sysconfdir}/bootvars.conf \
-    ${sysconfdir}/fw_env.config \
     ${sbindir}/mw_setboot \
     ${sbindir}/_mw_setbootfile \
     ${sbindir}/fw_getbitstream \
