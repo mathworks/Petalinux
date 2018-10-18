@@ -1,4 +1,4 @@
-LESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 #S = "${WORKDIR}/mw-fs-overlay"
 #S = "${WORKDIR}"
 SRC_URI += " file://fw_env.config"
