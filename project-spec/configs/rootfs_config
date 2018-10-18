@@ -4398,6 +4398,7 @@ CONFIG_rftool=y
 CONFIG_libiio=y
 CONFIG_libserialport=y
 CONFIG_libusb=y
+CONFIG_mw_fs-overlay=y
 CONFIG_rfdc=y
 CONFIG_rfdc-read-write=y
 CONFIG_rfdc-selftest=y
