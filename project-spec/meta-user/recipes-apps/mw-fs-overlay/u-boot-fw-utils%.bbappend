@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/files/zynqmp/fs-overlay/etc/:"
 #S = "${WORKDIR}/mw-fs-overlay"
 #S = "${WORKDIR}"
 SRC_URI += " file://fw_env.config"
