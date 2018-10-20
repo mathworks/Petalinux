@@ -9,7 +9,9 @@ EXTRAPATHS_prepend += "${THISDIR}/files/common:"
 EXTRAPATHS_prepend += "${THISDIR}/files/zynqmp:"
 
 SRC_URI += "file://common/fs-overlay/etc/ \
-            file://common/fs-overlay/usr/sbin/ \
+            file://common/fs-overlay/etc/init.d/ \
+	    file://common/fs-overlay/etc/ssh/ \
+	    file://common/fs-overlay/usr/sbin/ \
 	    file://zynqmp/fs-overlay/etc/ \ 
 "
 
@@ -27,9 +29,14 @@ install -d ${D}/${sysconfdir}/bootvars.d/
 	cp -r ${WORKDIR}/common/fs-overlay/etc/bootvars.d/* ${D}${sysconfdir}/bootvars.d/
 	cp -r ${WORKDIR}/zynqmp/fs-overlay/etc/bootvars.d/* ${D}${sysconfdir}/bootvars.d/
 
-#install -d ${D}/etc/init.d
+install -d ${D}/${sysconfdir}/init.d/
+	cp -r ${WORKDIR}/common/fs-overlay/etc/init.d/* ${D}${sysconfdir}/init.d/
 
-#install -d ${D}/etc/network
+#install -d ${D}/${sysconfdir}/network/
+#	cp -r ${WORKDIR}/common/fs-overlay/etc/network/* ${D}${sysconfdir}/network/
+
+install -d ${D}/${sysconfdir}/ssh/
+	cp -r ${WORKDIR}/common/fs-overlay/etc/ssh/* ${D}${sysconfdir}/ssh/
 
 #install -d ${D}/etc/ssh
 
@@ -50,3 +57,6 @@ FILES_${PN} = " \
 
 FILES_${PN} += "${sbindir}/"
 FILES_${PN} += "${sysconfdir}/bootvars.d/"
+FILES_${PN} += "${sysconfdir}/init.d/"
+FILES_${PN} += "${sysconfdir}/ssh/"
+
