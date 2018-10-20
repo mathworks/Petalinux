@@ -19,7 +19,23 @@ do_install() {
 
 install -d ${D}/${sysconfdir}/
 install -m 0755 ${WORKDIR}/common/fs-overlay/etc/bootvars.conf ${D}${sysconfdir}/bootvars.conf
-#        cp -r ${WORKDIR}/common/fs-overlay/etc/* ${D}${sysconfdir}
+#install -m 0755 ${WORKDIR}/common/fs-overlay/etc/inetd.conf ${D}${sysconfdir}/inetd.conf
+install -m 0755 ${WORKDIR}/common/fs-overlay/etc/udhcpd.conf ${D}${sysconfdir}/udhcpd.conf
+#install -m 0755 ${WORKDIR}/common/fs-overlay/etc/network/interfaces ${D}${sysconfdir}/network/interfaces
+
+install -d ${D}/${sysconfdir}/profile.d/
+    cp -r ${WORKDIR}/zynqmp/fs-overlay/etc/profile.d/* ${D}${sysconfdir}/profile.d/
+
+install -d ${D}/${sysconfdir}/bootvars.d/
+    cp -r ${WORKDIR}/common/fs-overlay/etc/bootvars.d/* ${D}${sysconfdir}/bootvars.d/
+    cp -r ${WORKDIR}/zynqmp/fs-overlay/etc/bootvars.d/* ${D}${sysconfdir}/bootvars.d/
+
+install -d ${D}/${sysconfdir}/ssh/
+    cp -r ${WORKDIR}/common/fs-overlay/etc/ssh/* ${D}${sysconfdir}/ssh/
+
+#install -d ${D}/${sysconfdir}/init.d/
+#    cp -r ${WORKDIR}/common/fs-overlay/etc/init.d/* ${D}${sysconfdir}/init.d/
+
 
 install -d ${D}/${sbindir}/
 	cp -r ${WORKDIR}/common/fs-overlay/usr/sbin/* ${D}${sbindir}
