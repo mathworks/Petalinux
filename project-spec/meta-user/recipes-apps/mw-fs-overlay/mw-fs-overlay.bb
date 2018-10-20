@@ -16,13 +16,14 @@ do_install() {
 install -d ${D}${sysconfdir}
 	# Place bootvars.conf in /etc (used by MW API scripts)
 	install -m 0755 ${WORKDIR}/common/fs-overlay/etc/bootvars.conf ${D}${sysconfdir}/bootvars.conf
-#	install -m 0755 ${WORKDIR}/common/fs-overlay/etc/inetd.conf ${D}${sysconfdir}/inetd.conf
+#	install -m 0755 ${WORKDIR}/common/fs-overlay/etc/inetd.conf ${D}${sysconfdir}/inetd.conf 
 	install -m 0755 ${WORKDIR}/common/fs-overlay/etc/mdev.conf ${D}${sysconfdir}/mdev.conf
 	install -m 0755 ${WORKDIR}/common/fs-overlay/etc/udhcpd.conf ${D}${sysconfdir}/udhcpd.conf
 
 #install -d ${D}/etc/udev/rules.d
 
-#install -d ${D}/etc/bootvars.d
+install -d ${D}/${sysconfdir}/bootvars.d/
+	cp -r ${WORKDIR}/common/fs-overlay/etc/bootvars.d/* ${D}${sysconfdir}/bootvars.d/
 
 #install -d ${D}/etc/init.d
 
@@ -36,15 +37,14 @@ install -d ${D}${sysconfdir}
 # Place MathWorks API scripts in /usr/sbin
 install -d ${D}/${sbindir}/
 	cp -r ${WORKDIR}/common/fs-overlay/usr/sbin/* ${D}${sbindir}
-
+	
 }
 
 FILES_${PN} = " \
     ${sysconfdir}/bootvars.conf \
- #   ${sysconfdir}/inetd.conf \
     ${sysconfdir}/mdev.conf \
     ${sysconfdir}/udhcpd.conf \
 "
 
 FILES_${PN} += "${sbindir}/"
-
+FILES_${PN} += "${sysconfdir}/bootvars.d/"
