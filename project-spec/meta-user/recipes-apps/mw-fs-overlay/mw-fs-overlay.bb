@@ -13,6 +13,7 @@ SRC_URI += "file://common/fs-overlay/etc/ \
 	    file://common/fs-overlay/etc/ssh/ \
 	    file://common/fs-overlay/usr/sbin/ \
 	    file://zynqmp/fs-overlay/etc/ \ 
+	    file://zynqmp/fs-overlay/etc/profile.d/ \
 "
 
 do_install() {
@@ -23,7 +24,11 @@ install -d ${D}${sysconfdir}
 	install -m 0755 ${WORKDIR}/common/fs-overlay/etc/mdev.conf ${D}${sysconfdir}/mdev.conf
 	install -m 0755 ${WORKDIR}/common/fs-overlay/etc/udhcpd.conf ${D}${sysconfdir}/udhcpd.conf
 
+
 #install -d ${D}/etc/udev/rules.d
+
+install -d ${D}/${sysconfdir}/profile.d/
+	cp -r ${WORKDIR}/zynqmp/fs-overlay/etc/profile.d/* ${D}${sysconfdir}/profile.d/
 
 install -d ${D}/${sysconfdir}/bootvars.d/
 	cp -r ${WORKDIR}/common/fs-overlay/etc/bootvars.d/* ${D}${sysconfdir}/bootvars.d/
@@ -58,5 +63,6 @@ FILES_${PN} = " \
 FILES_${PN} += "${sbindir}/"
 FILES_${PN} += "${sysconfdir}/bootvars.d/"
 FILES_${PN} += "${sysconfdir}/init.d/"
+FILES_${PN} += "${sysconfdir}/profile.d/"
 FILES_${PN} += "${sysconfdir}/ssh/"
 
