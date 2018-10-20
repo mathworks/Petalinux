@@ -10,6 +10,7 @@ EXTRAPATHS_prepend += "${THISDIR}/files/zynqmp:"
 
 SRC_URI += "file://common/fs-overlay/etc/ \
             file://common/fs-overlay/usr/sbin/ \
+	    file://zynqmp/fs-overlay/etc/ \ 
 "
 
 do_install() {
@@ -24,6 +25,7 @@ install -d ${D}${sysconfdir}
 
 install -d ${D}/${sysconfdir}/bootvars.d/
 	cp -r ${WORKDIR}/common/fs-overlay/etc/bootvars.d/* ${D}${sysconfdir}/bootvars.d/
+	cp -r ${WORKDIR}/zynqmp/fs-overlay/etc/bootvars.d/* ${D}${sysconfdir}/bootvars.d/
 
 #install -d ${D}/etc/init.d
 
