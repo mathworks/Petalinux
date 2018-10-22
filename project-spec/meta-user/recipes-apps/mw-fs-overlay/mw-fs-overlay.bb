@@ -59,5 +59,4 @@ FILES_${PN} += "${sysconfdir}/rc2.d/"
 FILES_${PN} += "${sysconfdir}/rc3.d/"
 FILES_${PN} += "${sysconfdir}/rc4.d/"
 FILES_${PN} += "${sysconfdir}/rc5.d/"
-FILES_${PN} += "${sysconfdir}/ssh/"
 
