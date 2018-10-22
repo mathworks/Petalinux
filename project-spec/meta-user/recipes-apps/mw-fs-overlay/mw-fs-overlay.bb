@@ -15,6 +15,8 @@ SRC_URI += "file://common/fs-overlay/etc/ \
 	    file://zynqmp/fs-overlay/etc/profile.d/ \
 "
 
+DEPENDS_append = " update-rc.d-native"
+
 do_install() {
 install -d ${D}${sysconfdir}
 	install -m 0755 ${WORKDIR}/common/fs-overlay/etc/bootvars.conf ${D}${sysconfdir}/bootvars.conf
@@ -31,7 +33,32 @@ install -d ${D}/${sysconfdir}/bootvars.d/
 	cp -r ${WORKDIR}/zynqmp/fs-overlay/etc/bootvars.d/* ${D}${sysconfdir}/bootvars.d/
 
 install -d ${D}/${sysconfdir}/init.d/
+install -d ${D}${sysconfdir}/rcS.d
+install -d ${D}${sysconfdir}/rc1.d
+install -d ${D}${sysconfdir}/rc2.d
+install -d ${D}${sysconfdir}/rc3.d
+install -d ${D}${sysconfdir}/rc4.d
+install -d ${D}${sysconfdir}/rc5.d
+
 	cp -r ${WORKDIR}/common/fs-overlay/etc/init.d/* ${D}${sysconfdir}/init.d/
+	
+	#establish runlinks
+	update-rc.d -r ${D} sdcard_mount start 9 1 2 3 4 5 .
+	update-rc.d -r ${D} module_coldplug start 11 1 2 3 4 5 .
+	update-rc.d -r ${D} network_scripts start 38 1 2 3 4 5 .
+	update-rc.d -r ${D} hostname start 39 1 2 3 4 5 .
+	update-rc.d -r ${D} usb_network start 39 1 2 3 4 5 .
+	update-rc.d -r ${D} network start 40 1 2 3 4 5 .
+	update-rc.d -r ${D} inetd start 41 1 2 3 4 5 .
+	update-rc.d -r ${D} udhcpd start 42 1 2 3 4 5 .
+	update-rc.d -r ${D} restoreSSHkeys start 49 1 2 3 4 5 .
+	update-rc.d -r ${D} alsa start 50 1 2 3 4 5 .	
+	update-rc.d -r ${D} backupSSHkeys start 51 1 2 3 4 5 .
+	update-rc.d -r ${D} hdlrd_init start 95 1 2 3 4 5 .
+	update-rc.d -r ${D} user_init start 97 1 2 3 4 5 .
+	update-rc.d -r ${D} user_app start 98 1 2 3 4 5 .	
+	update-rc.d -r ${D} sdinit start 99 1 2 3 4 5 .
+
 
 install -d ${D}/${sysconfdir}/ssh/
 	cp -r ${WORKDIR}/common/fs-overlay/etc/ssh/* ${D}${sysconfdir}/ssh/
