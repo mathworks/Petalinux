@@ -66,7 +66,11 @@ install -d ${D}/${sysconfdir}/ssh/
 
 install -d ${D}/${sbindir}/
 	cp -r ${WORKDIR}/common/fs-overlay/usr/sbin/* ${D}${sbindir}
-	
+
+#create symlinks for ssh
+install -d ${D}${bindir}
+       # ln -sf  ../bin/mw_setboot ${D}${sbindir}/mw_setboot
+
 }
 
 FILES_${PN} = " \
@@ -76,6 +80,7 @@ FILES_${PN} = " \
 "
 
 FILES_${PN} += "${sbindir}/"
+FILES_${PN} += "${bindir}/"
 FILES_${PN} += "${sysconfdir}/bootvars.d/"
 FILES_${PN} += "${sysconfdir}/init.d/"
 FILES_${PN} += "${sysconfdir}/profile.d/"
