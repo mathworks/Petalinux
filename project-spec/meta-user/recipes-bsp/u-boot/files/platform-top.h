@@ -255,6 +255,9 @@
 
 #endif /* __PLNX_CONFIG_H */
 
+#if !defined(CONFIG_ENV_IS_IN_FAT)
+#define CONFIG_ENV_IS_NOWHERE		1
+#endif
 
 #define CONFIG_SYS_BOOTM_LEN 0xF000000
 
