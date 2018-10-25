@@ -18,6 +18,9 @@ do_install_append() {
 	ln -s ../sbin/mw_setboot mw_setboot 
 	ln -s ../sbin/_mw_setboot_default _mw_setboot_default 
 	ln -s ../sbin/_mw_setbootfile _mw_setbootfile 
+        ln -s ../../sbin/fw_printenv fw_printenv
+        ln -s ../../sbin/fw_setenv fw_setenv
+        ln -s ../../sbin/reboot reboot
 }
  
 
