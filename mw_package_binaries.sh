@@ -4,7 +4,7 @@ timestamp() {
 }
 
 build/tmp/sysroots-components/x86_64/u-boot-mkimage-native/usr/bin/mkimage -A arm64 -T ramdisk -C gzip -d images/linux/rootfs.cpio.gz images/uramdisk.image.gz
-/mathworks/hub/share/apps/HDLTools/SDK/2018.2-mw-0/Lin/bin/bootgen -arch zynqmp -image boot.bif -w -o ./images/BOOT.BIN
+petalinux-package --boot --format BIN --bif boot.bif -o ./images/BOOT.BIN --force
 
 src_dir="$(pwd)"
 get_timestamp=$(timestamp)
