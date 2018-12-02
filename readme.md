@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-# MathWorks&reg; Zynq RFSoC Petalinux
-
-MathWorks build system for Zynq RFSoC.
-
-This Git repository contains all necessary files needed to create a ZCU111 SD Card embedded-linux image 
-=======
 # MathWorks&reg; Zynq Petalinux 
 
 MathWorks Petalinux build system for Zynq SoC platforms
@@ -42,4 +35,3 @@ MathWorks Petalinux build system for Zynq SoC platforms
     uramdisk.image.gz
 	
 - Copy these files over to your SD card and boot the evaluation board
->>>>>>> master
