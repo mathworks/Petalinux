@@ -3,6 +3,10 @@ timestamp() {
       date +"%Y-%m-%d_%H-%M-%S"
 }
 
+timestamp_sdcard() {
+    date +"%Y-%m-%d"
+}
+
 build/tmp/sysroots-components/x86_64/u-boot-mkimage-native/usr/bin/mkimage -A arm64 -T ramdisk -C gzip -d images/linux/rootfs.cpio.gz images/uramdisk.image.gz
 petalinux-package --boot --format BIN --bif boot.bif -o ./images/BOOT.BIN --force
 
@@ -34,3 +38,6 @@ $cp_cmd5
 
 print_dst=$(echo $dst_dir | sed 's/\//\\/g')
 echo "Copied location: \\$print_dst"
+
+get_timestamp_sd=$(timestamp_sdcard)
+zip zcu111_sdcard_zynqrf_$get_timestamp_sd.zip -j $dst_dir/*
