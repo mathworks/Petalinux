@@ -1,12 +1,13 @@
 # MathWorks&reg; Zynq Petalinux 
 
-MathWorks Petalinux build system
+MathWorks Petalinux build system for Zynq SoC platforms
 
-Current Supported Boards
+#### Current Supported Boards
 - ZCU111 Zynq RFSoC
 
-General build instructions
+#### General build instructions
 - Clone this repository and switch branches to the matching board, for instance:
+
 
 `$ git checkout zcu111_2018.2`
 
