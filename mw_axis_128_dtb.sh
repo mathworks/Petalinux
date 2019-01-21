@@ -1,10 +1,10 @@
 #!/bin/bash
 #set -x #echo on
-DTS_BASE="$(pwd)/../components/plnx_workspace/device-tree/device-tree/*.dts"
-DTS_BASE_DIR="$(pwd)/../components/plnx_workspace/device-tree/device-tree/"
-BUILD_BASE_DIR="$(pwd)/../build/tmp"
+DTS_BASE="$(pwd)/components/plnx_workspace/device-tree/device-tree/*.dts"
+DTS_BASE_DIR="$(pwd)/components/plnx_workspace/device-tree/device-tree/"
+BUILD_BASE_DIR="$(pwd)/build/tmp"
 XIL_DTS_DIR=$(ls -d ${BUILD_BASE_DIR}/work/zcu111_zynqmp-xilinx-linux/device-tree/xilinx+gitAUTOINC+*)
-OUTPUT_DIR="$(pwd)/dtb_build/"
+OUTPUT_DIR="$(pwd)/images/"
 echo "XIL DTS Dir = $XIL_DTS_DIR"
 
 gcc  -E	-nostdinc -Ulinux -x assembler-with-cpp	-DMW_DATAWIDTH_SELECT=128 -I${DTS_BASE_DIR} -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/arch/arm64/boot/dts/xilinx -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -I${XIL_DTS_DIR} -o ${OUTPUT_DIR}`basename ${DTS_BASE}`128.pp ${DTS_BASE}
