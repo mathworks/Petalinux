@@ -40,7 +40,7 @@
 #include "rfdc_functions.h"
 
 /************************** Constant Definitions *****************************/
-#define RFDC_DEVICE_ID  XPAR_XRFDC_0_DEVICE_ID
+#define RFDC_DEVICE_ID  0
 
 /* static sinewave data with 1300 MHz freq */
 const signed short sine_wave[1024] = { 32767,-15623,-17869,32663,-13279,-20000,
@@ -247,7 +247,7 @@ int main()
 	}
 
 	/* configure LMX and LMK clock */
-	ret = initRFclock(LMK04208_12M8_3072M_122M88_REVAB, DAC_245_76_MHZ,
+	ret = initRFclock(ZCU111, LMK04208_12M8_3072M_122M88_REVAB, DAC_245_76_MHZ,
 												DAC_245_76_MHZ, ADC_245_76_MHZ);
 	if(ret != SUCCESS){
 		printf("Unable to configure RF clocks\n");
@@ -256,14 +256,13 @@ int main()
 
 	ret = init_mem();
 	if(ret) {
-		printf("Unsable to initialise memory\n");
 		return FAIL;
 	}
 
 	/* initialise the gpio's for data path */
 	ret = init_gpio();
 	if(ret) {
-		printf("Unsable to initialise gpio's\n");
+		printf("Unable to initialise gpio's\n");
 		goto err;
 	}
 

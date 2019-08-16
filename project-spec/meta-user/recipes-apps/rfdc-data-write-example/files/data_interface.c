@@ -32,6 +32,7 @@
 
 /***************************** Include Files *********************************/
 #include "data_interface.h"
+#include "gpio.h"
 #include <unistd.h>
 
 /************************** Constant Definitions *****************************/
@@ -40,13 +41,22 @@ extern XRFdc RFdcInst;      /* RFdc driver instance */
 #define MAX_ADC 8
 #define MAX_DAC 8
 #define MAX_STRLEN 512
+#define MAP_SIZE 4096UL
+#define MAP_MASK (MAP_SIZE - 1)
+#define SCRATCHPAD_REG 0xB0005050
+#define DESIGN_TYPE_REG 0xB0005054
 
 struct rfsoc_info {
 	signed char *map_dac[MAX_DAC];
 	signed char *map_adc[MAX_ADC];
+	void *map_scratchreg;
+	void *map_design_type_reg;
+  	int fd_scratchpad;
 	int fd_dac[MAX_DAC];
 	int fd_adc[MAX_ADC];
 	int adc_status, dac_status;
+  	u32 scratch_value;
+	u32 design_type;
 };
 
 char mem_path_dac[MAX_DAC][MAX_STRLEN] = {
@@ -71,39 +81,46 @@ char mem_type_path_dac[MAX_DAC][MAX_STRLEN] = {
 	"/sys/class/plmem/plmem7/device/select_mem",
 };
 
-#define DAC0_RESET_GPIO	416
 /* GPIO0,4,8,12,16,20,24,28 */
-char dac_reset_gpio[MAX_DAC][MAX_STRLEN] = {
-	"/sys/class/gpio/gpio416/",
-	"/sys/class/gpio/gpio420/",
-	"/sys/class/gpio/gpio424/",
-	"/sys/class/gpio/gpio428/",
-	"/sys/class/gpio/gpio432/",
-	"/sys/class/gpio/gpio436/",
-	"/sys/class/gpio/gpio440/",
-	"/sys/class/gpio/gpio444/",
+int dac_reset_gpio[MAX_DAC] = {
+	416,
+	420,
+	424,
+	428,
+	432,
+	436,
+	440,
+	444,
 };
-
-#define DAC0_LOCALSTART_GPIO	418
 /* GPIO2,6,10,14,18,22,26,30  */
-char dac_localstart_gpio[MAX_DAC][MAX_STRLEN] = {
-	"/sys/class/gpio/gpio418/",
-	"/sys/class/gpio/gpio422/",
-	"/sys/class/gpio/gpio426/",
-	"/sys/class/gpio/gpio430/",
-	"/sys/class/gpio/gpio434/",
-	"/sys/class/gpio/gpio438/",
-	"/sys/class/gpio/gpio442/",
-	"/sys/class/gpio/gpio446/",
+int dac_localstart_gpio[MAX_DAC] = {
+	418,
+	422,
+	426,
+	430,
+	434,
+	438,
+	442,
+	446,
+};
+/* GPIO2,6,10,14,18,22,26,30  */
+int dac_loopback_gpio[MAX_DAC] = {
+	419,
+	421,
+	423,
+	425,
+	427,
+	429,
+	431,
+	433,
 };
 
-#define DAC_SELECT_GPIO	480
 /* Starts from GPIO64 to GPIO67 */
-char dac_select_gpio[MAX_DAC][MAX_STRLEN] = {
-	"/sys/class/gpio/gpio480/",
-	"/sys/class/gpio/gpio481/",
-	"/sys/class/gpio/gpio482/",
-	"/sys/class/gpio/gpio483/",
+int dac_select_gpio[MAX_DAC] = {
+	480,
+	481,
+	482,
+	483,
 };
 
 struct rfsoc_info info;
@@ -119,8 +136,54 @@ struct rfsoc_info info;
 int init_mem()
 {
 	int i, ret;
+  	void *base;
+	u32 max_dac, max_adc;
+	u32 value;
 
-	for (i = 0; i < MAX_DAC; i++) {
+	/* open memory file */
+	info.fd_scratchpad = open("/dev/mem", O_RDWR | O_NDELAY);
+	if (info.fd_scratchpad < 0) {
+		printf("file /dev/mem open failed\n");
+		return FAIL;
+	}
+	/* map size of memory */
+	base = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED,
+			info.fd_scratchpad, (SCRATCHPAD_REG & ~MAP_MASK));
+	if (base == MAP_FAILED) {
+		perror("map");
+		printf("Error mmapping the file\n");
+		close(info.fd_scratchpad);
+		return FAIL;
+	}
+	info.map_scratchreg = base + (SCRATCHPAD_REG & MAP_MASK);
+	/* map size of memory */
+	base = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED,
+			info.fd_scratchpad, (DESIGN_TYPE_REG & ~MAP_MASK));
+	if (base == MAP_FAILED) {
+		perror("map");
+		printf("Error mmapping the file\n");
+		close(info.fd_scratchpad);
+		return FAIL;
+	}
+	info.map_design_type_reg = base + (DESIGN_TYPE_REG & MAP_MASK);
+	info.design_type = 0;
+	value = *(u32*) (info.map_design_type_reg);
+	info.design_type = (value & (3 << 16));
+	info.design_type = (info.design_type >> 16);
+
+	if (info.design_type != NON_MTS) {
+		printf("RFDC Example design is supported only for NON-MTS design\n");
+		return FAIL;
+	}
+
+	if (info.design_type == DAC1_ADC1) {
+		max_dac = 1;
+		max_adc = 1;
+	} else {
+		max_dac = MAX_DAC;
+		max_adc = MAX_ADC;
+	}
+	for (i = 0; i < max_dac; i++) {
 		/* Set memory type */		
 		ret = write_to_file(mem_type_path_dac[i], PL_MEM);
 		if (ret != SUCCESS) {
@@ -142,6 +205,7 @@ int init_mem()
 		}
 	}
 
+	
 	return SUCCESS;
 }
 
@@ -165,8 +229,16 @@ int deinit_path(int *fd, signed char* map, unsigned int sz)
 int deinit_mem(void)
 {
 	int i, ret;
+	u32 max_dac, max_adc;
 
-	for (i = 0; i < MAX_DAC; i++) {
+	if (info.design_type == DAC1_ADC1) {
+		max_dac = 1;
+		max_adc = 1;
+	} else {
+		max_dac = MAX_DAC;
+		max_adc = MAX_ADC;
+	}
+	for (i = 0; i < max_dac; i++) {
 		ret = write_to_file(mem_type_path_dac[i], NO_MEM);
 		if (ret != SUCCESS) {
 			printf("Error releasing memory\n");
@@ -175,67 +247,15 @@ int deinit_mem(void)
 		deinit_path(&info.fd_dac[i], info.map_dac[i], DAC_MAP_SZ);
 	}
 
-	return SUCCESS;
-}
-
-int disable_gpio(int gpio)
-{
-	int ret;
-
-	ret = write_to_file(GPIO_REL, gpio);
-	if (ret != SUCCESS) {
-		printf("Unable to disable GPIO : %d\n", gpio);
-		return FAIL;
+	if (info.map_scratchreg != NULL) {
+		if (munmap((info.map_scratchreg - (SCRATCHPAD_REG & MAP_MASK)), MAP_SIZE) ==
+				-1)
+			printf("unmap failed for info.map_scratchreg\n");
 	}
-
-	return ret;
-}
-
-int enable_gpio(int gpio)
-{
-	int ret;
-
-	ret = write_to_file(GPIO_EXPORT, gpio);
-	if (ret != SUCCESS) {
-		printf("Unable to enable GPIO : %d\n", gpio);
-		return FAIL;
+	if (info.fd_scratchpad) {
+		close(info.fd_scratchpad);
+		info.fd_scratchpad = 0;
 	}
-
-	return ret;
-}
-
-int set_gpio(char *path, int value)
-{
-	int ret;
-
-	ret = write_to_file(path, value);
-	if (ret != SUCCESS) {
-		printf("Unable to set GPIO : %s\n", path);
-		return FAIL;
-	}
-
-	return ret;
-}
-
-int config_gpio_op(char *path)
-{
-	int ret;
-	FILE *fp;
-
-	fp = fopen(path, "w");
-	if (fp == NULL) {
-		printf("Cannot open file %s \n", path);
-		return FAIL;
-	}
-
-	ret = fprintf(fp, "%s", "out");
-	if(ret <= 0) {
-		printf("Unable to configure GPIO\n");
-		fclose(fp);
-		return FAIL;
-	}
-
-	fclose(fp);
 
 	return SUCCESS;
 }
@@ -243,48 +263,59 @@ int config_gpio_op(char *path)
 int init_gpio()
 {
 	int i, ret;
-	char gpio_path[MAX_STRLEN];
+	u32 max_dac, max_adc;
 
-	for (i = 0; i < MAX_DAC; i++) {
+	if (info.design_type == DAC1_ADC1) {
+		max_dac = 1;
+		max_adc = 1;
+	} else {
+		max_dac = MAX_DAC;
+		max_adc = MAX_ADC;
+	}
+	for (i = 0; i < max_dac; i++) {
 		/* Enable/Export reset GPIO */
-		ret = enable_gpio((DAC0_RESET_GPIO + (i * 4)));
-		if(ret) {
+		ret = enable_gpio(dac_reset_gpio[i]);
+		if (ret) {
 			printf("Unable to enable reset GPIO\n");
 			return ret;
 		}
-		strncpy(gpio_path, dac_reset_gpio[i], (MAX_STRLEN - 1));
-		strncat(gpio_path, "direction", (MAX_STRLEN - 1));
-		ret = config_gpio_op(gpio_path);	
-		if(ret) {
+		ret = config_gpio_op(dac_reset_gpio[i]);
+		if (ret) {
 			printf("Unable to set direction for reset gpio of dac %d\n", i);
 			return ret;
 		}
 		/* Enable/Export localstart GPIO */
-		ret = enable_gpio((DAC0_LOCALSTART_GPIO + (i * 4)));
-		if(ret) {
+		ret = enable_gpio(dac_localstart_gpio[i]);
+		if (ret) {
 			printf("Unable to enable localstart gpio of dac %d\n", i);
 			return ret;
 		}
-		strncpy(gpio_path, dac_localstart_gpio[i], (MAX_STRLEN - 1));
-		strncat(gpio_path, "direction", (MAX_STRLEN - 1));
-		ret = config_gpio_op(gpio_path);	
-		if(ret) {
-			printf("Unable to set direction for localstart gpio of dac: %d\n",
-																			i);
+		ret = config_gpio_op(dac_localstart_gpio[i]);
+		if (ret) {
+			printf("Unable to set direction for localstart of dac %d\n", i);
+			return ret;
+		}
+		/* Enable/Export loopback GPIO */
+		ret = enable_gpio(dac_loopback_gpio[i]);
+		if (ret) {
+			printf("Unable to enable loopback gpio of dac %d\n", i);
+			return ret;
+		}
+		ret = config_gpio_op(dac_loopback_gpio[i]);
+		if (ret) {
+			printf("Unable to set direction for loopback of dac %d\n", i);
 			return ret;
 		}
 	}
 	for (i = 0; i < DAC_MUX_GPIOS; i++) {
 		/* Enable/Export channel select GPIO */
-		ret = enable_gpio((DAC_SELECT_GPIO + i));
-		if(ret) {
+		ret = enable_gpio(dac_select_gpio[i]);
+		if (ret) {
 			printf("Unable to enable select GPIO of dac %d\n", i);
 			return ret;
 		}
-		strncpy(gpio_path, dac_select_gpio[i], (MAX_STRLEN - 1));
-		strncat(gpio_path, "direction", (MAX_STRLEN - 1));
-		ret = config_gpio_op(gpio_path);	
-		if(ret) {
+		ret = config_gpio_op(dac_select_gpio[i]);
+		if (ret) {
 			printf("Unable to set direction for select gpio of dac %d\n", i);
 			return ret;
 		}
@@ -296,52 +327,70 @@ int init_gpio()
 int deinit_gpio()
 {
 	int i, ret;
-	char gpio_path[MAX_STRLEN];
+	u32 max_dac, max_adc;
 
-	for (i = 0; i < MAX_DAC; i++) {
+	if (info.design_type == DAC1_ADC1) {
+		max_dac = 1;
+		max_adc = 1;
+	} else {
+		max_dac = MAX_DAC;
+		max_adc = MAX_ADC;
+	}
+
+	for (i = 0; i < max_dac; i++) {
 		/* Release reset GPIO */
-		ret = disable_gpio((DAC0_RESET_GPIO + (i * 4)));
-		if(ret) {
+		ret = disable_gpio(dac_reset_gpio[i]);
+		if (ret) {
 			printf("Unable to release reset GPIO of dac\n");
 			return ret;
 		}
 		/* Release localstart GPIO */
-		ret = disable_gpio((DAC0_LOCALSTART_GPIO + (i * 4)));
-		if(ret) {
+		ret = disable_gpio(dac_localstart_gpio[i]);
+		if (ret) {
+			printf("Unable to release localstart gpio of dac\n");
+			return ret;
+		}
+		/* Release loopback GPIO */
+		ret = disable_gpio(dac_loopback_gpio[i]);
+		if (ret) {
 			printf("Unable to release localstart gpio of dac\n");
 			return ret;
 		}
 	}
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < DAC_MUX_GPIOS; i++) {
 		/* Release channel select GPIO */
-		ret = disable_gpio((DAC_SELECT_GPIO + i));
-		if(ret) {
+		ret = disable_gpio(dac_select_gpio[i]);
+		if (ret) {
 			printf("Unable to release select GPIO of dac\n");
 			return ret;
 		}
 	}
-
 }
 
-int channel_select_gpio(char sel_gpio_path[][MAX_STRLEN], int val, int type)
-{
-	int ret, i, max_loop;
+int channel_select_gpio(int *sel_gpio_path, int val, int type) {
+
+	int ret, i;
 	char gpio_path[MAX_STRLEN];
 
-	if (type == ADC)
-		max_loop = ADC_MUX_GPIOS;
-	else
-		max_loop = DAC_MUX_GPIOS;
+	if (type == DAC) {
+		// update scratch pad register
+		*(volatile u32 *)info.map_scratchreg = info.scratch_value;
 
-	for (i = 0; i < max_loop; i++) {
-		strncpy(gpio_path, sel_gpio_path[i], (MAX_STRLEN - 1));
-		strncat(gpio_path, "value", (MAX_STRLEN - 1));
-		ret = set_gpio(gpio_path, (val & (1 << i)));
-		if(ret) {
+		ret = set_gpio(dac_select_gpio[0], 0);
+		if (ret) {
 			printf("Unable to set select GPIO value\n");
 			return ret;
 		}
+		usleep(10);
+
+		//	toggle gpio64
+		ret = set_gpio(dac_select_gpio[0], 1);
+		if (ret) {
+			printf("Unable to set select GPIO value\n");
+			return ret;
+		}
+
 	}
 }
 
@@ -361,9 +410,18 @@ int disable_all_fifo(int fifo_id)
 {
 	int ret;
 	int ct;
+	u32 max_dac_tiles;
+	u32 max_adc_tiles;
 
+	if (info.design_type == DAC1_ADC1) {
+		max_dac_tiles = 1;  
+		max_adc_tiles = 1;
+	} else {
+		max_dac_tiles = MAX_DAC_TILE;
+		max_adc_tiles = MAX_ADC_TILE;
+	}
 	if(fifo_id == DAC) {
-		for(ct = 0; ct < MAX_DAC_TILE; ct++) {
+		for(ct = 0; ct < max_dac_tiles; ct++) {
 			ret = change_fifo_stat(fifo_id, ct, FIFO_DIS);
 			if(ret != SUCCESS) {
 				printf("Unable to disable DAC FIFO\n");
@@ -383,7 +441,7 @@ int WriteDataToMemory(const signed short *data, int tile_id, int block_id, int s
 	int i;
 
 	if((size == 0) || ((size % ADC_DAC_DMA_SZ_ALIGNMENT) != 0) ||
-							(size  > DAC_ADC_FIFO_SZ)) {
+			(size  > DAC_ADC_FIFO_SZ)) {
 		printf("Requested size is bigger then FiFO size; Fifo size: %d bytes\n", DAC_ADC_FIFO_SZ);
 		return FAIL;
 	}
@@ -391,38 +449,45 @@ int WriteDataToMemory(const signed short *data, int tile_id, int block_id, int s
 	/* extract dac channel ID */
 	dac = (((tile_id & 0x1) << 2) | (block_id & 0x3));
 
+	info.scratch_value = (1 << dac);
 	/* Copy data to DMAble memory*/
 	memcpy(info.map_dac[dac], data, size);
 
-	strncpy(gpio_path, dac_localstart_gpio[dac], (MAX_STRLEN - 1));
-	strncat(gpio_path, "value", (MAX_STRLEN - 1));
-	ret = set_gpio(gpio_path, 0);
-	if(ret) {
+	/* Disable local start gpio */
+	ret = set_gpio(dac_localstart_gpio[dac], 0);
+	if (ret) {
 		printf("Unable to re-set localstart GPIO value\n");
 		return FAIL;
 	}
+	ret = set_gpio(dac_loopback_gpio[dac], 0);
+	if (ret) {
+		printf("Unable to re-set loopback GPIO value\n");
+		return FAIL;
+	}
+
 	/* write to channel select GPIO */
 	ret = channel_select_gpio(dac_select_gpio, dac, DAC);
 	if(ret) {
 		printf("Unable to set channelselect GPIO value\n");
 		return FAIL;
 	}
+
 	/* Assert and De-Assert reset FIFO GPIO */
-	strncpy(gpio_path, dac_reset_gpio[dac], (MAX_STRLEN - 1));
-	strncat(gpio_path, "value", (MAX_STRLEN - 1));
-	ret = set_gpio(gpio_path, 1);
-	if(ret) {
+	ret = set_gpio(dac_reset_gpio[dac], 1);
+	if (ret) {
 		printf("Unable to assert reset GPIO value\n");
 		return FAIL;
 	}
 
 	usleep(10);
 
-	ret = set_gpio(gpio_path, 0);
-	if(ret) {
+	ret = set_gpio(dac_reset_gpio[dac], 0);
+	if (ret) {
 		printf("Unable to de-assert reset GPIO value\n");
 		return FAIL;
 	}
+
+
 	/* Enable RFDC FIFO */
 	ret = change_fifo_stat(DAC, tile_id, FIFO_EN);
 	if(ret != SUCCESS) {
@@ -435,12 +500,17 @@ int WriteDataToMemory(const signed short *data, int tile_id, int block_id, int s
 		printf("Error in writing data\n");
 		return FAIL;
 	}
+
+	ret = set_gpio(dac_loopback_gpio[dac], 1);
+	if (ret) {
+		printf("Unable to re-set localstart GPIO value\n");
+		return FAIL;
+	}
 	/* enable local start GPIO */
-	strncpy(gpio_path, dac_localstart_gpio[dac], (MAX_STRLEN - 1));
-	strncat(gpio_path, "value", (MAX_STRLEN - 1));
-	ret = set_gpio(gpio_path, 1);
-	if(ret) {
+	ret = set_gpio(dac_localstart_gpio[dac], 1);
+	if (ret) {
 		printf("Unable to set localstart GPIO value\n");
+		return FAIL;
 	}
 
 	/* Reset DMA */

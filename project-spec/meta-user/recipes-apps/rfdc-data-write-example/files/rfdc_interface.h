@@ -35,7 +35,6 @@
 #define RFDC_INTERFACE_
 
 /***************************** Include Files *********************************/
-#include "xparameters.h"
 #include "board.h"
 #include "xrfdc.h"
 
@@ -46,7 +45,6 @@
  * change all the needed parameters in one place.
  */
 #define BUS_NAME        "platform"
-#define RFDC_DEV_NAME    XPAR_XRFDC_0_DEV_NAME
 
 /**************************** Type Definitions *******************************/
 

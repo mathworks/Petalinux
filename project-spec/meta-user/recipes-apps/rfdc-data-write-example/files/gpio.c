@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright (C) 2018 Xilinx, Inc.  All rights reserved.
+ * Copyright (C) 2018 Xilinx, Inc.	All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,17 +29,79 @@
  * this Software without prior written authorization from Xilinx.
  *
  ******************************************************************************/
-#ifndef SRC_COMMON_
-#define SRC_COMMON_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include "board.h"
+/***************************** Include Files *********************************/
 
+#include "gpio.h"
+#include "common.h"
 
-int write_to_file(char *path, unsigned int val);
+/**************************** Type Definitions *******************************/
 
-#endif /* SRC_COMMON_ */
+/***************** Macros (Inline Functions) Definitions *********************/
+
+/************************** Variable Definitions *****************************/
+/************************** Function Definitions *****************************/
+int disable_gpio(int gpio) {
+  int ret;
+
+  ret = write_to_file(GPIO_REL, gpio);
+  if (ret != SUCCESS) {
+    printf("Unable to disable GPIO : %d\n", gpio);
+    return FAIL;
+  }
+
+  return SUCCESS;
+}
+
+int enable_gpio(int gpio) {
+  int ret;
+
+  ret = write_to_file(GPIO_EXPORT, gpio);
+  if (ret != SUCCESS) {
+    printf("Unable to enable GPIO : %d\n", gpio);
+    return FAIL;
+  }
+
+  return SUCCESS;
+}
+
+int set_gpio(int gpio, int value) {
+  int ret;
+  char path[255];
+
+  sprintf(path, "%sgpio%d/value",GPIO_PATH, gpio);
+  ret = write_to_file(path, value);
+  if (ret != SUCCESS) {
+    printf("Unable to set GPIO : %s\n", path);
+    return FAIL;
+  }
+
+  return SUCCESS;
+}
+
+int config_gpio_op(int gpio) {
+  int ret;
+  FILE *fp;
+  char path[255];
+
+  sprintf(path, "%sgpio%d/direction",GPIO_PATH, gpio);
+  fp = fopen(path, "w");
+  if (fp == NULL) {
+	ret  = FAIL;
+    printf("Cannot open file %s \n", path);
+    return FAIL;
+  }
+
+  ret = fprintf(fp, "%s", "out");
+  if (ret <= 0) {
+	ret = FAIL;
+    printf("Unable to configure GPIO\n");
+    fclose(fp);
+    return FAIL;
+  }
+
+  fclose(fp);
+
+  return SUCCESS;
+}
 

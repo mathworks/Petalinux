@@ -29,17 +29,68 @@
  * this Software without prior written authorization from Xilinx.
  *
  ******************************************************************************/
-#ifndef SRC_COMMON_
-#define SRC_COMMON_
+#ifndef SRC_GPIO_
+#define SRC_GPIO_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include "board.h"
+#include "common.h"
 
+#define GPIO_PATH "/sys/class/gpio/"
+#define GPIO_EXPORT "/sys/class/gpio/export"
+#define GPIO_REL "/sys/class/gpio/unexport"
 
-int write_to_file(char *path, unsigned int val);
+/****************************************************************************/
+/**
+*
+* This function releases the specified GPIO.
+*
+* @param	GPIO number
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
+int disable_gpio(int gpio);
+/****************************************************************************/
+/**
+*
+* This function exports the specified GPIO.
+*
+* @param	GPIO number
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
+int enable_gpio(int gpio);
 
-#endif /* SRC_COMMON_ */
+/****************************************************************************/
+/**
+*
+* This function configures GPIO as output.
+*
+* @param	GPIO number
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
+int config_gpio_op(int gpio);
+/****************************************************************************/
+/**
+*
+* This function sets the GPIO with the specified value.
+*
+* @param	GPIO number
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
+int set_gpio(int gpio, int value);
+
+#endif /* SRC_GPIO_ */
 
