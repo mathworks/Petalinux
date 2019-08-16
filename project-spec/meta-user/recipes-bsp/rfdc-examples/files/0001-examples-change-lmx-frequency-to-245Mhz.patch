@@ -1,0 +1,54 @@
+From 57357ce498b88cbc3b42c0fd23776306a9735133 Mon Sep 17 00:00:00 2001
+From: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+Date: Wed, 12 Dec 2018 13:51:28 +0530
+Subject: [PATCH] examples: change lmx frequency to 245Mhz
+
+change the lmx frequency to 245MHz.
+
+Signed-off-by: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+---
+ xrfdc_clk.c              | 2 +-
+ xrfdc_selftest_example.c | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/xrfdc_clk.c b/xrfdc_clk.c
+index 7b1f81a..3b57b01 100644
+--- a/xrfdc_clk.c
++++ b/xrfdc_clk.c
+@@ -551,7 +551,7 @@ static int Lmx2594UpdateFreq(int XIicDevFile,int  XFrequency)
+ 		IicWriteData(XIicDevFile, 0xd, 3, tx_array);
+ 		return 0;
+ 	}
+-	for(XFreqIndex=0 ; XFreqIndex<20; XFreqIndex++) {
++	for(XFreqIndex=0 ; XFreqIndex<26; XFreqIndex++) {
+ 		if (ClockingLmx[XFreqIndex].XFrequency == XFrequency) {
+ 			Lmx2594Updatei2c( XIicDevFile, ClockingLmx[XFreqIndex].LMX2594_A);
+ 			return 0;
+diff --git a/xrfdc_selftest_example.c b/xrfdc_selftest_example.c
+index ce17ad7..dadb129 100644
+--- a/xrfdc_selftest_example.c
++++ b/xrfdc_selftest_example.c
+@@ -104,6 +104,7 @@ int register_metal_device(void);
+ 
+ static XRFdc RFdcInst;      /* RFdc driver instance */
+ #ifdef XPS_BOARD_ZCU111
++
+ unsigned int LMK04208_CKin[1][26] = {
+ 		{0x00160040,0x80140320,0x80140321,0x80140322,
+ 		0xC0140023,0x40140024,0x80141E05,0x03300006,0x01300007,0x06010008,
+@@ -269,10 +270,10 @@ int SelfTestExample(u16 RFdcDeviceId)
+ printf("\n Configuring the Clock \r\n");
+ #ifdef __BAREMETAL__
+ 	LMK04208ClockConfig(1, LMK04208_CKin);
+-	LMX2594ClockConfig(1, 3932160);
++	LMX2594ClockConfig(1, 245760);
+ #else
+ 	LMK04208ClockConfig(12, LMK04208_CKin);
+-	LMX2594ClockConfig(12, 3932160);
++	LMX2594ClockConfig(12, 245760);
+ #endif
+ #endif
+ 
+-- 
+2.7.4
+
