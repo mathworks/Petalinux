@@ -2,6 +2,7 @@
 # Automatically generated file; DO NOT EDIT.
 # Configuration
 #
+CONFIG_system-zynqmp=y
 
 #
 # Filesystem Packages 
@@ -601,13 +602,6 @@ CONFIG_openssh-sftp-server=y
 # CONFIG_parted-dbg is not set
 
 #
-# protobuf 
-#
-# CONFIG_protobuf is not set
-# CONFIG_protobuf-dbg is not set
-# CONFIG_protobuf-dev is not set
-
-#
 # xen 
 #
 # CONFIG_xen-libxengnttab-dev is not set
@@ -615,14 +609,12 @@ CONFIG_openssh-sftp-server=y
 # CONFIG_xen-libxenstat is not set
 # CONFIG_xen-base is not set
 # CONFIG_xen-libxenevtchn-dev is not set
-# CONFIG_xen-libblktapctl-dev is not set
 # CONFIG_xen-efi is not set
 # CONFIG_xen-hypervisor is not set
 # CONFIG_xen-xenstat is not set
 # CONFIG_xen-xl-examples is not set
 # CONFIG_xen-scripts-block is not set
 # CONFIG_xen-libxlutil-dev is not set
-# CONFIG_xen-libvhd-dev is not set
 # CONFIG_xen-libxenstat-dev is not set
 # CONFIG_xen-scripts-common is not set
 # CONFIG_xen-xenmon is not set
@@ -646,15 +638,12 @@ CONFIG_openssh-sftp-server=y
 # CONFIG_xen-xl is not set
 # CONFIG_xen-libxenvchan-dev is not set
 # CONFIG_xen-libxentoollog-dev is not set
-# CONFIG_xen-libvhd is not set
 # CONFIG_xen-fsimage is not set
-# CONFIG_xen-libblktapctl is not set
 # CONFIG_xen-libxentoollog is not set
 # CONFIG_xen-libxenforeignmemory-dev is not set
 # CONFIG_xen-libxengnttab is not set
 # CONFIG_xen-xentrace is not set
 # CONFIG_xen-libxenctrl is not set
-# CONFIG_xen-blktap is not set
 # CONFIG_xen-libfsimage is not set
 # CONFIG_xen-libxenforeignmemory is not set
 # CONFIG_xen-xendomains is not set
@@ -3201,7 +3190,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # qttranslations 
 #
 # CONFIG_qttranslations is not set
-# CONFIG_qttranslations-qtconfig is not set
 # CONFIG_qttranslations-qtwebengine is not set
 # CONFIG_qttranslations-qtquick1 is not set
 # CONFIG_qttranslations-qthelp is not set
@@ -3322,13 +3310,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_rpmsg-proxy-app is not set
 # CONFIG_rpmsg-proxy-app-dbg is not set
 # CONFIG_rpmsg-proxy-app-dev is not set
-
-#
-# rpmsg-proxy-module 
-#
-# CONFIG_kernel-module-rpmsg-proxy is not set
-# CONFIG_kernel-module-rpmsg-proxy-dev is not set
-# CONFIG_kernel-module-rpmsg-proxy-dbg is not set
 
 #
 # rpmsg-user-module 
@@ -3456,6 +3437,11 @@ CONFIG_tcf-agent=y
 # CONFIG_watchdog-config is not set
 # CONFIG_watchdog-config-dbg is not set
 # CONFIG_watchdog-config-dev is not set
+
+#
+# watchdog-init
+#
+# CONFIG_watchdog-init is not set
 
 #
 # webkitgtk 
@@ -4329,6 +4315,7 @@ CONFIG_hellopm=y
 # CONFIG_packagegroup-petalinux-qt is not set
 # CONFIG_packagegroup-petalinux-qt-dev is not set
 # CONFIG_packagegroup-petalinux-qt-dbg is not set
+# CONFIG_inherit-populate-sdk-qt5 is not set
 
 #
 # packagegroup-petalinux-qt-extended 
@@ -4380,6 +4367,15 @@ CONFIG_hellopm=y
 # CONFIG_packagegroup-petalinux-xfce-dev is not set
 
 #
+# Image Features
+#
+# CONFIG_imagefeature-ssh-server-dropbear is not set
+# CONFIG_imagefeature-ssh-server-openssh is not set
+# CONFIG_imagefeature-hwcodecs is not set
+# CONFIG_imagefeature-package-management is not set
+# CONFIG_imagefeature-debug-tweaks is not set
+
+#
 # apps 
 #
 # CONFIG_gpio-demo is not set
@@ -4396,12 +4392,14 @@ CONFIG_rftool=y
 # user packages 
 #
 CONFIG_libiio=y
+# CONFIG_libsdfecusrintf is not set
 CONFIG_libserialport=y
 CONFIG_libusb=y
 CONFIG_mw-fs-overlay=y
 CONFIG_rfdc=y
 CONFIG_rfdc-read-write=y
 CONFIG_rfdc-selftest=y
+# CONFIG_sdfec-demo is not set
 
 #
 # PetaLinux RootFS Settings
