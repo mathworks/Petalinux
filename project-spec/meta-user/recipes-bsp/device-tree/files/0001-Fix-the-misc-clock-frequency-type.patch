@@ -1,0 +1,38 @@
+From 5fec79822831ed45d00a22e1d5da3e80fffa8c38 Mon Sep 17 00:00:00 2001
+From: Venkatesh Yadav Abbarapu <venkatesh.abbarapu@xilinx.com>
+Date: Mon, 26 Nov 2018 09:34:36 +0530
+Subject: [DEVICE-TREE-XLNX PATCH] Fix the misc clock frequency type
+
+When generating the misc clocks sometimes we get the frequency
+as float, convert this float value to int.
+
+Signed-off-by: Venkatesh Yadav Abbarapu <venkatesh.abbarapu@xilinx.com>
+---
+ device_tree/data/common_proc.tcl |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/device_tree/data/common_proc.tcl b/device_tree/data/common_proc.tcl
+index f6d3f4c..f63a2ae 100644
+--- a/device_tree/data/common_proc.tcl
++++ b/device_tree/data/common_proc.tcl
+@@ -1382,6 +1382,8 @@ proc gen_clk_property {drv_handle} {
+ 					dtg_warning "clock frequency for the $clk is NULL"
+ 					continue
+ 				}
++				# if clk_freq is float convert it to int
++				set clk_freq [expr int($clk_freq)]
+ 				set iptype [get_property IP_NAME [get_cells -hier $drv_handle]]
+ 				if {![string equal $clk_freq ""]} {
+ 					if {[lsearch $bus_clk_list $clk_freq] < 0} {
+@@ -1511,6 +1513,8 @@ proc gen_clk_property {drv_handle} {
+ 				dtg_warning "clock frequency for the $clk is NULL"
+ 				continue
+ 			}
++			# if clk_freq is float convert it to int
++			set clk_freq [expr int($clk_freq)]
+ 			set iptype [get_property IP_NAME [get_cells -hier $drv_handle]]
+ 			if {![string equal $clk_freq ""]} {
+ 				if {[lsearch $bus_clk_list $clk_freq] < 0} {
+-- 
+1.7.1
+
