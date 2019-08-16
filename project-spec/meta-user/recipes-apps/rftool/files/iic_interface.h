@@ -34,8 +34,8 @@
 #define SRC_CONTROL_PATH_CORE_C_SORUCE_IIC_INTERFACE_H_
 
 /***************************** Include Files *********************************/
-#include "rfdc_functions_w.h"
 #include "cmd_interface.h"
+#include "rfdc_functions_w.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,9 +46,37 @@
 /************************** Variable Definitions *****************************/
 
 /************************** Function Prototypes ******************************/
-
+/****************************************************************************/
+/**
+*
+* This function recieves clock settings from client and program LMX/LMK
+* frequency values through I2C interface.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void iic_write_data(convData_t *cmdVals, char *txstrPtr, int *status);
-void iic_read_data(convData_t *cmdVals, char *txstrPtr, int *status);
 
+/****************************************************************************/
+/**
+*
+* This function reads clock settings of LMX/LMK through I2C and sends to client.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		Not implemented yet.
+*
+******************************************************************************/
+void iic_read_data(convData_t *cmdVals, char *txstrPtr, int *status);
 
 #endif /* SRC_CONTROL_PATH_CORE_C_SORUCE_IIC_INTERFACE_H_ */

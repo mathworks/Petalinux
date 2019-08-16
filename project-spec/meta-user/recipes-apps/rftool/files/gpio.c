@@ -32,6 +32,8 @@
 
 /***************************** Include Files *********************************/
 
+#include "gpio.h"
+#include "cmd_interface.h"
 #include "common.h"
 
 /**************************** Type Definitions *******************************/
@@ -40,19 +42,61 @@
 
 /************************** Variable Definitions *****************************/
 /************************** Function Definitions *****************************/
-int write_to_file(char *path, unsigned int val) {
-  FILE *fp;
+int disable_gpio(int gpio) {
   int ret;
 
-  fp = fopen(path, "wb");
-  if (fp == NULL) {
-    printf("Error opening file : %s\n", path);
+  ret = write_to_file(GPIO_REL, gpio);
+  if (ret != SUCCESS) {
+    MetalLoghandler_firmware(ret, "Unable to disable GPIO : %d\n", gpio);
     return FAIL;
   }
 
-  ret = fprintf(fp, "%d\n", val);
+  return SUCCESS;
+}
+
+int enable_gpio(int gpio) {
+  int ret;
+
+  ret = write_to_file(GPIO_EXPORT, gpio);
+  if (ret != SUCCESS) {
+    MetalLoghandler_firmware(ret, "Unable to enable GPIO : %d\n", gpio);
+    return FAIL;
+  }
+
+  return SUCCESS;
+}
+
+int set_gpio(int gpio, int value) {
+  int ret;
+  char path[255];
+
+  sprintf(path, "%sgpio%d/value", GPIO_PATH, gpio);
+  ret = write_to_file(path, value);
+  if (ret != SUCCESS) {
+    MetalLoghandler_firmware(ret, "Unable to set GPIO : %s\n", path);
+    return FAIL;
+  }
+
+  return SUCCESS;
+}
+
+int config_gpio_op(int gpio) {
+  int ret;
+  FILE *fp;
+  char path[255];
+
+  sprintf(path, "%sgpio%d/direction", GPIO_PATH, gpio);
+  fp = fopen(path, "w");
+  if (fp == NULL) {
+    ret = FAIL;
+    printf("Cannot open file %s \n", path);
+    return FAIL;
+  }
+
+  ret = fprintf(fp, "%s", "out");
   if (ret <= 0) {
-    printf("Unable to set clock value\n");
+    ret = FAIL;
+    printf("Unable to configure GPIO\n");
     fclose(fp);
     return FAIL;
   }

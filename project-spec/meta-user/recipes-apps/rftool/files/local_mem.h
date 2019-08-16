@@ -34,31 +34,21 @@
 
 /***************************** Include Files *********************************/
 
-#include "rfdc_functions_w.h"
 #include "cmd_interface.h"
+#include "rfdc_functions_w.h"
 #include "xrfdc.h"
-#include "xparameters.h"
 
 /************************** Constant Definitions *****************************/
 #define lmem_rd32 XRFdc_In32
 #define lmem_wr32 XRFdc_Out32
 
-#define XPAR_DATA_CAPTURE_AXI_S_0_BASEADDR 0x00 
-#define XPAR_STIMULUS_GEN_AXI_S_0_BASEADDR 0x01 
-
-/* Data Capture IP AXI Base address */
-#define DATA_CAPTURE_BASEADDR XPAR_DATA_CAPTURE_AXI_S_0_BASEADDR
-
-/* Stimulus Gen IP AXI Base address */
-#define STIMULUS_GEN_BASEADDR XPAR_STIMULUS_GEN_AXI_S_0_BASEADDR
-
 /* LMEM_INFO register address */
-#define LMEM_INFO     0x00
+#define LMEM_INFO 0x00
 
 /* LMEM_TRIGGER register address */
-#define LMEM_TRIGGER  0x04
-#define LMEM_ENABLE   0x08
-#define LMEM_CLKSEL   0x0C
+#define LMEM_TRIGGER 0x04
+#define LMEM_ENABLE 0x08
+#define LMEM_CLKSEL 0x0C
 #define LMEM0_ENDADDR 0x10
 
 /**************************** Type Definitions *******************************/
@@ -68,11 +58,68 @@
 /************************** Variable Definitions *****************************/
 
 /************************** Function Prototypes ******************************/
+/****************************************************************************/
+/**
+*
+* This function sends available memory details and enabled devices.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void LocalMemInfo(convData_t *cmdVals, char *txstrPtr, int *status);
 
-void LocalMemInfo (convData_t *cmdVals,char *txstrPtr, int *status);
-void GetMemInfoHw(u32 mem, int *num_tiles, int *num_mem, int *mem_size, int *num_words);
-void LocalMemTrigger (convData_t *cmdVals,char *txstrPtr, int *status);
-int LocalMemTriggerHw(u32 mem, u8 clk_sel, u32 len, u32 mem_ids);
+/****************************************************************************/
+/**
+*
+* This function is used as a trigger to start DAC or ADC operations.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void LocalMemTrigger(convData_t *cmdVals, char *txstrPtr, int *status);
 
+/****************************************************************************/
+/**
+*
+* This function returns address of each channel.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void LocalMemAddr(convData_t *cmdVals, char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function is to set number of samples in a channel.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void SetLocalMemSample(convData_t *cmdVals, char *txstrPtr, int *status);
 
 #endif /* SRC_LOCAL_MEM_H_ */

@@ -56,6 +56,7 @@ int rfdc_inst_init(u16 rfdc_id)
 		.log_handler    = MetalLoghandler,  \
 		.log_level      = METAL_LOG_INFO,   \
 	};
+	char DeviceName[500];
 
 	if (metal_init(&init_param)) {
 		sendString("ERROR: metal_init METAL_LOG_INIT_FAILURE", 40);
@@ -70,7 +71,13 @@ int rfdc_inst_init(u16 rfdc_id)
 		return XRFDC_FAILURE;
 	}
 
-	ret = metal_device_open(BUS_NAME, RFDC_DEV_NAME, &device);
+	ret = XRFdc_GetDeviceNameByDeviceId(DeviceName, 0 /*RFDC_DEVICE_ID*/);
+	if (Status < 0) {
+		printf("ERROR: Failed to find rfdc device with device id %d\n",0);
+		return XRFDC_FAILURE;
+	}
+
+	ret = metal_device_open(BUS_NAME, DeviceName, &device);
 	if (ret) {
 		sendString("ERROR: metal_device_open METAL_DEV_OPEN_FAILURE", 47);
 		return XRFDC_FAILURE;

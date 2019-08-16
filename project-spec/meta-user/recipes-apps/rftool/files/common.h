@@ -32,14 +32,25 @@
 #ifndef SRC_COMMON_
 #define SRC_COMMON_
 
+#include "board.h"
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
-#include "board.h"
 
-
+/****************************************************************************/
+/**
+*
+* This function updates sysfs path with the requested value.
+*
+* @param	sysfs path
+* @param	value to update in the path
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int write_to_file(char *path, unsigned int val);
 
 #endif /* SRC_COMMON_ */
-

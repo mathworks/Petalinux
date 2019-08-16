@@ -45,16 +45,164 @@ enum sock_type {
 /************************** Variable Definitions *****************************/
 
 /************************** Function Prototypes ******************************/
+/****************************************************************************/
+/**
+*
+* This function is used to initialise command socket.
+*
+* @param	None	
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int tcpServerInitialize();
+
+/****************************************************************************/
+/**
+*
+* This function is used to initialise data socket.
+*
+* @param	None	
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int DataServerInitialize(void);
+
+/****************************************************************************/
+/**
+*
+* This function is used to accept command socket connection.
+*
+* @param	None	
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 void acceptConnection(void);
+
+/****************************************************************************/
+/**
+*
+* This function is used to accept data socket connection.
+*
+* @param	None	
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 void acceptdataConnection(void);
+
+/****************************************************************************/
+/**
+*
+* This function is used to get "\n" terminates string from control command socket.
+*
+* @param	Command string
+* @param	length of string
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int getString(char*,int len);
+
+/****************************************************************************/
+/**
+*
+* This function is used to get "\n" terminates string from data command socket.
+*
+* @param	Command string
+* @param	length of string
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int getdataString(char*,int len);
+
+/****************************************************************************/
+/**
+*
+* This function is used to send the response through control command socket.
+*
+* @param	Response string
+* @param	length of string
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int sendString(char * resp,int len);
+
+/****************************************************************************/
+/**
+*
+* This function is used to send the response through data command socket.
+*
+* @param	Response string
+* @param	length of string
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int senddataString(char * resp,int len);
+
+/****************************************************************************/
+/**
+*
+* This function is used to get data from client through data socket.
+*
+* @param	data
+* @param	length of data
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 unsigned int getSamples(unsigned char *buf, unsigned int len);
+
+/****************************************************************************/
+/**
+*
+* This function is used to send data to client through data socket.
+*
+* @param	data
+* @param	length of data
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int sendSamples(signed char * resp, int len);
+
+/****************************************************************************/
+/**
+*
+* This function is used to close the specified socket.
+*
+* @param	socket id
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void shutdown_sock(int sock_id);
 
 #endif

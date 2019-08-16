@@ -39,6 +39,9 @@
 /**************************** Type Definitions *******************************/
 
 /***************** Macros (Inline Functions) Definitions *********************/
+
+int cmdParseArg(char *strPtr, int cmdIdx );
+int data_cmdParseArg(char *strPtr, int cmdIdx );
 /************************** Variable Definitions *****************************/
 int enTermMode  = 1;
 
@@ -51,6 +54,7 @@ char metalMsgBuf[BUF_MAX_LEN] = {0};
 
 /* Increments whenever a new log message is appended and get cleared following a read metal log command */
 int metalMsgIdx = 0;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 CMDSTRUCT data_cmdtab[] = {
 	{"WriteDataToMemory"   , "<Tile_id> <Block_id> <number_of_bytes> <interleaved_pair>","iuuu", *WriteDataToMemory},
@@ -64,7 +68,7 @@ CMDSTRUCT cmdtab[] = {
 	{"GetQMCSettings"     , "<Type> <Tile_id> <Block_id> |-> GetQMCSettings <Type> <Tile_id> <Block_id>  <GainCorrectionFactor> <PhaseCorrectionFactor> <EnablePhase> <EnableGain> <OffsetCorrectionFactor>,<EventSource>" ,"uiu"      , *GetQMCSettings },
 	/* board settings */
 	{"SetExtParentclk"    , "<Board_id> <Freq> |-> SetExtParentclk <Board_id> <Freq>","uu", *SetExtParentclk},
-	{"iic_write"   	      , "<iic_inst> <slave_addr> <reg_offset> <size> <data>","uuuul", *iic_write_data},
+	{"iic_write"   	      , "<iic_inst> <slave_addr> <reg_offset> <size> <data>","uuuuu", *iic_write_data},
 	{"iic_read"   		  , "<iic_inst> <slave_addr> <size>","uuu", *iic_read_data},
 	{"SetExtPllClkRate"   , "<Board_id> <Pll_Src> <Freq> |-> SetExtPllClkRate <Board_id> <Pll_Src> <Freq>","uuu", *SetExtPllClkRate},
 	{"SetDACPowerMode"   , "<Board_id> <Tile_id> <Block_id> <Output_Current> |-> SetDACPowerMode <Board_id> <Tile_id> <Block_id> <Output_Current>","uiuu", *SetDACPowerMode },
@@ -136,6 +140,12 @@ CMDSTRUCT cmdtab[] = {
 	{"LocalMemTrigger"         , "<stim_cap> <clk_sel> <numsamples> <channels> |-> LocalMemTrigger"                                                       ,"uuuu"      , *LocalMemTrigger},
 	{"SetCalFreeze"            , "<Tile_id> <Block_id> <Enable> |-> SetCalFreeze ", "iuu", *SetCalFreeze},
 	{"GetCalFreeze"            , "<Tile_id> <Block_id>  |-> GetCalFreeze Tile_id Block_id Enable", "iu", *GetCalFreeze},
+	{"SetMemtype"              , "<mem_type>  |-> SetMemtype memtype", "u", *SetMemtype},
+	{"GetMemtype"              , "<void>  |-> GetMemtype memtype", "", *GetMemtype},
+	{"SetFabSSR"     , "<Type> <Enable> |-> SetFabSSR ", "uu", *SetFabSSR},
+	{"GetFabSSR"     , "<Type> |-> GetFabSSR ", "u", *GetFabSSR},
+	{"LocalMemAddr"            , "", "uiu"   , *LocalMemAddr},
+	{"SetLocalMemSample"       , "","uiuu"   , *SetLocalMemSample},
 };
 
 
@@ -340,6 +350,7 @@ int cmdParseArg(char *strPtr, int cmdIdx ) {
 			if(argType[idx]=='i')  cmdArrgs[idx].i = strtol(strPtr, &strPtr, 0);
 			if(argType[idx]=='u')  cmdArrgs[idx].u = strtoul(strPtr, &strPtr,0);
 			if(argType[idx]=='d')  cmdArrgs[idx].d = strtod(strPtr, &strPtr);
+			if(argType[idx]=='l')  cmdArrgs[idx].l = strtoull(strPtr, &strPtr,0);
 		}
 	}
 	/* Next characters following the last argument is expected to be \r\n or \n */
@@ -385,7 +396,7 @@ void Version (convData_t *cmdVals,char *txstrPtr, int *status)
 {
 	char Response[BUF_MAX_LEN]={0};
 
-	sprintf(Response," Beta-1.0");
+	sprintf(Response," 1.3");
 	strncat (txstrPtr,Response,BUF_MAX_LEN);
 	*status = SUCCESS;
 }
@@ -394,7 +405,7 @@ void GUI_Title (convData_t *cmdVals,char *txstrPtr, int *status)
 {
 	char Response[BUF_MAX_LEN]={0};
 
-	sprintf(Response," (TRD Beta v1.0) ");
+	sprintf(Response," (TRD v1.3) ");
 	strncat (txstrPtr,Response,BUF_MAX_LEN);
 
 	*status = SUCCESS;
@@ -421,7 +432,7 @@ void MetalLoghandler(enum metal_log_level level, const char *format, ...)
 			"metal: info:      ",
 			"metal: debug:     ",
 		};
-
+		pthread_mutex_lock(&mutex);
 		va_start(args, format);
 		vsnprintf(msgLocal, sizeof(msgLocal), format, args);
 		va_end(args);
@@ -434,7 +445,55 @@ void MetalLoghandler(enum metal_log_level level, const char *format, ...)
 		strncat(metalMsgBuf,msgLocal,(BUF_MAX_LEN - 1));
 		/* Increment idx by 1 */
 		metalMsgIdx++;
+		pthread_mutex_unlock(&mutex);
 }
+
+/*
+ * libmetal logger handler
+ * The function append the log message from the metal_log to a global buffer
+ * The global buffer is then cleared by a dedicated command following a read log command
+ */
+
+void MetalLoghandler_firmware(int log_level, const char *format, ...)
+{
+	char msgLocal[BUF_MAX_LEN/64];
+	int level = (log_level < 0) ? -(log_level): (log_level);
+
+	va_list args;
+	static const char *level_strs[] = {
+		"success ",
+		"fail: ",
+		"invalid: args ",
+		"fail: mem disable ",
+		"fail: mem enable ",
+		"fail: mem init ",
+		"fail: mem init ",
+		"fail: enable fifo ",
+		"fail: reset fifio ",
+		"fail: DMA RX ",
+		"fail: DMA TX ",
+		"fail: disable fifo ",
+		"fail: enable IL Config ",
+		"fail: send sample ",
+		"fail: receive sample ",
+		"fail: GPIO setting ",
+		"fail: MTS setting ",
+		};
+
+		pthread_mutex_lock(&mutex);
+		va_start(args, format);
+		vsnprintf(msgLocal, sizeof(msgLocal), format, args);
+		va_end(args);
+
+		/* buffer msgLocal into metalMsgBuf */
+		strncat(metalMsgBuf,level_strs[level],(BUF_MAX_LEN - 1));
+		strncat(metalMsgBuf,msgLocal,(BUF_MAX_LEN - 1));
+		/* Increment idx by 1 */
+		metalMsgIdx++;
+		pthread_mutex_unlock(&mutex);
+}
+
+
 
 /*
  * The function returns the metal log global buffer (metalMsgBuf) to the host
@@ -451,4 +510,69 @@ void GetLog(convData_t *cmdVals,char *txstrPtr, int *status) {
 	metalMsgIdx = 0;
 
 	*status = SUCCESS;
+}
+
+void SetFabSSR(convData_t *cmdVals, char *txstrPtr, int *status) {
+	u32 Type;
+	u32 Enable;
+	u32 gpio;
+	u32 *val;
+	int ret;
+
+	Type = cmdVals[0].u;
+	Enable = cmdVals[1].u;
+
+	if (info.design_type != DAC1_ADC1) {
+		MetalLoghandler_firmware(INVAL_ARGS,"SSR commands are only supported by SSR IP design\n");
+		*status = FAIL;
+		goto err;
+    }
+
+	if (Type == ADC) {
+		gpio = ADC_SSR_CTL_GPIO;
+		val = &info.adc_ssrgpio_val;
+	} else {
+		gpio = DAC_SSR_CTL_GPIO;
+		val = &info.dac_ssrgpio_val;
+	}
+
+	ret = set_gpio(gpio, Enable);
+	if(ret) {
+		MetalLoghandler_firmware(ret,"Unable to set select GPIO value\n");
+		goto err;
+	}
+	*status = SUCCESS;
+	(*val) = Enable;
+	return;
+err:
+	if(enTermMode) {
+		printf("cmd = SetFabSSR\n"
+				"type = %d\n",
+				"enable = %d\n\n", Type, Enable);
+	}
+
+	*status = FAIL;
+}
+
+void GetFabSSR(convData_t *cmdVals, char *txstrPtr, int *status) {
+	u32 Type;
+	u32 Enable;
+	char Response[BUF_MAX_LEN]={0};
+
+	Type = cmdVals[0].u;
+
+	if (info.design_type != DAC1_ADC1) {
+		MetalLoghandler_firmware(INVAL_ARGS,"SSR commands are only supported by SSR IP design\n");
+		*status = FAIL;
+		return;
+	}
+
+	if (Type == ADC)
+		Enable =  info.adc_ssrgpio_val;
+	else
+		Enable = info.dac_ssrgpio_val;
+
+	*status = SUCCESS;
+	sprintf(Response," %d %d ",Type, Enable);
+	strncat(txstrPtr,Response,BUF_MAX_LEN);
 }

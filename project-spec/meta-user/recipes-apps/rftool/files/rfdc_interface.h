@@ -33,7 +33,6 @@
 #ifndef RFDC_INTERFACE_
 #define RFDC_INTERFACE_
 
-#include "xparameters.h"
 #include "xrfdc.h"
 #include "cmd_interface.h"
 #include "tcp_interface.h"
@@ -44,8 +43,19 @@
  * change all the needed parameters in one place.
  */
 #define BUS_NAME        "platform"
-#define RFDC_DEV_NAME    XPAR_XRFDC_0_DEV_NAME
 
+/****************************************************************************/
+/**
+*
+* This function is used to initiliase RFDC instance and related resources.
+*
+* @param	RFDC ID	
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int rfdc_inst_init(u16 rfdc_id);
 
 #endif /* RFDC_INTERFACE_ */
