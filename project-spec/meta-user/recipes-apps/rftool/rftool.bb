@@ -11,6 +11,7 @@ SRC_URI = "file://board.h \
 	   file://error_interface.h \
 	   file://cmd_interface.h \
 	   file://common.h \
+	   file://gpio.h \
 	   file://rfdc_interface.h \
 	   file://tcp_interface.h \
 	   file://rfdc_functions_w.h \
@@ -21,6 +22,7 @@ SRC_URI = "file://board.h \
 	   file://local_mem.h \
 	   file://tcp_interface.c \
 	   file://common.c \
+	   file://gpio.c \
 	   file://rfdc_interface.c \
 	   file://cmd_interface.c \
 	   file://error_interface.c \
