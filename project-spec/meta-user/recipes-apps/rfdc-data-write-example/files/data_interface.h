@@ -60,6 +60,8 @@
 #define FIFO_EN			1
 #define FIFO_DIS		0
 
+enum DESIGN_TYPE { NON_MTS = 1, MTS = 2, DAC1_ADC1 = 3 };
+
 enum MEM_TYPE {
 	NO_MEM,
 	PL_MEM,
@@ -78,5 +80,7 @@ int WriteDataToMemory(const signed short *data, int tile_id, int block_id, int s
 void clearIntrStat(int Tile_Id, int Block_Id, unsigned int IntrMask);
 int getIntrStat(int Tile_Id, int Block_Id);
 int disable_mem(void);	
+int init_mem();
+int init_gpio();
 
 #endif /* SRC_DATA_INTERFACE_ */

@@ -15,6 +15,8 @@ SRC_URI = " file://board.h \
 	   file://clock_interface.h \
 	   file://rfdc_interface.c \
 	   file://common.c \
+	   file://gpio.c \
+	   file://gpio.h \
 	   file://rfdc_functions.c \
 	   file://data_interface.c \
 	   file://clock_interface.c \

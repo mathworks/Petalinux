@@ -55,6 +55,7 @@ int rfdc_inst_init(u16 rfdc_id)
 	struct metal_io_region *io;
 	int ret = 0;
 	struct metal_init_params init_param = METAL_INIT_DEFAULTS;
+	char DeviceName[500];
 
 	if (metal_init(&init_param)) {
 		printf("ERROR: metal_init METAL_LOG_INIT_FAILURE");
@@ -69,7 +70,13 @@ int rfdc_inst_init(u16 rfdc_id)
 		return XRFDC_FAILURE;
 	}
 
-	ret = metal_device_open(BUS_NAME, RFDC_DEV_NAME, &device);
+	ret = XRFdc_GetDeviceNameByDeviceId(DeviceName, 0 /*RFDC_DEVICE_ID*/);
+	if (Status < 0) {
+		printf("ERROR: Failed to find rfdc device with device id %d\n",0);
+		return XRFDC_FAILURE;
+	}
+
+	ret = metal_device_open(BUS_NAME, DeviceName, &device);
 	if (ret) {
 		printf("ERROR: metal_device_open METAL_DEV_OPEN_FAILURE");
 		return XRFDC_FAILURE;
