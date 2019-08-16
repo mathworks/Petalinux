@@ -5,7 +5,11 @@ SRC_URI += "file://bsp.cfg \
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 SRC_URI_append = " \
-        file://0001-clk-lmx2594-Add-support-for-lmx2594-clock.patch  \
-        file://0002-power-supply-irps-Add-support-for-irps-supply.patch \
-        file://0003-drivers-misc-add-support-for-DDR-memory-management.patch \
+       	file://0001-power-supply-irps-Add-support-for-irps-supply.patch \
+		file://0002-drivers-misc-add-support-for-DDR-memory-management.patch \
+		file://0003-dmaengine-xilinx_dma-In-SG-cyclic-mode-allow-multipl.patch \
+		file://0004-drivers-misc-add-support-for-selecting-mem-type.patch \
+		file://0005-i2c-cadence-Implement-timeout.patch \
+		file://0006-i2c-muxes-update-Mux-register-always.patch \
+		file://0007-drivers-misc-change-ADC-packet-size-as-per-FIFO-size.patch \
 "
