@@ -3,7 +3,7 @@
 # misc/config System Configuration
 #
 CONFIG_SUBSYSTEM_TYPE_LINUX=y
-
+CONFIG_SYSTEM_ZYNQMP=y
 #
 # Linux Components Selection
 #
