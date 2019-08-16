@@ -42,7 +42,6 @@
 #include "iic_interface.h"
 #include "xrfdc.h"
 #include "board.h"
-#include "xparameters.h"
 
 
 #define PMIC_PATH "/sys/devices/platform/amba/ff020000.i2c/i2c-0/i2c-5/5-0045/voltage"
@@ -64,7 +63,36 @@ enum current_value {
 /************************** Variable Definitions *****************************/
 
 /************************** Function Prototypes ******************************/
+/****************************************************************************/
+/**
+*
+* This function configures DAC output current.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void SetDACPowerMode(convData_t *cmdVals, char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function gets DAC power value from the driver.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void GetDACPower(convData_t *cmdVals, char *txstrPtr, int *status);
 
 #endif /* SRC_POWER_INTERFACE_ */

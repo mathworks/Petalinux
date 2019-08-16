@@ -44,45 +44,41 @@
 /************************** Function Prototypes ******************************/
 
 /*
- * The API is a wrapper function used as a bridge with the command interface. The function
+ * The API is a wrapper function used as a bridge with the command interface.
+ * The function
  * write data to iic slave.
  */
-void iic_write_data(convData_t *cmdVals, char *txstrPtr, int *status)
-{
-	u32 iic_inst;
-	u32 slave_addr, bytes;
-	u32 i, st;
-	u32 tx_array[5] = {0};
+void iic_write_data(convData_t *cmdVals, char *txstrPtr, int *status) {
+  u32 iic_inst;
+  u32 slave_addr, bytes, reg_off;
+  u32 size, data;
+  u32 tx_array[5] = {0};
 
-	iic_inst = cmdVals[0].b[0];
-	slave_addr = cmdVals[1].b[0];
-	tx_array[0] = cmdVals[2].b[0];
-	bytes = cmdVals[3].b[0];
-	printf("cmd = iic_write_data\n"
-		"iic_inst = %lu\n"
-		"slave_addr = %lu\n"
-		"tx_array[0] = %lu\n"
-		"bytes = %lu\n\n", iic_inst, slave_addr, tx_array[0], bytes);
-	*status = SUCCESS;
+  iic_inst = cmdVals[0].u;
+  slave_addr = cmdVals[1].u;
+  reg_off = cmdVals[2].u;
+  size = cmdVals[3].u;
+  data = cmdVals[4].u;
+  *status = iic_device_write(iic_inst, slave_addr, reg_off, size, data);
 }
 
 /*
- * The API is a wrapper function used as a bridge with the command interface. The function
+ * The API is a wrapper function used as a bridge with the command interface.
+ * The function
  * read data from iic.
  */
-void iic_read_data(convData_t *cmdVals, char *txstrPtr, int *status)
-{
-	u32 slave_addr, iic_inst, bytes;
+void iic_read_data(convData_t *cmdVals, char *txstrPtr, int *status) {
+  u32 slave_addr, iic_inst, bytes;
 
-	iic_inst = cmdVals[0].b[0];
+  iic_inst = cmdVals[0].b[0];
 
-	slave_addr = cmdVals[1].b[0];
-	bytes = cmdVals[2].b[0];
-	printf("cmd = iic_read_data\n"
-		"iic_inst = %lu\n"
-		"slave_addr = %lu\n"
-		"bytes = %lu\n\n", iic_inst, slave_addr, bytes);
+  slave_addr = cmdVals[1].b[0];
+  bytes = cmdVals[2].b[0];
+  printf("cmd = iic_read_data\n"
+         "iic_inst = %lu\n"
+         "slave_addr = %lu\n"
+         "bytes = %lu\n\n",
+         iic_inst, slave_addr, bytes);
 
-	*status = SUCCESS;
+  *status = SUCCESS;
 }
-

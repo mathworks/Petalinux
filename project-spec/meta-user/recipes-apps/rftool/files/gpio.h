@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright (C) 2018 Xilinx, Inc.	All rights reserved.
+ * Copyright (C) 2018 Xilinx, Inc.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,35 +29,67 @@
  * this Software without prior written authorization from Xilinx.
  *
  ******************************************************************************/
-
-/***************************** Include Files *********************************/
+#ifndef SRC_GPIO_
+#define SRC_GPIO_
 
 #include "common.h"
 
-/**************************** Type Definitions *******************************/
+#define GPIO_PATH "/sys/class/gpio/"
+#define GPIO_EXPORT "/sys/class/gpio/export"
+#define GPIO_REL "/sys/class/gpio/unexport"
 
-/***************** Macros (Inline Functions) Definitions *********************/
+/****************************************************************************/
+/**
+*
+* This function releases the specified GPIO.
+*
+* @param	GPIO number
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
+int disable_gpio(int gpio);
+/****************************************************************************/
+/**
+*
+* This function exports the specified GPIO.
+*
+* @param	GPIO number
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
+int enable_gpio(int gpio);
 
-/************************** Variable Definitions *****************************/
-/************************** Function Definitions *****************************/
-int write_to_file(char *path, unsigned int val) {
-  FILE *fp;
-  int ret;
+/****************************************************************************/
+/**
+*
+* This function configures GPIO as output.
+*
+* @param	GPIO number
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
+int config_gpio_op(int gpio);
+/****************************************************************************/
+/**
+*
+* This function sets the GPIO with the specified value.
+*
+* @param	GPIO number
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
+int set_gpio(int gpio, int value);
 
-  fp = fopen(path, "wb");
-  if (fp == NULL) {
-    printf("Error opening file : %s\n", path);
-    return FAIL;
-  }
-
-  ret = fprintf(fp, "%d\n", val);
-  if (ret <= 0) {
-    printf("Unable to set clock value\n");
-    fclose(fp);
-    return FAIL;
-  }
-
-  fclose(fp);
-
-  return SUCCESS;
-}
+#endif /* SRC_GPIO_ */

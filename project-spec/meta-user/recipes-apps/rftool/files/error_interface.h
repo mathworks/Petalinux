@@ -45,7 +45,34 @@
 /************************** Variable Definitions *****************************/
 
 /************************** Function Prototypes ******************************/
+/****************************************************************************/
+/**
+*
+* This function updates error string with proper error code for command path.
+* 
+* @param	string contains error description
+* @param	error code
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void errorIf(char *cmdPtr, int errId );
+
+/****************************************************************************/
+/**
+*
+* This function updates error string with proper error code for data path. 
+*
+* @param	string contains error description
+* @param	error code
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void errorIf_data(char *cmdPtr, int errId );
 
 #endif /* SRC_ERROR_INTERFACE_H_ */

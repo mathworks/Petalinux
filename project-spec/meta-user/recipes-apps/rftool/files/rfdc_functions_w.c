@@ -38,8 +38,6 @@
 
 #define CAL_FREEZE 0xB000504C
 #define CAL_FROZEN 0xB0005048
-#define MAP_SIZE 4096UL
-#define MAP_MASK (MAP_SIZE - 1)
 /***************** Macros (Inline Functions) Definitions *********************/
 
 /************************** Variable Definitions *****************************/
@@ -181,10 +179,10 @@ void SetMixerSettings(convData_t *cmdVals, char *txstrPtr,  int *status) {
    Mixer_Settings.Freq            = cmdVals[3].d;
    Mixer_Settings.PhaseOffset     = cmdVals[4].d;
    Mixer_Settings.EventSource     = cmdVals[5].u;
-   Mixer_Settings.FineMixerMode   = cmdVals[6].u;
-   Mixer_Settings.CoarseMixFreq   = cmdVals[7].u;
-   Mixer_Settings.CoarseMixMode   = cmdVals[8].u;
-   Mixer_Settings.FineMixerScale  = cmdVals[9].u;
+   Mixer_Settings.MixerType 	  = cmdVals[6].u;
+   Mixer_Settings.CoarseMixFreq   = cmdVals[7].u; // 2
+   Mixer_Settings.MixerMode 	  = cmdVals[8].u;
+   Mixer_Settings.FineMixerScale  = cmdVals[9].u; // 0
 
    // execute driver
    *status = XRFdc_SetMixerSettings(&RFdcInst, Type, Tile_Id, Block_Id, &Mixer_Settings);
@@ -199,9 +197,9 @@ void SetMixerSettings(convData_t *cmdVals, char *txstrPtr,  int *status) {
 		   printf("    FREQ:              %fMHz\n", Mixer_Settings.Freq);
 		   printf("    PHASE OFFSET:      %f\n", Mixer_Settings.PhaseOffset);
 		   printf("    EVENT SOURCE:      %d\n", Mixer_Settings.EventSource);
-		   printf("    FINE MIXER MODE:   %d\n", Mixer_Settings.FineMixerMode);
+		   printf("    FINE MIXER MODE:   %d\n", Mixer_Settings.MixerMode);
 		   printf("    COARSE MIXER FREQ: %d\n", Mixer_Settings.CoarseMixFreq);
-		   printf("    COARSE MIXER MODE: %d\n", Mixer_Settings.CoarseMixMode);
+		   printf("    Mixer Type: %d\n", Mixer_Settings.MixerType);
 		   printf("    FINE MIXER SCALE: %d\n", Mixer_Settings.FineMixerScale);
 	       printf("    *********************************\r\n");
        }
@@ -223,6 +221,8 @@ void GetMixerSettings (convData_t *cmdVals, char *txstrPtr, int *status) {
    int Tile_Id;
    u32 Block_Id;
    char Response[BUF_MAX_LEN]={0};
+   u32 FineMixerMode = 0;
+   u32 CoarseMixMode = 0;
 
    // Mixer settings struct
    XRFdc_Mixer_Settings Mixer_Settings;
@@ -247,16 +247,16 @@ void GetMixerSettings (convData_t *cmdVals, char *txstrPtr, int *status) {
          printf("    FREQ:              %fMHz\r\n", Mixer_Settings.Freq);
          printf("    PHASE OFFSET:      %f\r\n", Mixer_Settings.PhaseOffset);
          printf("    EVENT SOURCE:      %d\r\n", Mixer_Settings.EventSource);
-         printf("    FINE MIXER MODE:   %d\r\n", Mixer_Settings.FineMixerMode);
          printf("    COARSE MIXER FREQ: %d\r\n", Mixer_Settings.CoarseMixFreq);
-         printf("    COARSE MIXER MODE: %d\r\n",Mixer_Settings.CoarseMixMode);
-		 printf("    FINE MIXER SCALE: %d\n", Mixer_Settings.FineMixerScale);
+         printf("    MIXER MODE:   %d\r\n", Mixer_Settings.MixerMode);
+		 printf("    Mixer Type: %d\n", Mixer_Settings.MixerType);
+         printf("    FINE MIXER SCALE: %d\r\n",Mixer_Settings.FineMixerScale);
          printf("    *********************************\r\n");
       }
    }
 
    if (*status == SUCCESS) {
-	   sprintf(Response," %d %d %d %f %f %d %d %d %d %d",Type,Tile_Id,Block_Id,Mixer_Settings.Freq, Mixer_Settings.PhaseOffset,Mixer_Settings.EventSource,Mixer_Settings.FineMixerMode,Mixer_Settings.CoarseMixFreq,Mixer_Settings.CoarseMixMode,Mixer_Settings.FineMixerScale);
+	   sprintf(Response," %d %d %d %f %f %d %d %d %d %d",Type,Tile_Id,Block_Id,Mixer_Settings.Freq, Mixer_Settings.PhaseOffset,Mixer_Settings.EventSource,Mixer_Settings.MixerType ,Mixer_Settings.CoarseMixFreq,Mixer_Settings.MixerMode,Mixer_Settings.FineMixerScale);
    	   strncat (txstrPtr,Response,BUF_MAX_LEN);
    }
 
@@ -693,7 +693,6 @@ void GetClockSource(convData_t *cmdVals, char *txstrPtr, int *status) {
     u32 ClockSource = 0;
 
     *status = XRFdc_GetClockSource(&RFdcInst, Type, Tile_Id, &ClockSource);
-
     if (enTermMode) {
        if (*status != SUCCESS) {
             printf("XRFdc_GetClockSource() failed\n\r");
@@ -735,6 +734,7 @@ void DynamicPLLConfig(convData_t *cmdVals, char *txstrPtr, int *status) {
      u32 RefClkDivider = 0;
      u32 FeedbackDivider=0;
      u32 OutputDivider=0;
+
 	 //XRFdc *RFdcInstPtr = &RFdcInst;
      *status = XRFdc_DynamicPLLConfig(&RFdcInst, Type, Tile_Id, Source, RefClkFreq, SamplingRate);
 
@@ -782,8 +782,62 @@ void SetFabClkOutDiv(convData_t *cmdVals, char *txstrPtr, int *status) {
     Type                           = cmdVals[0].u;
     Tile_Id                        = cmdVals[1].i;
     u16 FabClkDiv                  = cmdVals[2].u;
+	u32 RdWidth  = 0;
+	u32 WrWidth  = 0;
+	u32 Wdc      = 0;
+	u32 Wpl      = 0;
+	u32 Block_Id = 0;
+	u32 Dec8     = 1;
+	double FRatio = 0;
+	u32 FRatio_previous  = 0;
+	u32 DecimationFactor = 0;
 
-    *status = XRFdc_SetFabClkOutDiv(&RFdcInst, Type, Tile_Id,  FabClkDiv);
+	if ( FabClkDiv>5 || FabClkDiv <= 0 ) {
+		*status =  FAIL;
+		metal_log(METAL_LOG_ERROR, "\n FabClkDiv is out of bound, Max is 16 (0x5) %s \r\n", __func__);
+		return;
+	}
+
+	for (Block_Id=0;Block_Id< 4>>(Type==ADC && RFdcInst.ADC4GSPS);Block_Id++) {
+
+		if (XRFdc_IsBlockEnabled(&RFdcInst, Type, Tile_Id,Block_Id)) {
+
+			XRFdc_GetFabRdVldWords(&RFdcInst, Type, Tile_Id,Block_Id, &RdWidth);
+			XRFdc_GetFabWrVldWords(&RFdcInst, Type, Tile_Id,Block_Id, &WrWidth);
+			if (Type==DAC) {
+				Wdc=RdWidth;
+				Wpl=WrWidth;
+				Dec8 = 1;
+			} else {
+				Wdc=WrWidth;
+				Wpl=RdWidth;
+				XRFdc_GetDecimationFactor(&RFdcInst, Tile_Id, Block_Id, &DecimationFactor);
+				if (!RFdcInst.ADC4GSPS && DecimationFactor == 8) {
+					Dec8 = 2;
+				} else {
+					Dec8 = 1;
+				}
+			}
+			FRatio       = (Wdc*(1<<(FabClkDiv-1)))/ Dec8 / Wpl;
+
+			if (FRatio != (int)FRatio) {
+				metal_log(METAL_LOG_WARNING, "\nTile_Id %d Block_Id %d has a non integer ratio %f between Fout and Fin, not supported in this version\r\n", Tile_Id, Block_Id,FRatio);
+				*status 	|= ERROR_EXECUTE   		;
+				FRatio  	=  FRatio_previous 		;
+
+			} else if ((FRatio_previous!=0 && FRatio!=FRatio_previous)) {
+				metal_log(METAL_LOG_WARNING, "\nTile_Id %d Block_Id %d has a different ratio %f between Fout and Fin, previous ratio %d will be used, try changing Decimation or Interpolation or IQ mode\r\n", Tile_Id, Block_Id,FRatio,FRatio_previous);
+				*status |= ERROR_EXECUTE;
+				FRatio 		= FRatio_previous 		;
+
+			} else {
+				FRatio_previous      = FRatio 		;
+
+			}
+		}
+	}
+
+    *status |= XRFdc_SetFabClkOutDiv(&RFdcInst, Type, Tile_Id,  FabClkDiv);
     
     if (enTermMode) {
        if (*status != SUCCESS) {
@@ -1329,7 +1383,7 @@ void LookupConfig(convData_t *cmdVals, char *txstrPtr, int *status) {
 
     XRFdc_Config * Config;
 
-    Config = XRFdc_LookupConfig(XPAR_XRFDC_0_DEVICE_ID);
+    Config = XRFdc_LookupConfig(0/*XPAR_XRFDC_0_DEVICE_ID*/);
     *status = SUCCESS;
 
     if (enTermMode) {
@@ -1608,6 +1662,11 @@ void MultiBand(convData_t *cmdVals, char *txstrPtr, int *status) {
    DataType             = cmdVals[3].u;
    DataConverterMask    = cmdVals[4].u;
    char Response[BUF_MAX_LEN]={0};
+
+   if ((info.design_type == DAC1_ADC1) && (DataConverterMask != 1)) {
+	   *status = SUCCESS;
+	   goto suc;
+   }
    *status = XRFdc_MultiBand(&RFdcInst,Type,Tile_Id,DigitalDataPathMask,DataType,DataConverterMask);
 
    if (enTermMode) {
@@ -1623,6 +1682,7 @@ void MultiBand(convData_t *cmdVals, char *txstrPtr, int *status) {
      }
    }
 
+suc:
    if (*status == SUCCESS) {
        sprintf(Response," %d %d %d %d %d",Type, Tile_Id,DigitalDataPathMask,DataType,DataConverterMask);
        strncat(txstrPtr,Response,BUF_MAX_LEN);
@@ -1825,7 +1885,6 @@ void JtagIdcode (convData_t *cmdVals,char *txstrPtr, int *status) {
 
 }
 
-#if 1
 /* Get the VCM configuration */
 void GetLinkCoupling(convData_t *cmdVals, char *txstrPtr, int *status) 
 {
@@ -1903,7 +1962,6 @@ void GetPLLConfig (convData_t *cmdVals, char *txstrPtr, int *status)
 
 void MultiConverter_Init (convData_t *cmdVals, char *txstrPtr, int *status) 
 {
-#if 0
 	u32 Type;
     int PLL_Code = 0;
     int T1_Codes = 0;
@@ -1917,30 +1975,30 @@ void MultiConverter_Init (convData_t *cmdVals, char *txstrPtr, int *status)
 	} else {
 	    XRFdc_MultiConverter_Init (&DAC_Sync_Config, &PLL_Code , &T1_Codes);
 	}
-#endif
 	return;
 }
 
 void MultiConverter_Sync (convData_t *cmdVals, char *txstrPtr, int *status) 
 {
-#if 0
 	u32 Type;
 	char Response[BUF_MAX_LEN]={0};
+	//0x3 - DAC, 0xF ADC
 	u32 Tiles = cmdVals[2].u;
 	XRFdc_MultiConverter_Sync_Config DAC_Sync_Config;
 	XRFdc_MultiConverter_Sync_Config ADC_Sync_Config;
 	XRFdc_MultiConverter_Sync_Config sync_config;
-	Type                          = cmdVals[0].u;
+
+	Type = cmdVals[0].u;
 	if (Type == 0) {
-		XRFdc_MultiConverter_Init (&ADC_Sync_Config, 0 , 0);
+		XRFdc_MultiConverter_Init(&ADC_Sync_Config, 0 , 0);
 	} else {
-		XRFdc_MultiConverter_Init (&DAC_Sync_Config, 0 , 0);
+		XRFdc_MultiConverter_Init(&DAC_Sync_Config, 0 , 0);
 	}
 
 	if (Type == 0) {
 		ADC_Sync_Config.Tiles = Tiles;
 		ADC_Sync_Config.Target_Latency = cmdVals[1].i;
-		*status = XRFdc_MultiConverter_Sync (&RFdcInst, Type ,&ADC_Sync_Config );
+		*status = XRFdc_MultiConverter_Sync(&RFdcInst, Type ,&ADC_Sync_Config);
 		sync_config = ADC_Sync_Config;
 	    sprintf(Response," %d %d %d %d %d %d %d %d %d %d %d %d ", *status, sync_config.Target_Latency,
 	    		  sync_config.Offset[0], sync_config.Offset[1], sync_config.Offset[2], sync_config.Offset[3],
@@ -1950,7 +2008,7 @@ void MultiConverter_Sync (convData_t *cmdVals, char *txstrPtr, int *status)
 	} else {
 		DAC_Sync_Config.Tiles = Tiles;
 		DAC_Sync_Config.Target_Latency = cmdVals[1].i;
-		*status = XRFdc_MultiConverter_Sync (&RFdcInst, Type ,&DAC_Sync_Config );
+		*status = XRFdc_MultiConverter_Sync(&RFdcInst, Type ,&DAC_Sync_Config);
 		sync_config = DAC_Sync_Config;
 		sprintf(Response," %d %d %d %d %d %d %d %d ", *status, sync_config.Target_Latency,
 			    		  sync_config.Offset[0], sync_config.Offset[1],
@@ -1984,142 +2042,181 @@ void MultiConverter_Sync (convData_t *cmdVals, char *txstrPtr, int *status)
 	int Max_Overlap[4];
 	*/
 
-	//*status = XRFdc_MultiConverter_Sync (&RFdcInst, Type ,&sync_config );
-
-    strncat(txstrPtr,Response,BUF_MAX_LEN);
-#endif
+    strncat(txstrPtr, Response, BUF_MAX_LEN);
+    
 	return;
 }
 
 void MTS_Sysref_Config (convData_t *cmdVals, char *txstrPtr, int *status) 
 {
-#if 0
 	u32 enable;
 	u32 dac_tiles;
 	u32 adc_tiles;
 	char Response[BUF_MAX_LEN]={0};
 	XRFdc_MultiConverter_Sync_Config DAC_Sync_Config;
 	XRFdc_MultiConverter_Sync_Config ADC_Sync_Config;
-	enable                             = cmdVals[0].u;
-	dac_tiles                          = cmdVals[1].u;
-	adc_tiles                          = cmdVals[2].u;
+
+	enable = cmdVals[0].u;
+	dac_tiles = cmdVals[1].u;
+	adc_tiles = cmdVals[2].u;
+
 	DAC_Sync_Config.Tiles = dac_tiles;
 	ADC_Sync_Config.Tiles = adc_tiles;
-	*status = XRFdc_MTS_Sysref_Config (&RFdcInst,&DAC_Sync_Config, &ADC_Sync_Config,enable );
+
+	*status = XRFdc_MTS_Sysref_Config(&RFdcInst, &DAC_Sync_Config, &ADC_Sync_Config, enable);
 
 	sprintf(Response,"  %d %d %d %d %d %d %d %d %d %d %d %d ", *status, DAC_Sync_Config.Target_Latency,
 			DAC_Sync_Config.Offset[0], DAC_Sync_Config.Offset[1], DAC_Sync_Config.Offset[2], DAC_Sync_Config.Offset[3],
 			DAC_Sync_Config.Latency[0], DAC_Sync_Config.Latency[1], DAC_Sync_Config.Latency[2], DAC_Sync_Config.Latency[3],
 			DAC_Sync_Config.Marker_Delay,DAC_Sync_Config.SysRef_Enable);
-    strncatSafe(txstrPtr,Response,BUF_MAX_LEN);
+    strncat(txstrPtr, Response, BUF_MAX_LEN);
+
 	sprintf(Response,"  %d %d %d %d %d %d %d %d %d %d %d %d ", *status, ADC_Sync_Config.Target_Latency,
 			ADC_Sync_Config.Offset[0], ADC_Sync_Config.Offset[1], ADC_Sync_Config.Offset[2],ADC_Sync_Config.Offset[3],
 			ADC_Sync_Config.Latency[0], ADC_Sync_Config.Latency[1], ADC_Sync_Config.Latency[2], ADC_Sync_Config.Latency[3],
 			ADC_Sync_Config.Marker_Delay,ADC_Sync_Config.SysRef_Enable);
-	strncatSafe(txstrPtr,Response,BUF_MAX_LEN);
-#endif
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+
 	return;
 }
 
-void MTS_Setup  (convData_t *cmdVals, char *txstrPtr, int *status) 
+void MTS_Setup(convData_t *cmdVals, char *txstrPtr, int *status)
 {
-#if 0
-	u32 Type;
+	u32 type;
 	u32 enable;
-	Type                          = cmdVals[0].u;
-	enable 						  = cmdVals[1].u;
+	int ret, i;
+	int multitile_gpio;
+	int *reset_gpio;
+	int *localstart_gpio;
+	int *mts_enable;
 	char Response[BUF_MAX_LEN]={0};
-	u32 Inter_Decim = 0;
-	u32 Inter_Decim_Specific = 0;
-	u32 FabWords = 0;
-	u16 FabClkDiv = 0;
-	double Fabric_clk   = 0;
-	double div_expected = 0;
-	XRFdc_PLL_Settings PLLSettings;
-	int mmcm_type = 0;
-	u32 MMCM_Lock = 0;
-    u32 Div = 1;
-    u32 Mult = 0;
-    u32 CLKOUT0_DIV = 0;
-    u32 memBaseAddr;  //data or stim IP base address.
-    int Tile_id=0;
-    int Block_id=0;
-    XRFdc_GetPLLConfig (&RFdcInst,Type, 0, &PLLSettings);
-	XRFdc_GetFabClkOutDiv (&RFdcInst,Type,0,&FabClkDiv) ;
+	u32 max_dac, max_adc;
 
-	if (Type == 0) {
-		memBaseAddr = XPAR_DATA_CAPTURE_AXI_S_0_BASEADDR;
-		XRFdc_GetDecimationFactor (&RFdcInst,0,0,&Inter_Decim);
-		XRFdc_GetFabRdVldWords (&RFdcInst,0,0,0,&FabWords);
-		mmcm_type = XPAR_CLK_WIZ_MTS_ADC_DEVICE_ID;
-		Mult = 12;
-		// Select the correct clock enable = external clock, disable = standard clock.
-		Xil_Out32(memBaseAddr+ 0x0C ,(enable << 2 ));
-
+	if (info.design_type == DAC1_ADC1) {
+		max_dac = 1;
+		max_adc = 1;
 	} else {
-		memBaseAddr = XPAR_STIMULUS_GEN_AXI_S_0_BASEADDR;
-		XRFdc_GetInterpolationFactor (&RFdcInst,0,0,&Inter_Decim);
-		XRFdc_GetFabWrVldWords (&RFdcInst,1,0,0,&FabWords);
-		mmcm_type = XPAR_CLK_WIZ_MTS_DAC_DEVICE_ID;
-		Mult = 12;
-		if (enable) {
-			for (Tile_id = 0; Tile_id<2; Tile_id++) {
-				for (Block_id = 0; Block_id<4; Block_id++) {
-					XRFdc_GetInterpolationFactor (&RFdcInst,0,0,&Inter_Decim_Specific);
-					if (Inter_Decim_Specific != Inter_Decim) {
-						sprintf(Response," WARNING Diff Settings " );
-						strncatSafe(txstrPtr,Response,BUF_MAX_LEN);
-						*status = XST_FAILURE;
-					}
-				}
+		max_dac = MAX_DAC;
+		max_adc = MAX_ADC;
+	}
+	type = cmdVals[0].u;
+	enable = cmdVals[1].u;
+
+	if (type == ADC) {
+		reset_gpio = adc_reset_gpio;
+		localstart_gpio = adc_localstart_gpio;
+		multitile_gpio = ADC_MULTITILE_CTL_GPIO;
+		mts_enable = &info.mts_enable_adc;
+	} else if (type == DAC) {
+		reset_gpio = dac_reset_gpio;
+		localstart_gpio = dac_localstart_gpio;
+		multitile_gpio = DAC_MULTITILE_CTL_GPIO;
+		mts_enable = &info.mts_enable_dac;
+	} else {
+		printf("unsupported type\n");
+		ret = INVAL_ARGS;
+		goto err;
+	}
+	if (info.design_type != MTS) {
+		ret = INVAL_ARGS;
+		MetalLoghandler_firmware(ret,"Design doesnot support MTS\n");
+		goto err;
+	}
+	if (enable) {
+		/* disable rfdc fifo for all DAC's/ADC's */
+		ret = config_all_fifo(type, FIFO_DIS);
+		if(ret != SUCCESS) {
+			printf("Failed to disable DAC FIFO\n");
+			ret = EN_FIFO_FAIL;
+			goto err;
+		}
+
+		/* disable local start gpio for all dac/adc's*/
+		for (i = 0; i < max_dac; i++) {
+			ret = set_gpio(localstart_gpio[i], 0);
+			if(ret) {
+				printf("unable to assert reset gpio value\n");
+				ret = GPIO_SET_FAIL;
+				goto err;
 			}
 		}
-		// Select the correct clock enable = external clock, disable = standard clock.
-		Xil_Out32(memBaseAddr+ 0x0C ,(enable << 1));
+
+		/* assert reset fifo gpio for all dac/adc's*/
+		for (i = 0; i < max_dac; i++) {
+			ret = set_gpio(reset_gpio[i], 1);
+			if(ret) {
+				printf("unable to assert reset gpio value\n");
+				ret = GPIO_SET_FAIL;
+				goto err;
+			}
+		}
+		/* configure clocks */
+		ret = set_gpio(multitile_gpio, 1);
+		if(ret) {
+			printf("unable to set multitile ctrl gpio value\n");
+			ret = GPIO_SET_FAIL;
+			goto err;
+		}
+
+		/* De-Assert reset FIFO GPIO for all DAC/ADC's*/
+		for (i = 0; i < max_dac; i++) {
+			ret = set_gpio(reset_gpio[i], 0);
+			if(ret) {
+				printf("Unable to de-assert reset GPIO value\n");
+				ret = GPIO_SET_FAIL;
+				goto err;
+			}
+		}
+		/* enable rfdc fifo for all DAC's/ADC's */
+		ret = config_all_fifo(type, FIFO_EN);
+		if(ret != SUCCESS) {
+			printf("Failed to disable DAC FIFO\n");
+			ret = EN_FIFO_FAIL;
+			goto err;
+		}
+		(*mts_enable) = 1;
+	} else {
+		(*mts_enable) = 0;
+		/* configure clocks */
+		ret = set_gpio(multitile_gpio, 0);
+		if(ret) {
+			printf("unable to reset multitile ctrl gpio value\n");
+			ret = GPIO_SET_FAIL;
+			goto err;
+		}
+		/* disable local start gpio for all dac/adc's*/
+		for (i = 0; i < max_dac; i++) {
+			ret = set_gpio(localstart_gpio[i], 0);
+			if(ret) {
+				printf("unable to assert reset gpio value\n");
+				ret = GPIO_SET_FAIL;
+				goto err;
+			}
+		}
+		/* disable rfdc fifo for all DAC's/ADC's */
+		ret = config_all_fifo(type, FIFO_DIS);
+		if(ret != SUCCESS) {
+			printf("Failed to disable DAC FIFO\n");
+			ret = EN_FIFO_FAIL;
+			goto err;
+		}
 	}
 
-	// Reprogram input MMCM.
-    Fabric_clk   = PLLSettings.SampleRate *1000 / Inter_Decim / FabWords; //TODO needs to take IQ into account .
-    div_expected = 122.88*Mult/Fabric_clk;
-    CLKOUT0_DIV  = 122.88*Mult/Fabric_clk;
-    if (enable) {
-		if (((Fabric_clk/122.88) != (int) (Fabric_clk/122.88)) || (div_expected != CLKOUT0_DIV)) {
-			sprintf(Response," WARNING Fabric clock or MMCM incorrect " );
-			strncatSafe(txstrPtr,Response,BUF_MAX_LEN);
-			//metal_log(METAL_LOG_ERROR, "\n CLKOUT0_DIV(%f) is not an integer or Fabric clock (%f) is not a multiple of 122.88 %s \r\n", div_expected, Fabric_clk,  __func__);
-			// *status = XST_FAILURE;
-			//return;
-		}
+	*status = SUCCESS;
+	return;
+err:
+	if(enTermMode) {
+		printf("cmd = MTS_Setup\n"
+				"type = %d\n",
+				"enable = %d\n\n", type, enable);
+	}
 
-		*(u32 *)(CfgPtr_ClkWiz[mmcm_type]->BaseAddr + 0x200) = Mult<<8 | Div ;
-		//MMCM CLKOUT DIV value.
-		*(u32 *)(CfgPtr_ClkWiz[mmcm_type]->BaseAddr + 0x208) = CLKOUT0_DIV ;
-		*(u32 *)(CfgPtr_ClkWiz[mmcm_type]->BaseAddr + 0x25C) = 0x03;
-		usleep(100);
-		*(u32 *)(CfgPtr_ClkWiz[mmcm_type]->BaseAddr + 0x00) = 0x0A;
-		usleep (100);
-		//write the reg again so that we are in sync
-		*(u32 *)(CfgPtr_ClkWiz[mmcm_type]->BaseAddr + 0x200) = Mult<<8 | Div ;
-		*(u32 *)(CfgPtr_ClkWiz[mmcm_type]->BaseAddr + 0x208) = CLKOUT0_DIV ;
-		//check MMCM is locked.
-		MMCM_Lock = *(u32 *)(CfgPtr_ClkWiz[mmcm_type]->BaseAddr + 0x04) && 0x00000001;
-			if (!MMCM_Lock) {
-				metal_log(METAL_LOG_ERROR, "\n MMCM is not locked after reset %s \r\n", __func__);
-				*status = XST_FAILURE;
-				return;
-			} else {
-				sprintf(Response," %f %f ", PLLSettings.SampleRate, Fabric_clk );
-				*status =XST_SUCCESS;
-			}
-    } else {
-    	sprintf(Response," Disable " );
-    	*status =XST_SUCCESS;
-    }
-	strncatSafe(txstrPtr,Response,BUF_MAX_LEN);
-#endif
+	/* Append Error code */
+	strncat(txstrPtr,Response,BUF_MAX_LEN);
+	*status = FAIL;
 }
 
-#endif
+
 
 void GetCalFreeze(convData_t *cmdVals, char *txstrPtr, int *status) {
 	int Tile_Id;
@@ -2128,8 +2225,8 @@ void GetCalFreeze(convData_t *cmdVals, char *txstrPtr, int *status) {
 	u32 Val = 0;
 	u32 Enable = 0;
 	int fd;
-	volatile void *vaddr;
-	volatile void *base;
+	void *vaddr;
+	void *base;
 
 	Tile_Id = cmdVals[0].i;
 	Block_Id = cmdVals[1].u;
@@ -2152,7 +2249,7 @@ void GetCalFreeze(convData_t *cmdVals, char *txstrPtr, int *status) {
 	}
 	vaddr = base + (CAL_FROZEN & MAP_MASK);
 
-	Val = *(volatile u32*) (vaddr);
+	Val = *(u32*) (vaddr);
 	Enable = (Val >> (2*Tile_Id + Block_Id)) & 0x01;
 	*status = SUCCESS;
 	sprintf(Response," %d %d %d ", Tile_Id, Block_Id, Enable);
@@ -2169,8 +2266,8 @@ void SetCalFreeze(convData_t *cmdVals, char *txstrPtr, int *status) {
 	u32 Val = 0;
 	u32 Mask;
 	int fd;
-	volatile void *vaddr;
-	volatile void *base;
+	void *vaddr;
+	void *base;
 
 	Tile_Id = cmdVals[0].i;
 	Block_Id = cmdVals[1].u;
@@ -2194,10 +2291,10 @@ void SetCalFreeze(convData_t *cmdVals, char *txstrPtr, int *status) {
 		return;
 	}
 	vaddr = base + (CAL_FREEZE & MAP_MASK);
-	Val = *(volatile u32*) (vaddr);
+	Val = *(u32*) (vaddr);
 	Val &= ~Mask;
 	Val |= Enable << (2*Tile_Id + Block_Id);
-	*(volatile u32*) vaddr = Val;
+	*(u32*) vaddr = Val;
 	if(munmap(base, MAP_SIZE) == -1)
 		printf("unmap failed\n");
 	return;

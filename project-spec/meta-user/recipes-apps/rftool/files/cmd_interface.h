@@ -80,17 +80,179 @@ typedef struct cmdStruct {
 /************************** Variable Definitions *****************************/
 
 /************************** Function Prototypes ******************************/
-
+/****************************************************************************/
+/**
+*
+* This function enables terminal mode. Additional debug print are enabled
+* and sent back to the console
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void TermMode(convData_t *cmdVals,char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function prints available commands and their details on the console.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void DoHelp(convData_t *cmdVals,char *txstrPtr, int *status);
-void RfdcVersion (convData_t *cmdVals,char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function return Rftool version.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void Version (convData_t *cmdVals,char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function returns string to be displayed in GUI.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void GUI_Title (convData_t *cmdVals,char *txstrPtr, int *status);
-int cmdParseArg (char *strPtr, int cmdIdx );
+
+/****************************************************************************/
+/**
+*
+* This function parse the control commands and takes necessary action.
+*
+* @param	contains command string from the client
+* @param	contains response string for a command 
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int cmdParse( char *strPtr, char *txstrPtr);
-int data_cmdParseArg (char *strPtr, int cmdIdx );
+
+/****************************************************************************/
+/**
+*
+* This function parse the data control commands and takes necessary action.
+*
+* @param	contains command string from the client
+* @param	contains response string for a command 
+*
+* @return	SUCCESS/FAILURE.
+*
+* @note		None.
+*
+******************************************************************************/
 int data_cmdParse( char *strPtr, char *txstrPtr);
+
+/****************************************************************************/
+/**
+*
+* This function captures details error logs for the failed commands related to
+* driver.
+*
+* @param	Log level	
+* @param	format 
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void MetalLoghandler(enum metal_log_level level, const char *format, ...);
+
+/****************************************************************************/
+/**
+*
+* This function captures details error logs for the failed commands related to
+* rftool internal features.
+*
+* @param	Log level	
+* @param	format 
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void MetalLoghandler_firmware(int level, const char *format, ...);
+
+/****************************************************************************/
+/**
+*
+* This function returns detailed error logs to be displayed in GUI.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
 void GetLog (convData_t *cmdVals,char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function enables SSR IP for DAC/ADC.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void SetFabSSR (convData_t *cmdVals,char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function gets SSR IP status for DAC/ADC.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void GetFabSSR (convData_t *cmdVals,char *txstrPtr, int *status);
 
 #endif /* SRC_CMD_INTERFACE_H_ */
