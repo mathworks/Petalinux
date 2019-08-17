@@ -4385,7 +4385,7 @@ CONFIG_trd-autostart=y
 #
 # apps 
 #
-CONFIG_rfdc-data-write-example=n
+# CONFIG_rfdc-data-write-example is not set
 CONFIG_rftool=y
 
 #
@@ -4396,9 +4396,9 @@ CONFIG_libiio=y
 CONFIG_libserialport=y
 CONFIG_libusb=y
 CONFIG_mw-fs-overlay=y
-CONFIG_rfdc=n
-CONFIG_rfdc-read-write=n
-CONFIG_rfdc-selftest=n
+# CONFIG_rfdc is not set
+# CONFIG_rfdc-read-write is not set
+# CONFIG_rfdc-selftest is not set
 # CONFIG_sdfec-demo is not set
 
 #
