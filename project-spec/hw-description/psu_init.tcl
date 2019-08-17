@@ -2368,7 +2368,7 @@ set psu_ddr_init_data {
     # L. For configurations with MEMC_FREQ_RATIO=2, program this to (tXMPDLL/2
     # ) and round it up to the next integer value. Present only in designs con
     # figured to support DDR4. Unit: Multiples of 32 clocks.
-		# PSU_DDRC_DRAMTMG11_POST_MPSM_GAP_X32                                            0x11
+		# PSU_DDRC_DRAMTMG11_POST_MPSM_GAP_X32                                            0x12
 
 		# tMPX_LH: This is the minimum CS_n Low hold time to CKE rising edge. For
     # configurations with MEMC_FREQ_RATIO=2, program this to RoundUp(tMPX_LH/2
@@ -2388,8 +2388,8 @@ set psu_ddr_init_data {
 		# PSU_DDRC_DRAMTMG11_T_CKMPE                                                      0xe
 
 		# SDRAM Timing Register 11
-		#(OFFSET, MASK, VALUE)      (0XFD07012C, 0x7F1F031FU ,0x1107010EU)  */
-    mask_write 0XFD07012C 0x7F1F031F 0x1107010E
+		#(OFFSET, MASK, VALUE)      (0XFD07012C, 0x7F1F031FU ,0x1207010EU)  */
+    mask_write 0XFD07012C 0x7F1F031F 0x1207010E
 		# Register : DRAMTMG12 @ 0XFD070130</p>
 
 		# tCMDCKE: Delay from valid command to CKE input LOW. Set this to the larg
@@ -4776,11 +4776,11 @@ set psu_ddr_init_data {
 		# Register : GPR1 @ 0XFD0800C4</p>
 
 		# General Purpose Register 1
-		# PSU_DDR_PHY_GPR1_GPR1                                                           0xda
+		# PSU_DDR_PHY_GPR1_GPR1                                                           0xdd
 
 		# General Purpose Register 1
-		#(OFFSET, MASK, VALUE)      (0XFD0800C4, 0xFFFFFFFFU ,0x000000DAU)  */
-    mask_write 0XFD0800C4 0xFFFFFFFF 0x000000DA
+		#(OFFSET, MASK, VALUE)      (0XFD0800C4, 0xFFFFFFFFU ,0x000000DDU)  */
+    mask_write 0XFD0800C4 0xFFFFFFFF 0x000000DD
 		# Register : DCR @ 0XFD080100</p>
 
 		# DDR4 Gear Down Timing.
@@ -8332,10 +8332,10 @@ set psu_ddr_init_data {
 		# Register : DX8GCR0 @ 0XFD080F00</p>
 
 		# Calibration Bypass
-		# PSU_DDR_PHY_DX8GCR0_CALBYP                                                      0x0
+		# PSU_DDR_PHY_DX8GCR0_CALBYP                                                      0x1
 
 		# Master Delay Line Enable
-		# PSU_DDR_PHY_DX8GCR0_MDLEN                                                       0x1
+		# PSU_DDR_PHY_DX8GCR0_MDLEN                                                       0x0
 
 		# Configurable ODT(TE) Phase Shift
 		# PSU_DDR_PHY_DX8GCR0_CODTSHFT                                                    0x0
@@ -8384,8 +8384,8 @@ set psu_ddr_init_data {
 		# PSU_DDR_PHY_DX8GCR0_RESERVED_1_0                                                0x0
 
 		# DATX8 n General Configuration Register 0
-		#(OFFSET, MASK, VALUE)      (0XFD080F00, 0xFFFFFFFFU ,0x40803660U)  */
-    mask_write 0XFD080F00 0xFFFFFFFF 0x40803660
+		#(OFFSET, MASK, VALUE)      (0XFD080F00, 0xFFFFFFFFU ,0x80803660U)  */
+    mask_write 0XFD080F00 0xFFFFFFFF 0x80803660
 		# Register : DX8GCR1 @ 0XFD080F04</p>
 
 		# Enables the PDR mode for DQ[7:0]
@@ -9590,7 +9590,7 @@ set psu_ddr_init_data {
 		# PSU_DDR_PHY_DX8SL4PLLCR0_PLLRST                                                 0x0
 
 		# PLL Power Down
-		# PSU_DDR_PHY_DX8SL4PLLCR0_PLLPD                                                  0x0
+		# PSU_DDR_PHY_DX8SL4PLLCR0_PLLPD                                                  0x1
 
 		# Reference Stop Mode
 		# PSU_DDR_PHY_DX8SL4PLLCR0_RSTOPM                                                 0x0
@@ -9623,8 +9623,8 @@ set psu_ddr_init_data {
 		# PSU_DDR_PHY_DX8SL4PLLCR0_DTC                                                    0x0
 
 		# DAXT8 0-1 PLL Control Register 0
-		#(OFFSET, MASK, VALUE)      (0XFD081504, 0xFFFFFFFFU ,0x01100000U)  */
-    mask_write 0XFD081504 0xFFFFFFFF 0x01100000
+		#(OFFSET, MASK, VALUE)      (0XFD081504, 0xFFFFFFFFU ,0x21100000U)  */
+    mask_write 0XFD081504 0xFFFFFFFF 0x21100000
 		# Register : DX8SL4DQSCTL @ 0XFD08151C</p>
 
 		# Reserved. Return zeroes on reads.
@@ -9655,7 +9655,7 @@ set psu_ddr_init_data {
 		# PSU_DDR_PHY_DX8SL4DQSCTL_QSCNTEN                                                0x1
 
 		# Unused DQ I/O Mode
-		# PSU_DDR_PHY_DX8SL4DQSCTL_UDQIOM                                                 0x0
+		# PSU_DDR_PHY_DX8SL4DQSCTL_UDQIOM                                                 0x1
 
 		# Reserved. Return zeroes on reads.
 		# PSU_DDR_PHY_DX8SL4DQSCTL_RESERVED_12_10                                         0x0
@@ -9670,8 +9670,8 @@ set psu_ddr_init_data {
 		# PSU_DDR_PHY_DX8SL4DQSCTL_DQSRES                                                 0x0
 
 		# DATX8 0-1 DQS Control Register
-		#(OFFSET, MASK, VALUE)      (0XFD08151C, 0xFFFFFFFFU ,0x01264300U)  */
-    mask_write 0XFD08151C 0xFFFFFFFF 0x01264300
+		#(OFFSET, MASK, VALUE)      (0XFD08151C, 0xFFFFFFFFU ,0x01266300U)  */
+    mask_write 0XFD08151C 0xFFFFFFFF 0x01266300
 		# Register : DX8SL4DXCTL2 @ 0XFD08152C</p>
 
 		# Reserved. Return zeroes on reads.
@@ -9737,7 +9737,7 @@ set psu_ddr_init_data {
 		# PSU_DDR_PHY_DX8SL4IOCR_DXVREFIOM                                                0x0
 
 		# DX IO Mode
-		# PSU_DDR_PHY_DX8SL4IOCR_DXIOM                                                    0x2
+		# PSU_DDR_PHY_DX8SL4IOCR_DXIOM                                                    0x1
 
 		# DX IO Transmitter Mode
 		# PSU_DDR_PHY_DX8SL4IOCR_DXTXM                                                    0x0
@@ -9746,8 +9746,8 @@ set psu_ddr_init_data {
 		# PSU_DDR_PHY_DX8SL4IOCR_DXRXM                                                    0x0
 
 		# DATX8 0-1 I/O Configuration Register
-		#(OFFSET, MASK, VALUE)      (0XFD081530, 0xFFFFFFFFU ,0x70800000U)  */
-    mask_write 0XFD081530 0xFFFFFFFF 0x70800000
+		#(OFFSET, MASK, VALUE)      (0XFD081530, 0xFFFFFFFFU ,0x70400000U)  */
+    mask_write 0XFD081530 0xFFFFFFFF 0x70400000
 		# Register : DX8SLbPLLCR0 @ 0XFD0817C4</p>
 
 		# PLL Bypass
@@ -14242,6 +14242,51 @@ set psu_peripherals_init_data {
 		#(OFFSET, MASK, VALUE)      (0XFF260000, 0x00000001U ,0x00000001U)  */
     mask_write 0XFF260000 0x00000001 0x00000001
 		# : TTC SRC SELECT
+		# : USB RESET
+		# : USB RESET WITH BOOT PIN MODE
+		# : BOOT PIN HIGH
+		# Register : BOOT_PIN_CTRL @ 0XFF5E0250</p>
+
+		# Value driven onto the mode pins, when out_en = 1
+		# PSU_CRL_APB_BOOT_PIN_CTRL_OUT_VAL                                               0X2
+
+		# When 0, the pins will be inputs from the board to the PS. When 1, the PS
+    #  will drive these pins
+		# PSU_CRL_APB_BOOT_PIN_CTRL_OUT_EN                                                0X2
+
+		# Used to control the mode pins after boot.
+		#(OFFSET, MASK, VALUE)      (0XFF5E0250, 0x00000F0FU ,0x00000202U)  */
+    mask_write 0XFF5E0250 0x00000F0F 0x00000202
+		# : ADD 1US DELAY
+    mask_delay 0x00000000 1
+		# : BOOT PIN LOW
+		# Register : BOOT_PIN_CTRL @ 0XFF5E0250</p>
+
+		# Value driven onto the mode pins, when out_en = 1
+		# PSU_CRL_APB_BOOT_PIN_CTRL_OUT_VAL                                               0X0
+
+		# When 0, the pins will be inputs from the board to the PS. When 1, the PS
+    #  will drive these pins
+		# PSU_CRL_APB_BOOT_PIN_CTRL_OUT_EN                                                0X2
+
+		# Used to control the mode pins after boot.
+		#(OFFSET, MASK, VALUE)      (0XFF5E0250, 0x00000F0FU ,0x00000002U)  */
+    mask_write 0XFF5E0250 0x00000F0F 0x00000002
+		# : ADD 5US DELAY
+    mask_delay 0x00000000 5
+		# : BOOT PIN HIGH
+		# Register : BOOT_PIN_CTRL @ 0XFF5E0250</p>
+
+		# Value driven onto the mode pins, when out_en = 1
+		# PSU_CRL_APB_BOOT_PIN_CTRL_OUT_VAL                                               0X2
+
+		# When 0, the pins will be inputs from the board to the PS. When 1, the PS
+    #  will drive these pins
+		# PSU_CRL_APB_BOOT_PIN_CTRL_OUT_EN                                                0X2
+
+		# Used to control the mode pins after boot.
+		#(OFFSET, MASK, VALUE)      (0XFF5E0250, 0x00000F0FU ,0x00000202U)  */
+    mask_write 0XFF5E0250 0x00000F0F 0x00000202
 }
 
 set psu_post_config_data {
