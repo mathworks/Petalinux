@@ -82,44 +82,55 @@ int main(void) {
   int fd;
   u32 value;
   int val = 0;
+  int skip_memory_map = 1;
 
+  printf("Calling RFDC init function \n");
   /* initialize RFDC instance */
   ret = rfdc_inst_init(RFDC_DEVICE_ID);
   if (ret != XRFDC_SUCCESS) {
     printf("Failed to initialize RFDC\n");
     return -1;
   }
-  /* open memory file */
-  fd = open("/dev/mem", O_RDWR | O_NDELAY);
-  if (fd < 0) {
-    printf("file /dev/mem open failed\n");
-    return FAIL;
-  }
-  /* map size of memory */
-  base = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
-              (DESIGN_TYPE_REG & ~MAP_MASK));
-  if (base == MAP_FAILED) {
-    perror("map");
-    printf("Error mmapping the file\n");
-    close(fd);
-    return FAIL;
-  }
-  info.map_design_type_reg = base + (DESIGN_TYPE_REG & MAP_MASK);
-  info.design_type = 0;
-  value = *(u32*) (info.map_design_type_reg);
-  info.design_type = (value & (3 << 16));
-  info.design_type = (info.design_type >> 16);
-  if (info.design_type == DAC1_ADC1) {
-    max_dac_tiles = 2;
-    max_adc_tiles = 1;
-	val = 1; 
-  } else {
-    max_dac_tiles = MAX_DAC_TILE;
-    max_adc_tiles = MAX_ADC_TILE;
-  }
-  close(fd);
-  munmap(base, MAP_SIZE);
+  printf("Done calling RFDC init function \n");
+  
+  if (skip_memory_map == 0)
+  {
+         /* open memory file */
+         fd = open("/dev/mem", O_RDWR | O_NDELAY);
+         if (fd < 0) {
+          printf("file /dev/mem open failed\n");
+         return FAIL;
+        }
+        /* map size of memory */
+        base = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
+                      (DESIGN_TYPE_REG & ~MAP_MASK));
+        if (base == MAP_FAILED) {
+            perror("map");
+            printf("Error mmapping the file\n");
+            close(fd);
+            return FAIL;
+          }
 
+        info.map_design_type_reg = base + (DESIGN_TYPE_REG & MAP_MASK);
+        info.design_type = 0;
+        value = *(u32*) (info.map_design_type_reg);
+        info.design_type = (value & (3 << 16));
+        info.design_type = (info.design_type >> 16);
+
+        if (info.design_type == DAC1_ADC1) {
+            max_dac_tiles = 2;
+            max_adc_tiles = 1;
+            val = 1; 
+          } else {
+            max_dac_tiles = MAX_DAC_TILE;
+            max_adc_tiles = MAX_ADC_TILE;
+          }
+
+      close(fd);
+      munmap(base, MAP_SIZE);
+    }
+
+  printf("setting up ADC/DAC fifos..\n");
   /* disable ADC and DAC fifo */
   ret = config_all_fifo(DAC, FIFO_DIS);
   if (ret != SUCCESS) {
@@ -134,12 +145,15 @@ int main(void) {
     return -1;
   }
 
+  printf("Initializing RF Clocks \n");
   ret = initRFclock(ZCU111, LMK04208_12M8_3072M_122M88_REVA, DAC_245_76_MHZ,
                     DAC_245_76_MHZ, ADC_245_76_MHZ);
   if (ret != SUCCESS) {
     printf("Unable to enable RF clocks\n");
     return ret;
   }
+  
+  printf("Setting up ADC dynamic PLL \n");
 
   for (i = 0; i < max_adc_tiles; i++) {
     ret = XRFdc_DynamicPLLConfig(&RFdcInst, ADC, i, 1, 245.76, 3194.88);
@@ -148,6 +162,9 @@ int main(void) {
       return -1;
     }
   }
+
+  printf("Setting up DAC dynamic PLL \n");
+
   for (i = val; i < max_dac_tiles; i++) {
     ret = XRFdc_DynamicPLLConfig(&RFdcInst, DAC, i, 1, 245.76, 6389.76);
     if (ret != SUCCESS) {
@@ -175,7 +192,7 @@ newConn:
   /* mark this thread as active */
   thread_stat = 1;
 
-  pthread_create(&thread_id, NULL, datapath_t, NULL);
+//  pthread_create(&thread_id, NULL, datapath_t, NULL);
 
   while (1) {
     /* get string from io interface (Non blocking) */
@@ -199,7 +216,7 @@ newConn:
         shutdown_sock(COMMAND);
         shutdown_sock(DATA);
         printf("Closed data and command sockets\n");
-        pthread_join(thread_id, NULL);
+      //  pthread_join(thread_id, NULL);
         break;
       }
       /* clear rcvBuf each time anew command is received and processed */
@@ -208,9 +225,11 @@ newConn:
        */
       memset(txBuf, 0, sizeof(txBuf));
     } else {
-      if (pthread_kill(thread_id, 0))
-        printf("not able to kill data processing thread\n");
 
+     
+  //    if (pthread_kill(thread_id, 0))
+    //    printf("not able to kill data processing thread\n");
+      
       thread_stat = 0;
       break;
     }
