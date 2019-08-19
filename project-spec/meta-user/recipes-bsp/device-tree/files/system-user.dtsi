@@ -12,65 +12,67 @@
 };
 /delete-node/ &axi_dma_mm2s;
 /delete-node/ &axi_dma_s2mm;
+/delete-node/ &DAC_ADC_HDL_Coder_IP_0;
 
 &i2c0 {
-	tca6416_u22: gpio@20 {
-		compatible = "ti,tca6416";
-		reg = <0x20>;
-		gpio-controller; /* interrupt not connected */
-		#gpio-cells = <2>;
-		/*
-		 * IRQ not connected
-		 * Lines:
-		 * 0 - MAX6643_OT_B
-		 * 1 - MAX6643_FANFAIL_B
-		 * 2 - MIO26_PMU_INPUT_LS
-		 * 4 - SFP_SI5382_INT_ALM
-		 * 5 - IIC_MUX_RESET_B
-		 * 6 - GEM3_EXP_RESET_B
-		 * 10 - FMCP_HSPC_PRSNT_M2C_B
-		 * 11 - CLK_SPI_MUX_SEL0
-		 * 12 - CLK_SPI_MUX_SEL1
-		 * 16 - IRPS5401_ALERT_B
-		 * 17 - INA226_PMBUS_ALERT
-		 * 3, 7, 13-15 - not connected
-		 */
-	};
+    tca6416_u22: gpio@20 {
+        compatible = "ti,tca6416";
+        reg = <0x20>;
+        gpio-controller; /* interrupt not connected */
+        #gpio-cells = <2>;
+        /*
+         * IRQ not connected
+         * Lines:
+         * 0 - MAX6643_OT_B
+         * 1 - MAX6643_FANFAIL_B
+         * 2 - MIO26_PMU_INPUT_LS
+         * 4 - SFP_SI5382_INT_ALM
+         * 5 - IIC_MUX_RESET_B
+         * 6 - GEM3_EXP_RESET_B
+         * 10 - FMCP_HSPC_PRSNT_M2C_B
+         * 11 - CLK_SPI_MUX_SEL0
+         * 12 - CLK_SPI_MUX_SEL1
+         * 16 - IRPS5401_ALERT_B
+         * 17 - INA226_PMBUS_ALERT
+         * 3, 7, 13-15 - not connected
+         */
+    };
 };
 
 &i2c1 {
-	i2c-mux@74 { /* u26 */
-		#address-cells = <1>;
- 		#size-cells = <0>;
- 		reg = <0x74>;
-		reset-gpios = <&tca6416_u22 5 1>;
-		
-		i2c@5 { /* i2c mw 74 0 11 */
-			#address-cells = <1>;
-			#size-cells = <0>;
-			reg = <5>;
-				sc18is603@2f { /* sc18is602 - u93 */
-					compatible = "nxp,sc18is603";
-					/delete-property/reg;
-					/* 4 gpios for CS not handled by driver */
-					/*
-					 * USB2ANY cable or
-					 * LMK04208 - u90 or
-					 * LMX2594 - u102 or
-					 * LMX2594 - u103 or
-					 * LMX2594 - u104
-					 */
-				};
-				lmx2594_2: clock-generatorlmx@2f { /*  */
-					#clock-cells = <0>;
-					compatible = "ti,lmx2594";
-					reg = <0x2f>;
-					factory-fout = <300000000>;
-					clock-frequency = <00000000>;
-				};
-		};
-	};
+    i2c-mux@74 { /* u26 */
+        #address-cells = <1>;
+        #size-cells = <0>;
+        reg = <0x74>;
+        reset-gpios = <&tca6416_u22 5 1>;
+        
+        i2c@5 { /* i2c mw 74 0 11 */
+            #address-cells = <1>;
+            #size-cells = <0>;
+            reg = <5>;
+                sc18is603@2f { /* sc18is602 - u93 */
+                    compatible = "nxp,sc18is603";
+                    /delete-property/reg;
+                    /* 4 gpios for CS not handled by driver */
+                    /*
+                     * USB2ANY cable or
+                     * LMK04208 - u90 or
+                     * LMX2594 - u102 or
+                     * LMX2594 - u103 or
+                     * LMX2594 - u104
+                     */
+                };
+                lmx2594_2: clock-generatorlmx@2f { /*  */
+                    #clock-cells = <0>;
+                    compatible = "ti,lmx2594";
+                    reg = <0x2f>;
+                    factory-fout = <300000000>;
+                    clock-frequency = <00000000>;
+                };
+        };
+    };
 };
+
 
 /* MathWorks AXI-DMA & AXI-lite nodes */
 #include "axistream.dtsi"
