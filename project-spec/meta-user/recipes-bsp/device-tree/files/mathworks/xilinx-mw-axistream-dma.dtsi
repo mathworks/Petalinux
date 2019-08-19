@@ -11,7 +11,7 @@
 		xlnx,include-sg = <0x1>;
 		xlnx,halt-mode = "reset-always";
 		xlnx,addrwidth = <0x20>;
-		clocks = <&core_clkwiz 0>, <&core_clkwiz 0>, <&core_clkwiz 0>;
+		clocks = <&misc_clk_1>, <&misc_clk_1>, <&misc_clk_1>;
 		clock-names = "s_axi_lite_aclk", "m_axi_sg_aclk", "m_axi_mm2s_aclk";
 		dma-channel@0  {
 			reg = <0x0>;
@@ -31,7 +31,7 @@
 		xlnx,include-sg = <0x1>;
 		xlnx,halt-mode = "reset-always";
 		xlnx,addrwidth = <0x20>;
-		clocks = <&core_clkwiz 0>, <&core_clkwiz 0>, <&core_clkwiz 0>;
+		clocks = <&misc_clk_1>, <&misc_clk_1>, <&misc_clk_1>;
 		clock-names = "s_axi_lite_aclk", "m_axi_sg_aclk", "m_axi_s2mm_aclk";
 		dma-channel@0 {
 			reg = <0x0>;

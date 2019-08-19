@@ -1,3 +1,4 @@
+/*
 /{
 	core_clkwiz: clockwiz0 {
 		compatible = "fixed-factor-clock";
@@ -8,6 +9,7 @@
 		clock-output-names = "clk0";
 	};
 };
+*/
 
 &fpga_axi {
 		mwipcore0: mwipcore@A0000000 {
