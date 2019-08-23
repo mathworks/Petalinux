@@ -6,13 +6,13 @@ Current Supported Boards
 - ZCU111 Zynq RFSoC
 
 General build instructions
-- Clone this repository and switch branches to the matching board, for instance:
+- Clone this repository and switch tags to the matching board and Vivado release, for instance:
 
-`$ git checkout zcu111_2018.2`
+`$ git checkout zcu111_2018.3`
 
-- Setup the petalinux environment in your terminal (ie
+- Setup the petalinux 2018.3 environment in your terminal (ie
 
-`$ source /local/petalinux/settings.sh`).
+`$ source /local/petalinux_2018_3/settings.sh`).
 
    Ensure you are using /bin/bash
 - In the project directory, run the build command
