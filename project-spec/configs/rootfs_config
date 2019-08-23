@@ -4380,7 +4380,6 @@ CONFIG_hellopm=y
 #
 # CONFIG_gpio-demo is not set
 # CONFIG_peekpoke is not set
-CONFIG_trd-autostart=y
 
 #
 # apps 
