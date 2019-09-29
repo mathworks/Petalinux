@@ -39,16 +39,25 @@ MW_DTSI_FILES="$(pwd)/project-spec/meta-user/recipes-bsp/device-tree/files/mathw
 
 echo "XIL DTS Dir = $XIL_DTS_DIR"
 
-gcc  -E -nostdinc -Ulinux -x assembler-with-cpp -DMW_DATAWIDTH_SELECT=128 -I${DTS_BASE_DIR} -I${DTSI_FILES} -I${MW_DTSI_FILES} -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/arch/arm64/boot/dts/xilinx -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -I${XIL_DTS_DIR} -o ${OUTPUT_DIR}`basename ${DTS_BASE}`128.pp ${DTS_BASE}
-
+## Assemble 128-bit data width DMA dtb file
+gcc  -E -nostdinc -Ulinux -x assembler-with-cpp -DMW_DATAWIDTH_SELECT=128 -DMW_SAMPLECNT_REG=8 -I${DTS_BASE_DIR} -I${DTSI_FILES} -I${MW_DTSI_FILES} -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/arch/arm64/boot/dts/xilinx -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -I${XIL_DTS_DIR} -o ${OUTPUT_DIR}`basename ${DTS_BASE}`128.pp ${DTS_BASE}
 DTS_NAME=`basename -s .dts ${DTS_BASE}`
-
 dtc -I dts -O dtb -R 8 -p 0x1000 -b 0 -i ${DTS_BASE_DIR} -i ${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -i ${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/arch/arm64/boot/dts/xilinx -i ${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -i ${XIL_DTS_DIR} -o ${OUTPUT_DIR}${DTS_NAME}128.dtb ${OUTPUT_DIR}`basename ${DTS_BASE}`128.pp
 # Convert to DTS for examining
 dtc -I dtb -O dts -o ${OUTPUT_DIR}/${DTS_NAME}128.dts ${OUTPUT_DIR}/${DTS_NAME}128.dtb
-
 # Copy 128-bit DTB into destination dir
 cp ${OUTPUT_DIR}${DTS_NAME}128.dtb ${dst_dir}/devicetree_128.dtb
+
+## Assemble DTB with sample count register for TLAST at different location
+gcc  -E -nostdinc -Ulinux -x assembler-with-cpp -DMW_DATAWIDTH_SELECT=64 -DMW_SAMPLECNT_REG=64 -I${DTS_BASE_DIR} -I${DTSI_FILES} -I${MW_DTSI_FILES} -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/arch/arm64/boot/dts/xilinx -I${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -I${XIL_DTS_DIR} -o ${OUTPUT_DIR}`basename ${DTS_BASE}`_axi4master.pp ${DTS_BASE}
+DTS_NAME=`basename -s .dts ${DTS_BASE}`
+dtc -I dts -O dtb -R 8 -p 0x1000 -b 0 -i ${DTS_BASE_DIR} -i ${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -i ${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/arch/arm64/boot/dts/xilinx -i ${BUILD_BASE_DIR}/work-shared/zcu111-zynqmp/kernel-source/include -i ${XIL_DTS_DIR} -o ${OUTPUT_DIR}${DTS_NAME}_axi4master.dtb ${OUTPUT_DIR}`basename ${DTS_BASE}`_axi4master.pp
+# Convert to DTS for examining
+dtc -I dtb -O dts -o ${OUTPUT_DIR}/${DTS_NAME}_axi4master.dts ${OUTPUT_DIR}/${DTS_NAME}_axi4master.dtb
+# Copy 128-bit DTB into destination dir
+cp ${OUTPUT_DIR}${DTS_NAME}_axi4master.dtb ${dst_dir}/devicetree_axi4master.dtb
+
+
 
 # Create .zip file
 get_timestamp_sd=$(timestamp_sdcard)

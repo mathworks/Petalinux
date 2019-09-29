@@ -13,4 +13,8 @@
 	#define MW_S2MM_DATAFMT "u128/128>>0"
 #endif
 
+#if !defined(MW_SAMPLECNT_REG)
+        #define MW_SAMPLECNT_REG 8
+#endif
+
 #endif /* __MW_AXISTREAM_COMMON__ */

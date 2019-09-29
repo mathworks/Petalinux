@@ -27,7 +27,7 @@
 		dma-names = "s2mm";
 		dmas = <&axi4stream_s2mm 0>;
 		mathworks,dev-name = "s2mm0";
-		mathworks,sample-cnt-reg = <0x8>;
+		mathworks,sample-cnt-reg = <MW_SAMPLECNT_REG>;
 
 		data-channel@0 {
 			compatible = "mathworks,iio-data-channel-v1.00";
