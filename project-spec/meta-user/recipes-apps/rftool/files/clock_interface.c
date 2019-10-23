@@ -1023,14 +1023,6 @@ int initRFclock(u32 board_id, u32 lmk_freq, u32 lmx0_freq, u32 lmx1_freq,
   ADC0CurrentFreq = lmx1_freq;
   ADC1CurrentFreq = lmx0_freq;
 
-  for (i = 0; i < 4; i++) {
-    ret = XRFdc_DynamicPLLConfig(&RFdcInst, 0, i, 1, 245.76, 4096);
-  }
-
-  for (i = 0; i < 2; i++) {
-    ret = XRFdc_DynamicPLLConfig(&RFdcInst, 1, i, 1, 245.76, 6553.6);
-  }
-
   return SUCCESS;
 
 err:
