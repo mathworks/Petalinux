@@ -1,5 +1,5 @@
 #include "zynqmp-mw-cma.dtsi"
-#include "xilinx-mw-axistream-iio-common.dtsi"
+#include "adi-mw-axistream-iio-common.dtsi"
 
 &axi4stream_mm2s {
 	reg = <0xA0020000 0x10000>;
