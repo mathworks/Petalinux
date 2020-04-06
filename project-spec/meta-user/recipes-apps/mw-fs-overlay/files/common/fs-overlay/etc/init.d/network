@@ -15,6 +15,8 @@ mkdir -p /run/network
 
 case "$1" in
   start)
+        echo "Stopping network..."
+        /sbin/ifdown -a -f
  	echo "Starting network..."
 	/sbin/ifup -a -f
 	;;
