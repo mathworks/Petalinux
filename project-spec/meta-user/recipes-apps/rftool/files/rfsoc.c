@@ -152,26 +152,6 @@ int main(void) {
     printf("Unable to enable RF clocks\n");
     return ret;
   }
-  
-  printf("Setting up ADC dynamic PLL \n");
-
-  for (i = 0; i < max_adc_tiles; i++) {
-    ret = XRFdc_DynamicPLLConfig(&RFdcInst, ADC, i, 1, 245.76, 3194.88);
-    if (ret != SUCCESS) {
-      printf("could not set ADC tile %d to 3194.88freq ret = %d\n", i, ret);
-      return -1;
-    }
-  }
-
-  printf("Setting up DAC dynamic PLL \n");
-
-  for (i = val; i < max_dac_tiles; i++) {
-    ret = XRFdc_DynamicPLLConfig(&RFdcInst, DAC, i, 1, 245.76, 6389.76);
-    if (ret != SUCCESS) {
-      printf("could not set DAC tile %d to 6389.76freq ret = %d\n", i, ret);
-      return -1;
-    }
-  }
 
   tcpServerInitialize();
   DataServerInitialize();
