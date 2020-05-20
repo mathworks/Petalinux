@@ -168,6 +168,7 @@
 	"initrd_size=0x2000000\0" \
 	"initrd_image=uramdisk.image.gz\0"	\
 	"fdt_addr=23fff000\0" \
+        "fdtov_addr=240bf000\0" \
 	"fdt_high=0x10000000\0" \
 	"fdt_image=devicetree.dtb\0"	\
 	"bitstream_addr=0x1000000\0"	\
@@ -197,7 +198,15 @@
 	"sd_boot_loadbit=" \
 		"if run sd_bitstream_existence_test; then " \
 			"run mmc_loadbit;" \
-		"fi; \0" \    
+		"fi; \0" \
+        "sd_dto_existence_test=test -e mmc $sdbootdev:$partid /hdlcoder_rd/mw_overlay.dtbo\0" \
+        "sd_apply_overlay=" \
+                "if run sd_dto_existence_test; then " \
+                    "fdt addr $fdt_addr; && " \
+                    "load mmc $sdbootdev:$partid $fdtov_addr /hdlcoder_rd/mw_overlay.dtbo && " \
+                    "fdt apply $fdtov_addr; && "\
+                    "echo Applied mw_overlay.dtbo... && " \
+                "fi; \0" \
     ENV_CMD_INIT_ENV_ONCE \
 	"sdboot=if mmc dev $sdbootdev && mmcinfo; then " \
 			"run uenv_init; " \
@@ -206,6 +215,7 @@
 			"echo Copying Linux from SD to RAM... && " \
 			"load mmc $sdbootdev:$partid $kernel_addr Image && " \
 			"load mmc $sdbootdev:$partid $fdt_addr $fdt_image && " \
+                        "run sd_apply_overlay; " \
 			"if load mmc 0 ${initrd_addr} ${initrd_image}; then " \
 				"booti ${kernel_addr} ${initrd_addr} ${fdt_addr}; " \
 			"else " \
