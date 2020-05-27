@@ -199,13 +199,13 @@
 		"if run sd_bitstream_existence_test; then " \
 			"run mmc_loadbit;" \
 		"fi; \0" \
-        "sd_dto_existence_test=test -e mmc $sdbootdev:$partid /hdlcoder_rd/mw_overlay.dtbo\0" \
+        "sd_dto_existence_test=test -e mmc $sdbootdev:$partid $fdt_overlay\0" \
         "sd_apply_overlay=" \
                 "if run sd_dto_existence_test; then " \
                     "fdt addr $fdt_addr; && " \
-                    "load mmc $sdbootdev:$partid $fdtov_addr /hdlcoder_rd/mw_overlay.dtbo && " \
+                    "load mmc $sdbootdev:$partid $fdtov_addr $fdt_overlay && " \
                     "fdt apply $fdtov_addr; && "\
-                    "echo Applied mw_overlay.dtbo... && " \
+                    "echo Applied Device-Tree Overlay: ${fdt_overlay}... && " \
                 "fi; \0" \
     ENV_CMD_INIT_ENV_ONCE \
 	"sdboot=if mmc dev $sdbootdev && mmcinfo; then " \
