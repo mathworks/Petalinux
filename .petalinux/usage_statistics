@@ -1,12 +1,14 @@
-1331506739
+1202728883
 
-command_total_run_petalinux-yocto=1
-command_failures_petalinux-yocto=0
-command_total_run_petalinux-build=1
-command_failures_petalinux-build=0
-command_option_petalinux-build=-c
-command_option_value_petalinux-build=<USER_DEFINED>
-command_total_run_petalinux-package=1
+command_total_run_petalinux-yocto=11
+command_failures_petalinux-yocto=7
+command_total_run_petalinux-yocto=11
+command_failures_petalinux-yocto=7
+command_total_run_petalinux-build=11
+command_failures_petalinux-build=7
+command_total_run_petalinux-build=11
+command_failures_petalinux-build=7
+command_total_run_petalinux-package=4
 command_failures_petalinux-package=0
 command_option_petalinux-package=--boot
 command_option_petalinux-package=--format
