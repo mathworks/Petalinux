@@ -74,11 +74,6 @@ MW_DTSI_FILES="$(pwd)/project-spec/meta-user/recipes-bsp/device-tree/files/mathw
 
 echo "XIL DTS Dir = $XIL_DTS_DIR"
 
-# Sample count register adjusted for axi4-master dtb files
-assemble_dtb 64 64 ${DTS_BASE_DIR} ${DTSI_FILES} ${MW_DTSI_FILES} ${BUILD_BASE_DIR} ${XIL_DTS_DIR} ${OUTPUT_DIR} ${DTS_BASE} ${dst_dir} devicetree_axi4master 1
-assemble_dtb 128 64 ${DTS_BASE_DIR} ${DTSI_FILES} ${MW_DTSI_FILES} ${BUILD_BASE_DIR} ${XIL_DTS_DIR} ${OUTPUT_DIR} ${DTS_BASE} ${dst_dir} devicetree_axi4master 1
-assemble_dtb 128 8 ${DTS_BASE_DIR} ${DTSI_FILES} ${MW_DTSI_FILES} ${BUILD_BASE_DIR} ${XIL_DTS_DIR} ${OUTPUT_DIR} ${DTS_BASE} ${dst_dir} devicetree
-
 # Create .zip file
 get_timestamp_sd=$(timestamp_sdcard)
 zip zcu111_sdcard_zynqrf_$get_timestamp_sd.zip -j $dst_dir/*
