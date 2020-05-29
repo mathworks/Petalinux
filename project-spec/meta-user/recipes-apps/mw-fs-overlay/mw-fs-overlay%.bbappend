@@ -12,6 +12,7 @@ do_install_append() {
 	ln -s ../sbin/fw_setdevicetree fw_setdevicetree 
 	ln -s ../sbin/fw_setdtoverlay fw_setdtoverlay
         ln -s ../sbin/fw_setrdname fw_setrdname 
+        ln -s ../sbin/fw_updatedtoverlay fw_updatedtoverlay
 	ln -s ../sbin/_mw_backup_network _mw_backup_network 
 	ln -s ../sbin/_mw_getbootdev _mw_getbootdev 
 	ln -s ../sbin/_mw_reboot_mode _mw_reboot_mode 
