@@ -199,7 +199,7 @@
 		"if run sd_bitstream_existence_test; then " \
 			"run mmc_loadbit;" \
 		"fi; \0" \
-        "sd_dto_existence_test=test -e mmc $sdbootdev:$partid $fdt_overlay\0" \
+        "sd_dto_existence_test=test -e mmc $sdbootdev:$partid /${fdt_overlay}\0" \
         "sd_apply_overlay=" \
                 "if run sd_dto_existence_test; then " \
                     "fdt addr $fdt_addr; && " \
@@ -215,7 +215,9 @@
 			"echo Copying Linux from SD to RAM... && " \
 			"load mmc $sdbootdev:$partid $kernel_addr Image && " \
 			"load mmc $sdbootdev:$partid $fdt_addr $fdt_image && " \
-                        "run sd_apply_overlay; " \
+                        "if test -n ${fdt_overlay}; then " \
+                            "run sd_apply_overlay; " \
+                        "fi; " \    
 			"if load mmc 0 ${initrd_addr} ${initrd_image}; then " \
 				"booti ${kernel_addr} ${initrd_addr} ${fdt_addr}; " \
 			"else " \
