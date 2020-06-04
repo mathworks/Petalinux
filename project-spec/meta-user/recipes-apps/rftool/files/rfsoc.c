@@ -153,6 +153,26 @@ int main(void) {
     return ret;
   }
 
+  printf("Setting up ADC dynamic PLL \n");	
+
+  for (i = 0; i < 4; i++) {	
+    ret = XRFdc_DynamicPLLConfig(&RFdcInst, ADC, i, 1, 245.76, 2048);	
+    if (ret != SUCCESS) {	
+      printf("could not set ADC tile %d to 2048 freq ret = %d\n", i, ret);	
+    //  return -1;	
+    }	
+  }	
+
+  printf("Setting up DAC dynamic PLL \n");	
+
+  for (i = val; i < 2; i++) {	
+    ret = XRFdc_DynamicPLLConfig(&RFdcInst, DAC, i, 1, 245.76, 2048);	
+    if (ret != SUCCESS) {	
+      printf("could not set DAC tile %d to 2048 freq ret = %d\n", i, ret);	
+     // return -1;	
+    }	
+  }
+
   tcpServerInitialize();
   DataServerInitialize();
 
