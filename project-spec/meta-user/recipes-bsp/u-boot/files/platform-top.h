@@ -204,6 +204,7 @@
                 "if run sd_dto_existence_test; then " \
                     "fdt addr $fdt_addr; && " \
                     "load mmc $sdbootdev:$partid $fdtov_addr $fdt_overlay && " \
+                    "fdt resize ${filesize}; && "\
                     "fdt apply $fdtov_addr; && "\
                     "echo Applied Device-Tree Overlay: ${fdt_overlay}... && " \
                 "fi; \0" \
