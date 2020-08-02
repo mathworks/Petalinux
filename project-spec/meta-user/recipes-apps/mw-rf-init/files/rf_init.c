@@ -1,5 +1,19 @@
 /*
- * RF Initialization app
+ * Copyright (c) 2012 Xilinx, Inc.  All rights reserved.
+ *
+ * Xilinx, Inc.
+ * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A
+ * COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
+ * ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR
+ * STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
+ * IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE
+ * FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.
+ * XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO
+ * THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO
+ * ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE
+ * FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
  */
 
 #include <stdio.h>
@@ -28,23 +42,37 @@ int main()
 	socketStruct rftool_socket;
 	char rftool_reply[RPLY_LINE_SIZE];
 	FILE* fh = NULL;
-	char textbuf[TXT_LINE_SIZE];
+	FILE* fhlog = NULL;
+	char textbuf[TXT_LINE_SIZE] = {0};
+	char logbuf[RPLY_LINE_SIZE] = {0};
     char blank_line[] = "\n";
     char pause_line[] = "PAUSE\n";
 	char CONFIG_FILE_LOC[] = "/mnt/hdlcoder_rd/RF_Init.cfg";
-
+	char RF_INIT_LOG_LOC[] = "/mnt/rf_init.log";
 
     fh = fopen(CONFIG_FILE_LOC,"r");
+    fhlog = fopen(RF_INIT_LOG_LOC,"w");
+
     if (fh == NULL)
     {
-        printf("rf_init: Could not locate %s ! Exiting...\n",CONFIG_FILE_LOC);
-        return(0);
+    	sprintf(logbuf,"rf_init: Could not locate %s ! Exiting...\n",CONFIG_FILE_LOC);
+		printf(logbuf);
+        fwrite(logbuf,strlen(logbuf),1,fhlog);
+        //printf("rf_init: Could not locate %s ! Exiting...\n",CONFIG_FILE_LOC);
+        //return(0);
+        goto TERM_ERR;
     }
 
 	if (setupComms(&rftool_socket) < 0)
 	{
 			perror("rf_init: Could not connect to RFTOOL. Exiting...");
-			return(-1);
+
+			sprintf(logbuf,"rf_init: Could not connect to RFTOOL. Exiting...\n");
+			perror(logbuf);
+			fwrite(logbuf,strlen(logbuf),1,fhlog);
+		    fclose(fh);
+			goto TERM_ERR;
+			//return(-1);
 	}
 
     while (!feof(fh))
@@ -64,7 +92,9 @@ int main()
 		}
         else
         {
-        	printf("rf_init: SENDING: %s", textbuf);
+        	sprintf(logbuf,"rf_init: SENDING: %s",textbuf);
+        	//printf("rf_init: SENDING: %s", textbuf);
+        	printf(logbuf);
             if ( send(rftool_socket.socket_desc_ctrl,
 						textbuf,
 						strlen(textbuf),
@@ -73,15 +103,22 @@ int main()
             	perror("rf_init: Failed to send command to RFTOOL");
             }
 
+            fwrite(textbuf,strlen(logbuf),1,fhlog);
+
             //look for ack
             status = recv(rftool_socket.socket_desc_ctrl,rftool_reply,RPLY_LINE_SIZE,0);
             if (status < 0)
             {
             	perror("rf_init: Failed to get ack packet from RFTOOL");
+    		    fclose(fh);
+    			goto TERM_ERR;
+
             }
             else
             {
-            	printf("rf_init: RECEIVED: %.*s \n",status,rftool_reply);
+            	sprintf(logbuf,"rf_init: RECEIVED: %.*s \n",status,rftool_reply);
+            	printf(logbuf);
+                fwrite(logbuf,strlen(logbuf),1,fhlog);
             }
         }
 
@@ -93,14 +130,30 @@ int main()
     {   //empty buffer until we get 0 bytes back (timed out..)
     	status = recv(rftool_socket.socket_desc_ctrl,rftool_reply,2048,0);
     	if (status > 0)
-    		printf("rf_init: RECEIVED: %.*s \n",status,rftool_reply);
+    	{
+    		sprintf(logbuf,"rf_init: RECEIVED: %.*s \n",status,rftool_reply);
+    		printf(logbuf);
+    		fwrite(logbuf,strlen(logbuf),1,fhlog);
+    	}
+
+    		//printf("rf_init: RECEIVED: %.*s \n",status,rftool_reply);
     }
 
 
-    fclose(fh);
-    printf("rf_init: finished writing to rftool \n");
+    //printf("rf_init: finished writing to rftool \n");
+    sprintf(logbuf,"rf_init: finished writing to rftool \n");
+    printf(logbuf);
+    fwrite(logbuf,strlen(logbuf),1,fhlog);
 
- return(0);
+TERM_ERR:
+    fflush(fhlog);
+    fclose(fhlog);
+    return(-1);
+
+fclose(fh);
+fflush(fhlog);
+fclose(fhlog);
+return(0);
 }
 
 int setupComms(socketStruct *socketInput)
@@ -108,7 +161,7 @@ int setupComms(socketStruct *socketInput)
 		struct timeval tv;
 		tv.tv_sec = 2;
 		tv.tv_usec = 0;
-		int MaxRetry = 20;
+		int MaxRetry = 4;
 
 		int err = 0;
         //Create socket
