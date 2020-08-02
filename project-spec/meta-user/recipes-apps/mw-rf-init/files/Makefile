@@ -1,4 +1,4 @@
-APP = rf_init
+APP = mw-rf-init
 
 # Add any other object files to this list below
 SRCS=$(wildcard *.c)
