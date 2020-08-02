@@ -20,5 +20,5 @@ TARGET_CC_ARCH += "${LDFLAGS}"
 
 do_install() {
 	     install -d ${D}/${bindir}
-	     install -m 0755 ${S}/rf_init ${D}/${bindir}
+	     install -m 0755 ${S}/mw-rf-init ${D}/${bindir}
 }
