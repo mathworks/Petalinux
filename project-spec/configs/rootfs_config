@@ -4395,6 +4395,7 @@ CONFIG_libiio=y
 CONFIG_libserialport=y
 CONFIG_libusb=y
 CONFIG_mw-fs-overlay=y
+CONFIG_mw-rf-init=y
 # CONFIG_rfdc is not set
 # CONFIG_rfdc-read-write is not set
 # CONFIG_rfdc-selftest is not set
