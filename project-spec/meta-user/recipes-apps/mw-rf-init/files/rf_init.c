@@ -34,7 +34,9 @@ typedef struct {
 		struct sockaddr_in rftool_data;
 } socketStruct ;
 
-int setupComms(socketStruct *socketInput);
+char logbuf[RPLY_LINE_SIZE] = {0};
+
+int setupComms(socketStruct *socketInput, FILE* fhlog);
 
 int main()
 {
@@ -44,7 +46,6 @@ int main()
 	FILE* fh = NULL;
 	FILE* fhlog = NULL;
 	char textbuf[TXT_LINE_SIZE] = {0};
-	char logbuf[RPLY_LINE_SIZE] = {0};
     char blank_line[] = "\n";
     char pause_line[] = "PAUSE\n";
 	char CONFIG_FILE_LOC[] = "/mnt/hdlcoder_rd/RF_Init.cfg";
@@ -63,7 +64,7 @@ int main()
         goto TERM_ERR;
     }
 
-	if (setupComms(&rftool_socket) < 0)
+	if (setupComms(&rftool_socket,fhlog) < 0)
 	{
 			perror("rf_init: Could not connect to RFTOOL. Exiting...");
 
@@ -156,12 +157,16 @@ fclose(fhlog);
 return(0);
 }
 
-int setupComms(socketStruct *socketInput)
+int setupComms(socketStruct *socketInput, FILE * fhlog)
 {
 		struct timeval tv;
 		tv.tv_sec = 2;
 		tv.tv_usec = 0;
-		int MaxRetry = 4;
+		int MaxRetry = 20;
+
+
+	  	//sprintf(logbuf,"rf_init: Could not locate %s ! Exiting...\n",CONFIG_FILE_LOC);
+
 
 		int err = 0;
         //Create socket
@@ -169,7 +174,10 @@ int setupComms(socketStruct *socketInput)
 		socketInput->socket_desc_data = socket(AF_INET , SOCK_STREAM , 0);
 		if (socketInput->socket_desc_ctrl == -1)
 		{
-			printf("rf_init: Could not create socket");
+			//printf("rf_init: Could not create socket");
+			sprintf(logbuf,"rf_init: Could not create socket");
+			printf(logbuf);
+			fwrite(logbuf,strlen(logbuf),1,fhlog);
 		}
 
 		socketInput->rftool_ctrl.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -195,12 +203,20 @@ int setupComms(socketStruct *socketInput)
 			connCount++;
 
 			if (err<0)
-				printf("rf_init: Could not connect to RFTOOL...Iteration:%d \n",connCount);
+			{
+				sprintf(logbuf,"rf_init: Could not connect to RFTOOL...Iteration:%d \n",connCount);
+				printf(logbuf);
+				fwrite(logbuf,strlen(logbuf),1,fhlog);
+			//	printf("rf_init: Could not connect to RFTOOL...Iteration:%d \n",connCount);
+			}
 
 		}
 		if (err<0 && connCount>=MaxRetry)
 		{
-			printf("rf_init: Failed to establish connection after %d retries \n",connCount);
+			//printf("rf_init: Failed to establish connection after %d retries \n",connCount);
+			sprintf(logbuf,"rf_init: Failed to establish connection after %d retries \n",connCount);
+			printf(logbuf);
+			fwrite(logbuf,strlen(logbuf),1,fhlog);
 			return(-1);
 		}
 
@@ -208,12 +224,18 @@ int setupComms(socketStruct *socketInput)
 
 		if (connect(socketInput->socket_desc_data , (struct sockaddr *)&socketInput->rftool_data , sizeof(socketInput->rftool_data)) < 0)
 		{
-			puts("rf_init: Data plane connection error");
+			//puts("rf_init: Data plane connection error");
+			sprintf(logbuf,"rf_init: Data plane connection error");
+			printf(logbuf);
+			fwrite(logbuf,strlen(logbuf),1,fhlog);
 			return(-1);
 		}
 		else
 		{
-			printf("rf_init: Connected to data plane \n");
+			//printf("rf_init: Connected to data plane \n");
+			sprintf(logbuf,"rf_init: Connected to data plane \n");
+			printf(logbuf);
+			fwrite(logbuf,strlen(logbuf),1,fhlog);
 		}
 
 		setsockopt(socketInput->socket_desc_ctrl, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
@@ -221,7 +243,6 @@ int setupComms(socketStruct *socketInput)
 		return(err);
 
 }
-
 
 
 
