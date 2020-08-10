@@ -8,7 +8,7 @@ HOMEPAGE = "http://libusb.info/"
 #LIBUSB_SOURCE = libusb-$(LIBUSB_VERSION).tar.bz2
 
 
-SRC_URI = "https://github.com/libusb/libusb/releases/download/libusb-${PV}.21.tar.bz2"
+SRC_URI = "https://github.com/libusb/libusb/releases/download/v${PV}.21/libusb-${PV}.21.tar.bz2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=fbc093901857fcd118f065f900982c24"
 
 S = "${WORKDIR}/libusb-${PV}.21"
