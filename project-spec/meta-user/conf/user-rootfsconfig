@@ -9,3 +9,6 @@ CONFIG_rfdc-selftest
 CONFIG_rfclk
 CONFIG_trd-autostart
 CONFIG_rftool
+CONFIG_libiio
+CONFIG_libusb
+CONFIG_libserialport

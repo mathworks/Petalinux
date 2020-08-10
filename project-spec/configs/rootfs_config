@@ -4226,6 +4226,9 @@ CONFIG_trd-autostart=y
 #
 # user packages 
 #
+CONFIG_libiio=y
+CONFIG_libserialport=y
+CONFIG_libusb=y
 CONFIG_rfclk=y
 CONFIG_rfdc=y
 CONFIG_rfdc-read-write=y
