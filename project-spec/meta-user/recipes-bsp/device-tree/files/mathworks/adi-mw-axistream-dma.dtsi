@@ -7,7 +7,7 @@
 			reg = <0x40020000 0xffff>;
 			#dma-cells = <1>;
 			interrupts = <0 0x1d 0>;
-			clocks = <&misc_clk_1 0>;
+			clocks = <&misc_clk_0 0>;
 
 			adi,channels {
 				#size-cells = <0>;
@@ -28,7 +28,7 @@
 			reg = <0x40030000 0xffff>;
 			#dma-cells = <1>;
 			interrupts = <0 0x1e 0>;
-			clocks = <&misc_clk_1 0>;
+			clocks = <&misc_clk_0 0>;
 	
 			adi,channels {
 				#size-cells = <0>;
