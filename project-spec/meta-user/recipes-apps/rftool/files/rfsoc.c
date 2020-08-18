@@ -298,7 +298,7 @@ int main(void)
 		printf("Failed to initialize RFDC\n");
 		return -1;
 	}
-	ret = RFInitBuildMemoryMap();
+	/*ret = RFInitBuildMemoryMap();
 	if (ret != SUCCESS) {
 		printf("Failed to build memory map\n");
 		return -1;
@@ -306,24 +306,30 @@ int main(void)
 
 	InitMMCM_ADC();
 	InitMMCM_DAC();
+        // In the TRD, a memory map is performed at the beginning between the PS and a few clocks on the PL to get clock divder information
+        // This appears to be used to report back to the user clock speed information
+        */
 	tcpServerInitialize();
 	DataServerInitialize();
-	ret = init_mem();
+	/*
+        ret = init_mem();
 	if (ret) {
 		deinit_mem();
 		printf("Unable to initialise memory\n");
 		return -1;
-	}
+	}        
 	printf("going to init gpio\n");
 	ret = init_gpio();
+        
 	if (ret) {
 		printf("Unable to initialise gpio's\n");
 		deinit_gpio();
 		deinit_mem();
 		return -1;
 	}
+        */
 	EnableAllInterrupts();
-	StartUpConfig();
+	//StartUpConfig();
 	DisplayIpAddress();
 	printf("Server Init Done\n");
 
@@ -342,8 +348,8 @@ newConn:
 	/* mark this thread as active */
 	thread_stat = 1;
 
-	printf("Start data processing thread\n");
-	pthread_create(&thread_id, NULL, datapath_t, NULL);
+//	printf("Start data processing thread\n");
+//	pthread_create(&thread_id, NULL, datapath_t, NULL);
 	while (1) {
 		/* get string from io interface (Non blocking) */
 		numCharacters = getString(rcvBuf, bufLen);
@@ -378,12 +384,13 @@ newConn:
 			 a response returned */
 			memset(txBuf, 0, sizeof(txBuf));
 		} else {
-			printf("Kill data processing thread\n");
+		/*	printf("Kill data processing thread\n");
 			if (pthread_kill(thread_id, 0))
 				printf("not able to kill data processing"
 				       " thread\n");
-
+                    */
 			thread_stat = 0;
+                    
 			break;
 		}
 	}
