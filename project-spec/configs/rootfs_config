@@ -461,7 +461,7 @@ CONFIG_mtd-utils=y
 #
 # dtc 
 #
-# CONFIG_dtc is not set
+CONFIG_dtc=y
 # CONFIG_dtc-dbg is not set
 # CONFIG_dtc-misc is not set
 # CONFIG_dtc-dev is not set
@@ -4233,9 +4233,9 @@ CONFIG_rfclk=y
 CONFIG_rfdc=y
 CONFIG_rfdc-read-write=y
 CONFIG_rfdc-selftest=y
-
+CONFIG_mw-fs-overlay=y
 #
 # PetaLinux RootFS Settings
 #
-CONFIG_ROOTFS_ROOT_PASSWD="root"
+CONFIG_ROOTFS_ROOT_PASSWD=""
 CONFIG_ADD_EXTRA_USERS="petalinux:petalinux;"
