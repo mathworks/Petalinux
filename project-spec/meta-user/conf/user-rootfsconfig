@@ -12,3 +12,4 @@ CONFIG_rftool
 CONFIG_libiio
 CONFIG_libusb
 CONFIG_libserialport
+CONFIG_mw-fs-overlay

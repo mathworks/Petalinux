@@ -4229,13 +4229,14 @@ CONFIG_trd-autostart=y
 CONFIG_libiio=y
 CONFIG_libserialport=y
 CONFIG_libusb=y
+CONFIG_mw-fs-overlay=y
 CONFIG_rfclk=y
 CONFIG_rfdc=y
 CONFIG_rfdc-read-write=y
 CONFIG_rfdc-selftest=y
-CONFIG_mw-fs-overlay=y
+
 #
 # PetaLinux RootFS Settings
 #
-CONFIG_ROOTFS_ROOT_PASSWD=""
+CONFIG_ROOTFS_ROOT_PASSWD="root"
 CONFIG_ADD_EXTRA_USERS="petalinux:petalinux;"
