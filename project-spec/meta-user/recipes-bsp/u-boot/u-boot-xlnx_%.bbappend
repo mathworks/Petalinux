@@ -1,9 +1,12 @@
-SRC_URI_append = " file://platform-top.h"
-SRC_URI += "file://bsp.cfg"
+SRC_URI += "file://bsp.cfg \
+            file://devtool-fragment.cfg \
+            "
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+SRC_URI_append = " file://platform-top.h"
 SRC_URI_append += "file://mw_xilinx_common.h"
 SRC_URI_append += "file://bsp.cfg"
+#SRC_URI_append += "file://devtool-fragment.cfg"
 
 do_copy_configs () {
  cp ${WORKDIR}/mw_xilinx_common.h ${S}/include/configs/mw_xilinx_common.h
