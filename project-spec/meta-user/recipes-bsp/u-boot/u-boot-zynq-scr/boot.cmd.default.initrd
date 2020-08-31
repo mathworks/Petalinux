@@ -13,11 +13,26 @@ do
 	fi
 	if test "${boot_target}" = "mmc0" || test "${boot_target}" = "mmc1" ; then
                 echo Entered boot script
+
+                # FIT Image booting...
                 if test -e ${devtype} ${devnum}:${distro_bootpart} /@@FIT_IMAGE@@; then
 			fatload ${devtype} ${devnum}:${distro_bootpart} @@FIT_IMAGE_LOAD_ADDRESS@@ @@FIT_IMAGE@@;
 			bootm @@FIT_IMAGE_LOAD_ADDRESS@@;
 			exit;
                 fi
+                
+                # Leagcy Image booting...
+                echo Storing default uboot environment...;
+                mmc rescan;
+                saveenv
+
+		if test -e ${devtype} ${devnum}:${distro_bootpart} /uEnv.txt; then
+			echo Importing uEnv.txt environment from SD ...
+			load ${devtype} ${devnum}:${distro_bootpart} 0x00100000 uEnv.txt
+			echo  Loaded environment from 0x00100000
+			env import -t 0x00100000 ${filesize}	
+		fi
+
 
                 if test -e ${devtype} ${devnum}:${distro_bootpart} /system.bit; then
                         echo Loading bitstream from SD/MMC/eMMC to RAM..
@@ -30,6 +45,14 @@ do
 		if test -e ${devtype} ${devnum}:${distro_bootpart} /system.dtb; then
 		        fatload ${devtype} ${devnum}:${distro_bootpart} @@DEVICETREE_ADDRESS@@ system.dtb;
 		fi
+
+		# device-tree overlay...
+		if test -e ${devtype} ${devnum}:${distro_bootpart} ${fdt_overlay}; then
+		        echo Applying device-tree overlay
+		else
+			echo Could not find device-tree overlay. Skipping this...
+		fi
+
 		if test -e ${devtype} ${devnum}:${distro_bootpart} /@@RAMDISK_IMAGE@@; then
                         echo Copying Linux from SD to RAM...
                         fatload ${devtype} ${devnum}:${distro_bootpart} @@RAMDISK_IMAGE_ADDRESS@@ @@RAMDISK_IMAGE@@;
