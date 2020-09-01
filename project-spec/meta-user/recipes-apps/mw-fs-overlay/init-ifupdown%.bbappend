@@ -1,7 +1,4 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files/common/fs-overlay/etc/network:"
-#S = "${WORKDIR}/mw-fs-overlay"
-#S = "${WORKDIR}"
-#SRC_URI += " file://fw_env.config"
 SRC_URI += " file://interfaces"
 
 do_install_append() {
