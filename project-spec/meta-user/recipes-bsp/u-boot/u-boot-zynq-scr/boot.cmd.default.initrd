@@ -76,6 +76,7 @@ do
                 else
                     if test -e ${devtype} ${devnum}:${distro_bootpart} /system.dtb; then
 		        fatload ${devtype} ${devnum}:${distro_bootpart} @@DEVICETREE_ADDRESS@@ system.dtb;
+                        echo Loading default system.dtb device-tree...
                     else
                         echo No default device-tree system.dtb found, exiting...
                         exit;
@@ -84,8 +85,15 @@ do
 
 		# Apply Device-tree Overlay if it exists..
                 if test -n ${fdt_overlay}; then
+                        setenv fdtov_addr 240bf000
+
 	        	if test -e ${devtype} ${devnum}:${distro_bootpart} ${fdt_overlay}; then
 		            echo Applying device-tree overlay
+                            fdt addr @@DEVICETREE_ADDRESS@@
+                            fatload ${devtype} ${devnum}:${distro_bootpart} ${fdtov_addr} ${fdt_overlay}
+                            fdt resize ${filesize}
+                            fdt apply $fdtov_addr
+                            echo Applied Device-Tree Overlay: ${fdt_overlay}...
 		        else
 			    echo Skipping device-tree overlay, no DTBO u-boot variable found...
 		        fi
