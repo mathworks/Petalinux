@@ -62,7 +62,7 @@ install -d ${D}${sysconfdir}/rc5.d
 	update-rc.d -r ${D} hdlrd_init start 95 1 2 3 4 5 .
 	update-rc.d -r ${D} user_init start 97 1 2 3 4 5 .
 	update-rc.d -r ${D} user_app start 98 1 2 3 4 5 .	
-
+        update-rc.d -r ${D} sdinit start 99 1 2 3 4 5 .
 
 
 install -d ${D}/${sbindir}/
