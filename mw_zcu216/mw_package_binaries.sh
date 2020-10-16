@@ -1,12 +1,35 @@
-#/bin/bash
+#/bin/bash -v
+
+timestamp() {
+    date +"%Y-%m-%d_%H-%M-%S"
+}
+
+timestamp_sdcard() {
+    date +"%Y-%m-%d"
+}
+
+
 petalinux-package --boot --format BIN --bif ./mw_build_utils/boot.bif -o ./images/BOOT.BIN --force
 
-cp images/linux/system.bit non_fit_boot/
-cp images/BOOT.BIN non_fit_boot/
-cp images/linux/Image non_fit_boot/
-cp images/linux/boot.scr non_fit_boot/
-cp images/linux/rootfs.cpio.gz.u-boot non_fit_boot/
-cp images/linux/system.dtb non_fit_boot/
+
+src_dir="$(pwd)"
+get_timestamp=$(timestamp)
+dir_prefix=${PWD##*/}_
+dst_dir=./MW_$dir_prefix$get_timestamp
+echo $dst_dir
+mkdir_cmd="mkdir -p $dst_dir"
+
+$mkdir_cmd
+
+cp images/linux/system.bit $dst_dir
+cp images/BOOT.BIN $dst_dir
+cp images/linux/Image $dst_dir
+cp images/linux/boot.scr $dst_dir
+cp images/linux/rootfs.cpio.gz.u-boot $dst_dir
+cp images/linux/system.dtb $dst_dir/devicetree.dtb
+
+print_dst=$(echo $dst_dir | sed 's/\//\\/g')
+echo "Copied location: $print_dst"
 
 
-cp -r non_fit_boot/ /mathworks/devel/sandbox/darenlee/deb9_64_darenlee_shared/ZCU216/petalinux_trd/
+
