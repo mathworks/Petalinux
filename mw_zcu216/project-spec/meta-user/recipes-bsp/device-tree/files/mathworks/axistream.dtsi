@@ -1,0 +1,6 @@
+#include "base.dtsi"
+#include "zynqmp-mw-axistream-iio-common.dtsi"
+
+#if defined(MW_SHAREDMEM_ENABLE) && (MW_SHAREDMEM_ENABLE == 1)
+    #include "mw-sharedmemory-iio.dtsi"
+#endif
