@@ -1,0 +1,16 @@
+#ifndef __XLNX_MW_AXISTREAM_DMA__
+#define __XLNX_MW_AXISTREAM_DMA__
+
+#if !defined(MW_DATAWIDTH_SELECT)
+	#define MW_DATAWIDTH_SELECT 64
+#endif
+
+#if defined(MW_DATAWIDTH_SELECT) && MW_DATAWIDTH_SELECT == 64
+	#define XLNX_MM2S_DATAWIDTH <0x40>
+	#define XLNX_S2MM_DATAWIDTH <0x40>
+#elif defined(MW_DATAWIDTH_SELECT) && MW_DATAWIDTH_SELECT == 128 
+	#define XLNX_MM2S_DATAWIDTH <0x80>
+	#define XLNX_S2MM_DATAWIDTH <0x80>	
+#endif
+
+#endif /* __XLNX_MW_AXISTREAM_DMA__ */

@@ -1,0 +1,35 @@
+From 2fb889dddf4760777bcf185a46cbf7355a94ee4c Mon Sep 17 00:00:00 2001
+From: Venkatesh Yadav Abbarapu <venkatesh.abbarapu@xilinx.com>
+Date: Wed, 25 Apr 2018 10:25:23 +0530
+Subject: [DEVICE-TREE-XLNX PATCH] Workaround to fix the dma clock issue
+
+Signed-off-by: Venkatesh Yadav Abbarapu <venkatesh.abbarapu@xilinx.com>
+---
+ axi_dma/data/axi_dma.tcl |   11 +----------
+ 1 files changed, 1 insertions(+), 10 deletions(-)
+
+diff --git a/axi_dma/data/axi_dma.tcl b/axi_dma/data/axi_dma.tcl
+index 839fc90..b0e2f51 100644
+--- a/axi_dma/data/axi_dma.tcl
++++ b/axi_dma/data/axi_dma.tcl
+@@ -101,16 +101,7 @@ proc generate {drv_handle} {
+     incr dma_count
+     hsi::utils::set_os_parameter_value "dma_count" $dma_count
+     set proc_type [get_sw_proc_prop IP_NAME]
+-    set clocknames "s_axi_lite_aclk"
+-    if { $axiethernetfound != 1 } {
+-	append clocknames " " "m_axi_sg_aclk"
+-    }
+-    if { $tx_chan ==1 } {
+-       append clocknames " " "m_axi_mm2s_aclk"
+-    }
+-    if { $rx_chan ==1 } {
+-       append clocknames " " "m_axi_s2mm_aclk"
+-    }
++    set clocknames "s_axi_lite_aclk m_axi_sg_aclk m_axi_mm2s_aclk m_axi_s2mm_aclk"
+     set clkname_len [llength $clocknames]
+     if {[string match -nocase $proc_type "psu_cortexa53"]} {
+         update_clk_node $drv_handle $clocknames $clkname_len
+-- 
+1.7.1
+

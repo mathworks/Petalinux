@@ -1,0 +1,40 @@
+From da57370a19038aef3644b359bf8bbdb4c7f2d9c4 Mon Sep 17 00:00:00 2001
+From: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+Date: Thu, 10 May 2018 10:57:19 +0530
+Subject: [PATCH 4/4] drivers: dma: fix dma address configuration issue
+
+current driver, doesnot update dma 64 bit start address properly for
+simple mode. Fix this by adding separate write to LSB and MSB registers.
+
+Signed-off-by: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+---
+ drivers/dma/xilinx/xilinx_dma.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/dma/xilinx/xilinx_dma.c b/drivers/dma/xilinx/xilinx_dma.c
+index 0a669c2..ef5bcd7 100644
+--- a/drivers/dma/xilinx/xilinx_dma.c
++++ b/drivers/dma/xilinx/xilinx_dma.c
+@@ -1339,7 +1339,9 @@ static void xilinx_dma_start_transfer(struct xilinx_dma_chan *chan)
+ 					   node);
+ 		hw = &segment->hw;
+ 
+-		xilinx_write(chan, XILINX_DMA_REG_SRCDSTADDR, hw->buf_addr);
++		dma_ctrl_write(chan, XILINX_DMA_REG_SRCDSTADDR, hw->buf_addr);
++		dma_ctrl_write(chan, (XILINX_DMA_REG_SRCDSTADDR + 4),
++			       hw->buf_addr_msb);
+ 
+ 		/* Start the transfer */
+ 		dma_ctrl_write(chan, XILINX_DMA_REG_BTT,
+@@ -2153,7 +2155,7 @@ static int xilinx_dma_terminate_all(struct dma_chan *dchan)
+ 	u32 reg;
+ 	int err;
+ 
+-	if (chan->cyclic)
++	if (chan->direction == DMA_DEV_TO_MEM)
+ 		xilinx_dma_chan_reset(chan);
+ 
+ 	err = chan->stop_transfer(chan);
+-- 
+2.7.4
+

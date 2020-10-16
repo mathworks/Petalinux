@@ -1,0 +1,58 @@
+From 7ab194b3c29f30f0d61b300dd66b10cb33755ba9 Mon Sep 17 00:00:00 2001
+From: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+Date: Thu, 29 Nov 2018 21:07:25 +0530
+Subject: [PATCH 7/7] drivers: misc: change ADC packet size as per FIFO size
+
+Match the ADC packet size in TDM mode with ADC FIFO size.
+
+Signed-off-by: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+---
+ drivers/misc/pl_mem.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/misc/pl_mem.c b/drivers/misc/pl_mem.c
+index 1adac41..2615c6e 100644
+--- a/drivers/misc/pl_mem.c
++++ b/drivers/misc/pl_mem.c
+@@ -52,6 +52,7 @@
+ #define DRIVER_NAME        "plmem"
+ #define DEVICE_NAME_FORMAT "plmem%d"
+ #define PKT_SIZE (16 * 1024)
++#define PKT_SIZE_ADC (32 * 1024)
+ /**
+  * sync_mode(synchronous mode) value
+  */
+@@ -321,17 +322,17 @@ static ssize_t plmem_driver_file_read(struct file *file, char __user *buff,
+ 					adc_chan_info.channel_size[i]);
+ 		}
+ 		/* Trigger DMA transfer */
+-		iter = (count / PKT_SIZE);
+-		residue = (count % PKT_SIZE);
++		iter = (count / PKT_SIZE_ADC);
++		residue = (count % PKT_SIZE_ADC);
+ 		if (residue)
+ 			iter++;
+ 		for (i = 0; i < iter; i++) {
+ 			for (j = 0; j < adc_chan_info.num_channels; j++) {
+ 				phys_addr_adc = (phys_addr_dac_adc[
+ 						(adc_chan_info.channel[j] + 8)]
+-						+ (i * PKT_SIZE));
++						+ (i * PKT_SIZE_ADC));
+ 				desc = dmaengine_prep_slave_single(this->chan,
+-						phys_addr_adc, PKT_SIZE,
++						phys_addr_adc, PKT_SIZE_ADC,
+ 						DMA_DEV_TO_MEM, 0);
+ 				if (!desc) {
+ 					dev_err(this->dma_dev, "%s Failed to initiate DMA\n",
+@@ -357,7 +358,7 @@ static ssize_t plmem_driver_file_read(struct file *file, char __user *buff,
+ 		}
+ 		/* update tlast register for the selectd ADC channels */
+ 		for (j = 0; j < adc_chan_info.num_channels; j++)
+-			iowrite32(PKT_SIZE, adc_regs[adc_chan_info.channel[j]]);
++			iowrite32(PKT_SIZE_ADC, adc_regs[adc_chan_info.channel[j]]);
+ 	}
+ 	/* re-initialize the completion variable */
+ 	reinit_completion(&this->complete);
+-- 
+2.7.4
+

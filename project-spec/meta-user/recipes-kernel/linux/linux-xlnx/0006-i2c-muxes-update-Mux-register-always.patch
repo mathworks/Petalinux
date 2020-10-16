@@ -1,0 +1,34 @@
+From 9af6a7e5605edf4c17512320e8e0a7357fce0710 Mon Sep 17 00:00:00 2001
+From: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+Date: Fri, 26 Oct 2018 10:35:40 +0530
+Subject: [PATCH 6/7] i2c:muxes: update Mux register always
+
+If R5 and APU access same client, it can happen
+that mux register is updated by R5 and hence update
+MUX register everytime from APU.
+
+Signed-off-by: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+---
+ drivers/i2c/muxes/i2c-mux-pca954x.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/i2c/muxes/i2c-mux-pca954x.c b/drivers/i2c/muxes/i2c-mux-pca954x.c
+index 7b992db..84732d8 100644
+--- a/drivers/i2c/muxes/i2c-mux-pca954x.c
++++ b/drivers/i2c/muxes/i2c-mux-pca954x.c
+@@ -205,10 +205,8 @@ static int pca954x_select_chan(struct i2c_mux_core *muxc, u32 chan)
+ 		regval = 1 << chan;
+ 
+ 	/* Only select the channel if its different from the last channel */
+-	if (data->last_chan != regval) {
+-		ret = pca954x_reg_write(muxc->parent, client, regval);
+-		data->last_chan = ret < 0 ? 0 : regval;
+-	}
++	ret = pca954x_reg_write(muxc->parent, client, regval);
++	data->last_chan = ret < 0 ? 0 : regval;
+ 
+ 	return ret;
+ }
+-- 
+2.7.4
+
