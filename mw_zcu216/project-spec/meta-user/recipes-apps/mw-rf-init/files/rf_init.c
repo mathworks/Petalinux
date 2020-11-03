@@ -77,7 +77,7 @@ int main()
         else
         {
             sprintf(logbuf,"rf_init: SENDING: %s",textbuf);
-            printf(logbuf);
+            printf("%s",logbuf);
             if ( send(rftool_socket.socket_desc_ctrl,
 						textbuf,
 						strlen(textbuf),
@@ -207,6 +207,6 @@ int setupComms(socketStruct *socketInput, FILE * fhlog)
 
 void writeToLog(char * inputMsg,FILE* fh)
 {
-	printf(inputMsg);
+	printf("%s",inputMsg);
 	fwrite(inputMsg,strlen(inputMsg),1,fh);
 }
