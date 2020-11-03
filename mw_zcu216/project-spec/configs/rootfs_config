@@ -4219,6 +4219,7 @@ CONFIG_auto-login=y
 # apps 
 #
 # CONFIG_gpio-demo is not set
+CONFIG_mw-rf-init=y
 # CONFIG_peekpoke is not set
 CONFIG_rftool=y
 CONFIG_trd-autostart=y
