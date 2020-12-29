@@ -27,6 +27,34 @@
 /***************************** Include Files *********************************/
 #include "common.h"
 
+/************************** Variable Definitions *****************************/
+struct lmk_freq {
+	u32 CLKin0_FREQ;
+	u32 CLKin1_FREQ;
+	u32 CLKin2_FREQ;
+	u32 CLKin_SEL_AUTOPINSMODE;
+	u32 CLKout0_FREQ;
+	u32 CLKout1_FREQ;
+	u32 CLKout2_FREQ;
+	u32 CLKout3_FREQ;
+	u32 CLKout4_FREQ;
+	u32 CLKout5_FREQ;
+	u32 CLKout6_FREQ;
+	u32 CLKout7_FREQ;
+	u32 CLKout8_FREQ;
+	u32 CLKout9_FREQ;
+	u32 CLKout10_FREQ;
+	u32 CLKout11_FREQ;
+	u32 CLKout12_FREQ;
+	u32 CLKout13_FREQ;
+};
+struct lmx_freq {
+	u32 Fosc_FREQ;
+	u32 FoutA_FREQ;
+	u32 FoutB_FREQ;
+	u32 Fpd_FREQ;
+	u32 Fvco_FREQ;
+};
 /************************** Function Prototypes ******************************/
 /****************************************************************************/
 /**
@@ -128,6 +156,7 @@ void GetExtPllConfig(convData_t *cmdVals, char *txstrPtr, int *status);
 /**
 *
 * This function writes data to register in ADC LMX, DAC LMX or LMK.
+* This command will return failure if Start/Stop flag is set to 0.
 *
 * @param	structure contains input arguments sent from client
 * @param	contains response string
@@ -155,5 +184,92 @@ void rfclkWriteReg(convData_t *cmdVals, char *txstrPtr, int *status);
 *
 ******************************************************************************/
 void rfclkReadReg(convData_t *cmdVals, char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function sets ADC LMX, DAC LMX and LMK frequency data. This command
+* will return failure if Start/Stop flag is set to 0.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void SetExtPllFreq(convData_t *cmdVals, char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function reads ADC LMX, DAC LMX and LMK frequency data.This command
+* will return failure if Start/Stop flag is set to 1.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void GetExtPllFreq(convData_t *cmdVals, char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function sets clock config protection flag. Setting new config will
+* have the following steps:
+*  1. GUI sets this flag to 1
+*  2. GUI writes a new config data to LMK and LMX
+*  3. GUI sets a frequenzy data in rftool
+*  4. Set this flag to 0
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void SetStartEndClkConfig(convData_t *cmdVals, char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* Read a clock config protection flag.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void GetStartEndClkConfig(convData_t *cmdVals, char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* CLK104 present and functioning OK
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void ClkBoardPresent(convData_t *cmdVals, char *txstrPtr, int *status);
 
 #endif /* SRC_CLOCK_INTERFACE_ */

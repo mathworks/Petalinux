@@ -104,6 +104,42 @@ CMDSTRUCT cmdtab[] = {
 	  "<Board_id> <Pll_Src> <Freq> |-> SetExtPllClkRate "
 	  "<Board_id> <Pll_Src> <Freq>",
 	  "uuu", *SetExtPllClkRate },
+	{ "SetExtPllFreq",
+	  " <CLKin0_FREQ> <CLKin1_FREQ> <CLKin2_FREQ> <CLKin_SEL_AUTOPINSMODE> "
+	  "<CLKout0_FREQ> <CLKout1_FREQ> <CLKout2_FREQ> <CLKout3_FREQ> "
+	  "<CLKout4_FREQ> <CLKout5_FREQ> <CLKout6_FREQ> <CLKout7_FREQ> "
+	  "<CLKout8_FREQ> <CLKout9_FREQ> <CLKout10_FREQ> <CLKout11_FREQ> "
+	  "<CLKout12_FREQ> <CLKout13_FREQ> <Fosc_FREQ_LMX1> <FoutA_FREQ_LMX1> "
+	  "<FoutB_FREQ_LMX1> <Fpd_FREQ_LMX1> <Fvco_FREQ_LMX1> "
+	  "<Fosc_FREQ_LMX2> <FoutA_FREQ_LMX2> <FoutB_FREQ_LMX2> "
+	  "<Fpd_FREQ_LMX2> <Fvco_FREQ_LMX2>"
+	  "|-> SetExtPllFreq "
+	  "<CLKin0_FREQ> <CLKin1_FREQ> <CLKin2_FREQ> <CLKin_SEL_AUTOPINSMODE> "
+	  "<CLKout0_FREQ> <CLKout1_FREQ> <CLKout2_FREQ> <CLKout3_FREQ> "
+	  "<CLKout4_FREQ> <CLKout5_FREQ> <CLKout6_FREQ> <CLKout7_FREQ> "
+	  "<CLKout8_FREQ> <CLKout9_FREQ> <CLKout10_FREQ> <CLKout11_FREQ> "
+	  "<CLKout12_FREQ> <CLKout13_FREQ> <Fosc_FREQ_LMX1> <FoutA_FREQ_LMX1> "
+	  "<FoutB_FREQ_LMX1> <Fpd_FREQ_LMX1> <Fvco_FREQ_LMX1> "
+	  "<Fosc_FREQ_LMX2> <FoutA_FREQ_LMX2> <FoutB_FREQ_LMX2> "
+	  "<Fpd_FREQ_LMX2> <Fvco_FREQ_LMX2>",
+	  "uuuuuuuuuuuuuuuuuuuuuuuuuuuu", *SetExtPllFreq },
+	{ "GetExtPllFreq",
+	  "|-> GetExtPllFreq "
+	  "<CLKin0_FREQ> <CLKin1_FREQ> <CLKin2_FREQ> <CLKin_SEL_AUTOPINSMODE> "
+	  "<CLKout0_FREQ> <CLKout1_FREQ> <CLKout2_FREQ> <CLKout3_FREQ> "
+	  "<CLKout4_FREQ> <CLKout5_FREQ> <CLKout6_FREQ> <CLKout7_FREQ> "
+	  "<CLKout8_FREQ> <CLKout9_FREQ> <CLKout10_FREQ> <CLKout11_FREQ> "
+	  "<CLKout12_FREQ> <CLKout13_FREQ> <Fosc_FREQ_LMX1> <FoutA_FREQ_LMX1> "
+	  "<FoutB_FREQ_LMX1> <Fpd_FREQ_LMX1> <Fvco_FREQ_LMX1> "
+	  "<Fosc_FREQ_LMX2> <FoutA_FREQ_LMX2> <FoutB_FREQ_LMX2> "
+	  "<Fpd_FREQ_LMX2> <Fvco_FREQ_LMX2>",
+	  "", *GetExtPllFreq },
+	{ "SetStartEndClkConfig", "<flag> |-> SetStartEndClkConfig <flag>", "u",
+	  *SetStartEndClkConfig },
+	{ "GetStartEndClkConfig", " |-> GetStartEndClkConfig <flag>", "",
+	  *GetStartEndClkConfig },
+	{ "ClkBoardPresent", " |-> ClkBoardPresent <status>", "",
+	  *ClkBoardPresent },
 	{ "SetDACPowerMode",
 	  "<Board_id> <Tile_id> <Block_id> <Output_Current> |-> "
 	  "SetDACPowerMode <Board_id> <Tile_id> <Block_id> "
@@ -118,6 +154,7 @@ CMDSTRUCT cmdtab[] = {
 	{ "Shutdown", "<Type> <Tile_id> |-> Shutdown", "ui", *Shutdown },
 	{ "RfdcVersion", "<Void> |-> RfdcVersion revision", "", *RfdcVersion },
 	{ "Version", "<Void> |-> Version revision", "", *Version },
+	{ "CheckImage", "<Void> |-> CheckImage ", "", *CheckImage },
 	{ "JtagIdcode", "<Void> | JtagIdcode-> Idcode", "", *JtagIdcode },
 	{ "CheckDigitalPathEnabled", "", "uiu", *CheckDigitalPathEnabled },
 	{ "GetIPStatus",
@@ -369,6 +406,8 @@ CMDSTRUCT cmdtab[] = {
 	{ "IntrEnable", "", "uiuu", *IntrEnable },
 	{ "SetMMCM", "", "uu", *SetMMCM },
 	{ "GetEnabledInterrupts", "", "uuu", *GetEnabledInterrupts },
+	{ "GetPwrMode", "", "uuu", *GetPwrMode },
+	{ "SetPwrMode", "", "uuuuu", *SetPwrMode },
 	ADDITIONAL_CMDS
 };
 
@@ -703,7 +742,8 @@ void GUI_Title(convData_t *cmdVals, char *txstrPtr, int *status)
 	(void)cmdVals;
 	char Response[BUF_MAX_LEN] = { 0 };
 
-	sprintf(Response, " (RFEvalTool v%s) ", RFTOOL_VERSION);
+	sprintf(Response, " (RFEvalTool v%s%s) ", RFTOOL_VERSION,
+		PART_IDENTIFIER);
 	strncat(txstrPtr, Response, BUF_MAX_LEN);
 
 	*status = SUCCESS;
@@ -718,7 +758,7 @@ void GUI_Title(convData_t *cmdVals, char *txstrPtr, int *status)
 
 void MetalLoghandler(enum metal_log_level level, const char *format, ...)
 {
-	char msgLocal[BUF_MAX_LEN / 64];
+	char msgLocal[BUF_MAX_LEN / 56];
 
 	va_list args;
 	static const char *level_strs[] = {
@@ -752,14 +792,14 @@ void MetalLoghandler(enum metal_log_level level, const char *format, ...)
 
 void MetalLoghandler_firmware(int log_level, const char *format, ...)
 {
-	char msgLocal[BUF_MAX_LEN / 64];
+	char msgLocal[BUF_MAX_LEN / 56];
 	int level = (log_level < 0) ? -(log_level) : (log_level);
 
 	va_list args;
 	static const char *level_strs[] = {
 		"success ",
 		"fail: ",
-		"invalid: args ",
+		" ", /* Invalid Arguments. It is not shown to user. */
 		"fail: mem disable ",
 		"fail: mem enable ",
 		"fail: mem init ",

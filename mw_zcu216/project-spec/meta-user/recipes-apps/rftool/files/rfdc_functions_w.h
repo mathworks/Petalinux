@@ -1102,6 +1102,21 @@ void SetDither(convData_t *cmdVals, char *txstrPtr, int *status);
 *
 ******************************************************************************/
 void GetMTSEnable(convData_t *cmdVals, char *txstrPtr, int *status);
+/****************************************************************************/
+/**
+*
+* This function is to check whether the image is appropriate for the part
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void CheckImage(convData_t *cmdVals, char *txstrPtr, int *status);
 
 void SetDataPathMode(convData_t *cmdVals, char *txstrPtr, int *status);
 void GetDataPathMode(convData_t *cmdVals, char *txstrPtr, int *status);
@@ -1127,5 +1142,7 @@ void SetDACCompMode(convData_t *cmdVals, char *txstrPtr, int *status);
 void GetDACCompMode(convData_t *cmdVals, char *txstrPtr, int *status);
 void GetEnabledInterrupts(convData_t *cmdVals, char *txstrPtr, int *status);
 void CheckDigitalPathEnabled(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetPwrMode(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetPwrMode(convData_t *cmdVals, char *txstrPtr, int *status);
 
 #endif /* SRC_RFDC_FUNCTIONS_W_H_ */

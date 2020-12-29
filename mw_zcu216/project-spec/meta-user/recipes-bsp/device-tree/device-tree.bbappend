@@ -1,7 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 FILESEXTRAPATHS_prepend := "${THISDIR}/files/mathworks:"
 
-
 SRC_URI += "file://system-user.dtsi"
 
 SRC_URI += "file://axistream.dtsi"
@@ -20,7 +19,6 @@ SRC_URI += "file://adi-mw-axistream-iio-common.dtsi"
 SRC_URI += "file://mw-axistream-iio-common.dtsi"
 SRC_URI += "file://mw-axistream-iio-common.h"
 SRC_URI += "file://mw-sharedmemory-iio.dtsi"
-
 
 python () {
     if d.getVar("CONFIG_DISABLE"):

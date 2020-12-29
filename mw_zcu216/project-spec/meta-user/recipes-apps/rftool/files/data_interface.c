@@ -42,6 +42,7 @@
 extern XRFdc RFdcInst; /* RFdc driver instance */
 extern int enTermMode;
 extern int thread_stat;
+extern int adc_axiswitchrst[1];
 
 char mem_path_dac[MAX_DAC][MAX_STRLEN] = {
 	"/dev/plmem0",  "/dev/plmem1",  "/dev/plmem2",  "/dev/plmem3",
@@ -431,19 +432,22 @@ int WriteDataToMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 		MetalLoghandler_firmware(
 			ret,
 			"Requested size is bigger than available"
-			" size(%d samples)\n",
-			FIFO_SIZE / 2);
+			" size(%d samples), tile %d block %u\n",
+			FIFO_SIZE / 2, tile_id, block_id);
 		goto err;
 	}
 	if ((size == 0) || (size % ADC_DAC_SZ_ALIGNMENT) != 0) {
 		ret = INVAL_ARGS;
-		MetalLoghandler_firmware(
-			ret, "size should be multiples of 16 samples\n");
+		MetalLoghandler_firmware(ret,
+					 "size should be multiples of 16"
+					 " samples, tile %d block %u\n",
+					 tile_id, block_id);
 		goto err;
 	}
 	base_dac = (unsigned char *)malloc(sizeof(char) * size);
 	if (base_dac == NULL) {
-		printf("failed to allocate memory \n");
+		printf("failed to allocate memory, tile %d block %u\n", tile_id,
+		       block_id);
 		goto err;
 	}
 	memset(base_dac, 0, size);
@@ -452,7 +456,8 @@ int WriteDataToMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 			     info.fd, (paddr_dac));
 	if (bram_base_dac == MAP_FAILED) {
 		perror("map");
-		printf("%s: Error mmapping the file\n", __func__);
+		printf("%s: Error mmapping the file, tile %d block %u\n",
+		       __func__, tile_id, block_id);
 		free(base_dac);
 		goto err;
 	}
@@ -467,9 +472,10 @@ int WriteDataToMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 		munmap(bram_base_dac, size);
 		free(base_dac);
 		ret = RCV_SAMPLE_FAIL;
-		MetalLoghandler_firmware(
-			ret, "Unable to read %d bytes of data, received : %d\n",
-			size, ret);
+		MetalLoghandler_firmware(ret,
+					 "Unable to read %d bytes of data, "
+					 "received : %d, tile %d block %u\n",
+					 size, ret, tile_id, block_id);
 		goto err;
 	}
 
@@ -487,7 +493,10 @@ int WriteDataToMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 	ret = change_fifo_stat(DAC, tile_id, FIFO_EN);
 	if (ret != SUCCESS) {
 		ret = EN_FIFO_FAIL;
-		MetalLoghandler_firmware(ret, "Unable to enable FIFO\n");
+		MetalLoghandler_firmware(ret,
+					 "Unable to enable FIFO, "
+					 "tile %d block %u\n",
+					 tile_id, block_id);
 		goto err;
 	}
 	return 0;
@@ -506,15 +515,18 @@ int WriteDataToMemory_ddr(u32 block_id, int tile_id, u32 size, u32 il_pair)
 		ret = INVAL_ARGS;
 		MetalLoghandler_firmware(
 			ret,
-			"Requested size is bigger than available"
-			" size(%d bytes)\n",
-			DAC_MAP_SZ);
+			"Requested samples %d must be lower than"
+			" %d in tile %d block %u\n",
+			size >> 1, DAC_MAP_SZ >> 1, tile_id, block_id);
 		in_val_len = 1;
 	}
 	if ((size == 0) || ((size % ADC_DAC_SZ_ALIGNMENT) != 0)) {
 		ret = INVAL_ARGS;
 		MetalLoghandler_firmware(
-			ret, "size should be multiples of 16 samples\n");
+			ret,
+			"size %d must be a multiple of 16 samples"
+			" tile %d block %u\n",
+			size >> 1, tile_id, block_id);
 		in_val_len = 1;
 	}
 
@@ -526,8 +538,10 @@ int WriteDataToMemory_ddr(u32 block_id, int tile_id, u32 size, u32 il_pair)
 	if ((u32)ret != size) {
 		ret = RCV_SAMPLE_FAIL;
 		MetalLoghandler_firmware(
-			ret, "Unable to read %d bytes of data, received : %d\n",
-			size, ret);
+			ret,
+			"Unable to read %d bytes of data, received : %d"
+			" tile %d block %u\n",
+			size, ret, tile_id, block_id);
 		goto err;
 	}
 
@@ -558,15 +572,16 @@ void WriteDataToMemory(convData_t *cmdVals, char *txstrPtr, int *status)
 		ret = WriteDataToMemory_bram(block_id, tile_id, size, il_pair);
 		if (ret < 0) {
 			printf("Error in executing WriteDataToMemory_bram"
-			       " :%d\n",
-			       ret);
+			       " :%d tile %d block %u\n",
+			       ret, tile_id, block_id);
 			goto err;
 		}
 	} else {
 		ret = WriteDataToMemory_ddr(block_id, tile_id, size, il_pair);
 		if (ret < 0) {
-			printf("Error in executing WriteDataToMemory_ddr :%d\n",
-			       ret);
+			printf("Error in executing WriteDataToMemory_ddr :%d"
+			       " tile %d block %u\n",
+			       ret, tile_id, block_id);
 			goto err;
 		}
 	}
@@ -599,7 +614,10 @@ int ReadDataFromMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 	if (il_pair > 1) {
 		ret = INVAL_ARGS;
 		MetalLoghandler_firmware(
-			ret, "interleaved pair variable should be 0 or 1\n");
+			ret,
+			"interleaved pair variable should be 0 or 1, "
+			" tile %d block %u\n",
+			tile_id, block_id);
 		goto err;
 	}
 	if ((il_pair) ? (size > FIFO_SIZE * 2) : (size > FIFO_SIZE)) {
@@ -607,14 +625,17 @@ int ReadDataFromMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 		MetalLoghandler_firmware(
 			ret,
 			"Requested size is bigger than available"
-			" size(%d samples)\n",
-			FIFO_SIZE / 2);
+			" (%d samples), tile %d block %u\n",
+			FIFO_SIZE / 2, tile_id, block_id);
 		goto err;
 	}
 	if ((size == 0) || (size % ADC_DAC_SZ_ALIGNMENT) != 0) {
 		ret = INVAL_ARGS;
 		MetalLoghandler_firmware(
-			ret, "size should be multiples of 16 samples\n");
+			ret,
+			"size should be multiples of 16 samples, "
+			"tile %d block %u\n",
+			tile_id, block_id);
 		goto err;
 	}
 
@@ -622,17 +643,19 @@ int ReadDataFromMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 	ret = change_fifo_stat(ADC, tile_id, FIFO_EN);
 	if (ret != SUCCESS) {
 		ret = EN_FIFO_FAIL;
-		MetalLoghandler_firmware(ret, "Unable to enable FIFO\n");
+		MetalLoghandler_firmware(ret,
+					 "Unable to enable FIFO, "
+					 " tile %d block %u\n",
+					 tile_id, block_id);
 		goto err;
 	}
 	ret = XRFdc_GetMixerSettings(&RFdcInst, XRFDC_ADC_TILE, tile_id,
 				     block_id, &Mixer_Settings);
 	if (FAIL == ret) {
-		MetalLoghandler_firmware(
-			ret,
-			"Error from XRFdc_GetMixerSettings"
-			" for ADC Tile_Id = %u Block_Id = %u\n",
-			tile_id, block_id);
+		MetalLoghandler_firmware(ret,
+					 "Error from XRFdc_GetMixerSettings, "
+					 " ADC Tile_Id = %d Block_Id = %u\n",
+					 tile_id, block_id);
 		goto err;
 	}
 	if ((Mixer_Settings.MixerMode == XRFDC_MIXER_MODE_R2R) ||
@@ -646,28 +669,32 @@ int ReadDataFromMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 				       MAP_SHARED, info.fd, (paddr_adc_I));
 		if (bram_base_adc_I == MAP_FAILED) {
 			perror("map");
-			printf("%s: Error mmapping from addr_I\n", __func__);
+			printf("%s: Error mmapping from addr_I, "
+			       "tile %d block %u\n",
+			       __func__, tile_id, block_id);
 			goto err;
 		}
 		vaddr_adc_I = (signed int *)bram_base_adc_I;
 
-		printf("Sending %d data\n", size);
 		ret = sendSamples((signed char *)vaddr_adc_I,
 				  (size * sizeof(signed char)));
 		if ((u32)ret != (size * sizeof(signed char))) {
 			munmap(bram_base_adc_I, size);
 			ret = SND_SAMPLE_FAIL;
 			MetalLoghandler_firmware(
-				ret, "Unable to send %d bytes, sent %d bytes\n",
-				size, ret);
+				ret,
+				"Unable to send %d bytes, sent %d bytes, "
+				"tile %d block %u\n",
+				size, ret, tile_id, block_id);
 			goto err;
 		}
 		munmap(bram_base_adc_I, size);
 	} else {
 		buffer_qi = (unsigned char *)malloc(sizeof(char) * size);
 		if (buffer_qi == NULL) {
-			printf("%s: Failed to allocate qi buffer memory \n",
-			       __func__);
+			printf("%s: Failed to allocate qi buffer memory, "
+			       "tile %d block %u\n",
+			       __func__, tile_id, block_id);
 			goto err;
 		}
 
@@ -677,7 +704,9 @@ int ReadDataFromMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 				       MAP_SHARED, info.fd, (paddr_adc_I));
 		if (bram_base_adc_I == MAP_FAILED) {
 			perror("map");
-			printf("%s: Error mmapping for addr_I\n", __func__);
+			printf("%s: Error mmapping for addr_I, "
+			       " tile %d block %u\n",
+			       __func__, tile_id, block_id);
 			free(buffer_qi);
 			goto err;
 		}
@@ -691,19 +720,22 @@ int ReadDataFromMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 			perror("map");
 			munmap(bram_base_adc_I, size / 2);
 			free(buffer_qi);
-			printf("%s: Error mmapping the for addr_Q\n", __func__);
+			printf("%s: Error mmapping the for addr_Q, "
+			       "tile %d block %u\n",
+			       __func__, tile_id, block_id);
 			goto err;
 		}
 		vaddr_adc_Q = (signed int *)bram_base_adc_Q;
 		memcpy(buffer_qi + (size / 2), vaddr_adc_Q, (size / 2));
 
-		printf("Sending %d I data and %d Q data\n", size / 2, size / 2);
 		ret = sendSamples(buffer_qi, (size * sizeof(signed char)));
 		if ((u32)ret != (size * sizeof(signed char))) {
 			ret = SND_SAMPLE_FAIL;
 			MetalLoghandler_firmware(
-				ret, "Unable to send %d bytes, sent %d bytes\n",
-				size, ret);
+				ret,
+				"Unable to send %d bytes, sent %d bytes, "
+				"tile %d block %u\n",
+				size, ret, tile_id, block_id);
 			munmap(bram_base_adc_I, size / 2);
 			munmap(bram_base_adc_Q, size / 2);
 			free(buffer_qi);
@@ -726,37 +758,57 @@ int ReadDataFromMemory_ddr(u32 block_id, int tile_id, u32 size, u32 il_pair)
 	int dma_req_size;
 	signed char *map_adc;
 	char buffer[1000];
+#ifdef XPS_BOARD_ZCU208
+	u32 size_integer;
+	u32 size_mod;
+	void *buffer_iq;
+#endif
 
 	if (size > ADC_MAP_SZ) {
 		ret = INVAL_ARGS;
 		MetalLoghandler_firmware(
 			ret,
-			"Requested size is bigger than available"
-			" size(%d bytes)\n",
-			ADC_MAP_SZ);
+			"Requested samples %d must be lower than"
+			" %d , tile %d block %u\n",
+			size >> 1, ADC_MAP_SZ >> 1, tile_id, block_id);
 		goto err;
 	}
 	if ((size == 0) || ((size % ADC_DAC_SZ_ALIGNMENT) != 0)) {
 		ret = INVAL_ARGS;
 		MetalLoghandler_firmware(
-			ret, "size should be multiples of 16 samples\n");
+			ret,
+			"size %d must be a multiple of 16 samples, "
+			"tile %d block %u\n",
+			size >> 1, tile_id, block_id);
 		goto err;
 	}
-	/* ADC_DMABUF_SKIP_AREA is a hardware design(xsa) specific value */
+
+	/* ADC_DMABUF_SKIP_AREA and SAMPLE_DMA_ALIGN are hardware design(xsa)
+	 * specific values */
+#ifdef XPS_BOARD_ZCU208
+	dma_req_size = (((size / SAMPLE_DMA_ALIGN) + 1) * SAMPLE_DMA_ALIGN) +
+		       ADC_DMABUF_SKIP_AREA * 2;
+#else
 	dma_req_size = size + ADC_DMABUF_SKIP_AREA * 2;
+#endif
+	printf("ADC DMA request for size %u \n", dma_req_size);
 	if (dma_req_size > ADC_MAP_SZ) {
 		ret = INVAL_ARGS;
 		MetalLoghandler_firmware(
 			ret,
-			"Requested size is bigger than available"
-			" size(%d bytes)\n",
-			ADC_MAP_SZ - (ADC_DMABUF_SKIP_AREA * 2));
+			"Requested samples must be lower than"
+			" (%d samples), tile %d block %u\n",
+			(ADC_MAP_SZ - (ADC_DMABUF_SKIP_AREA * 2)) >> 1, tile_id,
+			block_id);
 		goto err;
 	}
 
 	if (il_pair > 1) {
 		ret = INVAL_ARGS;
-		MetalLoghandler_firmware(ret, "Invalid arguments\n");
+		MetalLoghandler_firmware(ret,
+					 "il_pair > 1, invalid arguments"
+					 ", tile %d block %u\n",
+					 tile_id, block_id);
 		goto err;
 	}
 
@@ -767,40 +819,87 @@ int ReadDataFromMemory_ddr(u32 block_id, int tile_id, u32 size, u32 il_pair)
 	ret = change_fifo_stat(ADC, tile_id, FIFO_EN);
 	if (ret != SUCCESS) {
 		ret = EN_FIFO_FAIL;
-		MetalLoghandler_firmware(ret, "Unable to enable FIFO\n");
+		MetalLoghandler_firmware(ret,
+					 "Unable to enable FIFO, "
+					 "tile %d block %u\n",
+					 tile_id, block_id);
 		goto err;
 	}
 	config_axi_switch(ADC_CHANNEL_SELECT_AXI_SWITCH_BASE_ADDR, 0x40, 1,
 			  adc);
 	/* 0xA0310000 is address of tlast register, this address depends
 	 on Design. */
-#ifdef XPS_BOARD_ZCU208
-	/* Subtraction of 256 from dma_req_size is a work around for DMA
-	 * issue in ZCU208 hardware design (xsa). This need to be fixed in
-	 * the hardware design (xsa) */
-	sprintf(buffer, "devmem 0xA0310000 32 0x%x", (dma_req_size - 256));
-#else
 	sprintf(buffer, "devmem 0xA0310000 32 0x%x", dma_req_size);
-#endif
 	system(buffer);
+	/* reset the AXI stream switch and DMA */
+	ret = set_gpio(adc_axiswitchrst[0], 0);
+	if (ret) {
+		ret = GPIO_SET_FAIL;
+		printf("Unable to set adc axi switch reset gpio\n");
+		MetalLoghandler_firmware(ret, "Unable to reset adc axi switch "
+					      "reset GPIO \n");
+		goto err;
+	}
+
+	ret = fsync((info.fd_adc[0]));
+	if (SUCCESS != ret) {
+		ret = DMA_RESET_FAIL;
+		printf("DMA reset failed\n");
+		MetalLoghandler_firmware(ret, "DMA reset failed\n");
+		goto err;
+	}
+
+	ret = set_gpio(adc_axiswitchrst[0], 1);
+	if (ret) {
+		ret = GPIO_SET_FAIL;
+		printf("Unable to set adc axi switch reset gpio\n");
+		MetalLoghandler_firmware(ret, "Unable to set adc axi switch "
+					      "reset GPIO \n");
+		goto err;
+	}
+
 	/* Trigger DMA */
 	ret = read((info.fd_adc[adc]), info.map_adc[adc],
 		   ((dma_req_size) * sizeof(signed char)));
 	if (ret < 0) {
 		ret = DMA_TX_TRIGGER_FAIL;
 		printf("Error in reading data\n");
-		MetalLoghandler_firmware(ret, "Error in reading data\n");
+		MetalLoghandler_firmware(ret,
+					 "Error in reading data, "
+					 "tile %d block %u\n",
+					 tile_id, block_id);
 		goto err;
 	}
 
 	map_adc = info.map_adc[adc];
+#ifdef XPS_BOARD_ZCU208
+	/* SAMPLE_ALIGN is a hardware design(xsa) specific value */
+	size_integer = (size / SAMPLE_ALIGN) * SAMPLE_ALIGN;
+	size_mod = size % SAMPLE_ALIGN;
+	buffer_iq = (signed char *)malloc(sizeof(char) * size);
+
+	memcpy(buffer_iq, map_adc + ADC_DMABUF_SKIP_AREA, size_integer);
+	memcpy(buffer_iq + size_integer,
+	       map_adc + ADC_DMABUF_SKIP_AREA + size_integer, size_mod / 2);
+	memcpy(buffer_iq + size_integer + size_mod / 2,
+	       map_adc + ADC_DMABUF_SKIP_AREA + size_integer +
+		       (SAMPLE_DMA_ALIGN / 2),
+	       size_mod / 2);
+	ret = sendSamples(buffer_iq, (size * sizeof(signed char)));
+
+	free(buffer_iq);
+#else
 	ret = sendSamples((map_adc + ADC_DMABUF_SKIP_AREA),
 			  (size * sizeof(signed char)));
+#endif
 	if ((u32)ret != (size * sizeof(signed char))) {
 		ret = SND_SAMPLE_FAIL;
+		printf("sendSamples failed");
 		MetalLoghandler_firmware(
-			ret, "Unable to send %d bytes, sent %d bytes\n", size,
-			ret);
+			ret,
+			"Unable to send %d bytes, sent %d bytes, "
+			"tile %d block %u\n",
+			size, ret, tile_id, block_id);
 		goto err;
 	}
 	return 0;
@@ -825,16 +924,16 @@ void ReadDataFromMemory(convData_t *cmdVals, char *txstrPtr, int *status)
 		ret = ReadDataFromMemory_bram(block_id, tile_id, size, il_pair);
 		if (ret < 0) {
 			printf("Error in executing ReadDataFromMemory_bram"
-			       " :%d\n",
-			       ret);
+			       " :%d, tile %d block %u\n",
+			       ret, tile_id, block_id);
 			goto err;
 		}
 	} else {
 		ret = ReadDataFromMemory_ddr(block_id, tile_id, size, il_pair);
 		if (ret < 0) {
 			printf("Error in executing ReadDataFromMemory_ddr"
-			       " :%d\n",
-			       ret);
+			       " :%d, tile %d block %u\n",
+			       ret, tile_id, block_id);
 			goto err;
 		}
 	}

@@ -32,7 +32,7 @@
 #include <string.h>
 
 /************************** Variable Definitions *****************************/
-int RFCLK_present = FAIL;
+int RFCLK_present = 0; /* 0 - not OK, 1 - OK */
 extern const u8 LMK_FREQ_LIST[LMK_FREQ_NUM][FREQ_LIST_STR_SIZE];
 extern const u8 ADC_FREQ_LIST[LMX_ADC_NUM][FREQ_LIST_STR_SIZE];
 extern const u8 DAC_FREQ_LIST[LMX_DAC_NUM][FREQ_LIST_STR_SIZE];
@@ -40,6 +40,17 @@ extern int enTermMode;
 int LMKCurrentFreq;
 int DACCurrentFreq;
 int ADC0CurrentFreq;
+
+struct lmk_freq LMKFreq = { 10000,  10000, 76800,  1,    245760, 7680,
+			    245760, 7680,  245760, 7680, 245760, 7680,
+			    122880, 7680,  245760, 7680, 245760, 7680 };
+struct lmx_freq LMX1Freq = { 0, 0, 0, 0, 0 };
+struct lmx_freq LMX2Freq = { 0, 0, 0, 0, 0 };
+
+/* The config programm protection flag 
+    programingConfigFlag = 0;..Outside the progarm config routine.
+    programingConfigFlag = 1;..Inside the progarm config routine. */
+u32 programingConfigFlag = 0;
 /************************** Function Definitions *****************************/
 
 void rfclkWriteReg(convData_t *cmdVals, char *txstrPtr, int *status)
@@ -51,7 +62,7 @@ void rfclkWriteReg(convData_t *cmdVals, char *txstrPtr, int *status)
 	u32 data = cmdVals[3].u;
 	u32 tmp;
 
-	if (RFCLK_present == FAIL) {
+	if (RFCLK_present == 0) {
 		printf("\nError: CLK104-not present %s \r\n", __func__);
 		goto err;
 	}
@@ -60,7 +71,8 @@ void rfclkWriteReg(convData_t *cmdVals, char *txstrPtr, int *status)
 		goto err;
 
 	if (chip_id >= RFCLK_CHIP_NUM) {
-		printf("\n Write register failed %s \r\n", __func__);
+		printf("\n Write register to chip %d failed %s \r\n", chip_id,
+		       __func__);
 		goto err;
 	}
 
@@ -68,6 +80,11 @@ void rfclkWriteReg(convData_t *cmdVals, char *txstrPtr, int *status)
 		tmp = ((reg_addr & 0xffff) << 8) + (data & 0xff);
 	else
 		tmp = ((reg_addr & 0xff) << 16) + (data & 0xffff);
+
+	if (programingConfigFlag == 0) {
+		printf("New config cannot be programmed");
+		goto err;
+	}
 
 	if (SUCCESS != XRFClk_WriteReg(chip_id, tmp)) {
 		printf("\n Write register failed %s \r\n", __func__);
@@ -98,7 +115,7 @@ void rfclkReadReg(convData_t *cmdVals, char *txstrPtr, int *status)
 	u32 reg_addr = cmdVals[2].u;
 	u32 data = 0;
 
-	if (RFCLK_present == FAIL) {
+	if (RFCLK_present == 0) {
 		printf("\nError: CLK104-not present %s \r\n", __func__);
 		goto err;
 	}
@@ -107,7 +124,8 @@ void rfclkReadReg(convData_t *cmdVals, char *txstrPtr, int *status)
 		goto err;
 
 	if (chip_id >= RFCLK_CHIP_NUM) {
-		printf("\n Write register failed %s \r\n", __func__);
+		printf("\n Read register from chip %d failed %s \r\n", chip_id,
+		       __func__);
 		goto err;
 	}
 
@@ -149,7 +167,7 @@ void GetExtParentClkList(convData_t *cmdVals, char *txstrPtr, int *status)
 	int i = 0;
 	board_id = cmdVals[0].u;
 
-	if (RFCLK_present == FAIL) {
+	if (RFCLK_present == 0) {
 		printf("\nError: CLK104-not present %s \r\n", __func__);
 		goto err;
 	}
@@ -178,7 +196,7 @@ void GetExtParentClkConfig(convData_t *cmdVals, char *txstrPtr, int *status)
 	u32 board_id;
 	board_id = cmdVals[0].u;
 
-	if (RFCLK_present == FAIL) {
+	if (RFCLK_present == 0) {
 		printf("\nError: CLK104-not present %s \r\n", __func__);
 		goto err;
 	}
@@ -206,7 +224,7 @@ void GetExtPllFreqList(convData_t *cmdVals, char *txstrPtr, int *status)
 	board_id = cmdVals[0].u;
 	Pll_Src = cmdVals[1].u;
 
-	if (RFCLK_present == FAIL) {
+	if (RFCLK_present == 0) {
 		printf("\nError: CLK104-not present %s \r\n", __func__);
 		goto err;
 	}
@@ -253,7 +271,7 @@ void GetExtPllConfig(convData_t *cmdVals, char *txstrPtr, int *status)
 	Pll_Src = cmdVals[1].u;
 	u32 freq = 0;
 
-	if (RFCLK_present == FAIL) {
+	if (RFCLK_present == 0) {
 		printf("\nError: CLK104-not present %s \r\n", __func__);
 		goto err;
 	}
@@ -294,7 +312,7 @@ void SetExtPllClkRate(convData_t *cmdVals, char *txstrPtr, int *status)
 	Pll_Src = cmdVals[1].u;
 	freq = cmdVals[2].u;
 
-	if (RFCLK_present == FAIL) {
+	if (RFCLK_present == 0) {
 		printf("\nError: CLK104-not present %s \r\n", __func__);
 		goto err;
 	}
@@ -354,7 +372,7 @@ void SetExtParentclk(convData_t *cmdVals, char *txstrPtr, int *status)
 	board_id = cmdVals[0].u;
 	freq = cmdVals[1].u;
 
-	if (RFCLK_present == FAIL) {
+	if (RFCLK_present == 0) {
 		printf("\nError: CLK104-not present %s \r\n", __func__);
 		goto err;
 	}
@@ -386,4 +404,132 @@ err:
 		       board_id, freq);
 
 	*status = FAIL;
+}
+
+void SetExtPllFreq(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+
+	if (programingConfigFlag == 0) {
+		printf("New config cannot be programmed");
+		goto err;
+	}
+
+	LMKFreq.CLKin0_FREQ = cmdVals[0].u;
+	LMKFreq.CLKin1_FREQ = cmdVals[1].u;
+	LMKFreq.CLKin2_FREQ = cmdVals[2].u;
+	LMKFreq.CLKin_SEL_AUTOPINSMODE = cmdVals[3].u;
+	LMKFreq.CLKout0_FREQ = cmdVals[4].u;
+	LMKFreq.CLKout1_FREQ = cmdVals[5].u;
+	LMKFreq.CLKout2_FREQ = cmdVals[6].u;
+	LMKFreq.CLKout3_FREQ = cmdVals[7].u;
+	LMKFreq.CLKout4_FREQ = cmdVals[8].u;
+	LMKFreq.CLKout5_FREQ = cmdVals[9].u;
+	LMKFreq.CLKout6_FREQ = cmdVals[10].u;
+	LMKFreq.CLKout7_FREQ = cmdVals[11].u;
+	LMKFreq.CLKout8_FREQ = cmdVals[12].u;
+	LMKFreq.CLKout9_FREQ = cmdVals[13].u;
+	LMKFreq.CLKout10_FREQ = cmdVals[14].u;
+	LMKFreq.CLKout11_FREQ = cmdVals[15].u;
+	LMKFreq.CLKout12_FREQ = cmdVals[16].u;
+	LMKFreq.CLKout13_FREQ = cmdVals[17].u;
+	LMX1Freq.Fosc_FREQ = cmdVals[18].u;
+	LMX1Freq.FoutA_FREQ = cmdVals[19].u;
+	LMX1Freq.FoutB_FREQ = cmdVals[20].u;
+	LMX1Freq.Fpd_FREQ = cmdVals[21].u;
+	LMX1Freq.Fvco_FREQ = cmdVals[22].u;
+	LMX2Freq.Fosc_FREQ = cmdVals[23].u;
+	LMX2Freq.FoutA_FREQ = cmdVals[24].u;
+	LMX2Freq.FoutB_FREQ = cmdVals[25].u;
+	LMX2Freq.Fpd_FREQ = cmdVals[26].u;
+	LMX2Freq.Fvco_FREQ = cmdVals[27].u;
+
+	sprintf(Response,
+		" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d"
+		" %d %d %d %d %d %d %d %d",
+		LMKFreq.CLKin0_FREQ, LMKFreq.CLKin1_FREQ, LMKFreq.CLKin2_FREQ,
+		LMKFreq.CLKin_SEL_AUTOPINSMODE, LMKFreq.CLKout0_FREQ,
+		LMKFreq.CLKout1_FREQ, LMKFreq.CLKout2_FREQ,
+		LMKFreq.CLKout3_FREQ, LMKFreq.CLKout4_FREQ,
+		LMKFreq.CLKout5_FREQ, LMKFreq.CLKout6_FREQ,
+		LMKFreq.CLKout7_FREQ, LMKFreq.CLKout8_FREQ,
+		LMKFreq.CLKout9_FREQ, LMKFreq.CLKout10_FREQ,
+		LMKFreq.CLKout11_FREQ, LMKFreq.CLKout12_FREQ,
+		LMKFreq.CLKout13_FREQ, LMX1Freq.Fosc_FREQ, LMX1Freq.FoutA_FREQ,
+		LMX1Freq.FoutB_FREQ, LMX1Freq.Fpd_FREQ, LMX1Freq.Fvco_FREQ,
+		LMX2Freq.Fosc_FREQ, LMX2Freq.FoutA_FREQ, LMX2Freq.FoutB_FREQ,
+		LMX2Freq.Fpd_FREQ, LMX2Freq.Fvco_FREQ);
+
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	*status = SUCCESS;
+	return;
+err:
+	if (enTermMode)
+		printf("cmd = SetExtPllFreq\n");
+	*status = FAIL;
+}
+
+void GetExtPllFreq(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+
+	if (programingConfigFlag != 0) {
+		printf("Config is not valid");
+		goto err;
+	}
+
+	sprintf(Response,
+		" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d"
+		" %d %d %d %d %d %d %d %d",
+		LMKFreq.CLKin0_FREQ, LMKFreq.CLKin1_FREQ, LMKFreq.CLKin2_FREQ,
+		LMKFreq.CLKin_SEL_AUTOPINSMODE, LMKFreq.CLKout0_FREQ,
+		LMKFreq.CLKout1_FREQ, LMKFreq.CLKout2_FREQ,
+		LMKFreq.CLKout3_FREQ, LMKFreq.CLKout4_FREQ,
+		LMKFreq.CLKout5_FREQ, LMKFreq.CLKout6_FREQ,
+		LMKFreq.CLKout7_FREQ, LMKFreq.CLKout8_FREQ,
+		LMKFreq.CLKout9_FREQ, LMKFreq.CLKout10_FREQ,
+		LMKFreq.CLKout11_FREQ, LMKFreq.CLKout12_FREQ,
+		LMKFreq.CLKout13_FREQ, LMX1Freq.Fosc_FREQ, LMX1Freq.FoutA_FREQ,
+		LMX1Freq.FoutB_FREQ, LMX1Freq.Fpd_FREQ, LMX1Freq.Fvco_FREQ,
+		LMX2Freq.Fosc_FREQ, LMX2Freq.FoutA_FREQ, LMX2Freq.FoutB_FREQ,
+		LMX2Freq.Fpd_FREQ, LMX2Freq.Fvco_FREQ);
+
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	*status = SUCCESS;
+	return;
+err:
+	if (enTermMode)
+		printf("cmd = GetExtPllFreq\n");
+	*status = FAIL;
+}
+
+void SetStartEndClkConfig(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+
+	programingConfigFlag = cmdVals[0].u;
+	sprintf(Response, " %u", programingConfigFlag);
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	*status = SUCCESS;
+	return;
+}
+
+void GetStartEndClkConfig(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+
+	sprintf(Response, " %u", programingConfigFlag);
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	*status = SUCCESS;
+	return;
+}
+
+void ClkBoardPresent(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+
+	sprintf(Response, " %u", RFCLK_present);
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	*status = SUCCESS;
+	return;
 }

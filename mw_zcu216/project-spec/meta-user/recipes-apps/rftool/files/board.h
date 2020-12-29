@@ -35,6 +35,11 @@
 #define MAX_DAC_PER_TILE 4
 #define MAX_ADC_PER_TILE 4
 #endif
+#ifdef XPS_BOARD_ES1
+#define PART_IDENTIFIER "-es1"
+#else
+#define PART_IDENTIFIER ""
+#endif
 
 #define MAX_DAC_TILE 4
 #define MAX_ADC_TILE 4

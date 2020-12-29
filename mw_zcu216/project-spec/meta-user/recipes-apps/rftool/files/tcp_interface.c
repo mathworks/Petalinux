@@ -36,6 +36,7 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 
 /***************** Macros (Inline Functions) Definitions *********************/
 #define PORT 8081
@@ -115,6 +116,9 @@ void acceptdataConnection(void)
 void tcpServerInitialize(void)
 {
 	int opt = 1;
+	int opt_ndelay = 1;
+	int opt_quickack = 1;
+
 	addrlen = sizeof(address);
 
 	/* Creating socket file descriptor */
@@ -130,6 +134,16 @@ void tcpServerInitialize(void)
 		exit(EXIT_FAILURE);
 	}
 
+	if (setsockopt(server_fd, IPPROTO_TCP, TCP_NODELAY, (void *)&opt_ndelay,
+		       sizeof(opt_ndelay))) {
+		perror("setsockopt nodelay failed");
+		exit(EXIT_FAILURE);
+	}
+	if (setsockopt(server_fd, IPPROTO_TCP, TCP_QUICKACK,
+		       (void *)&opt_quickack, sizeof(opt_quickack))) {
+		perror("setsockopt quickack failed");
+		exit(EXIT_FAILURE);
+	}
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons(PORT);

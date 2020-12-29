@@ -25,6 +25,7 @@ I. Main Contents of Prebuilt
 | | | |-- Image				# FIT image including the kernel
 | | | |-- u-boot.elf			# U-boot ELF
 | | | |-- u-boot.bin                    # U-boot bin
+| | | |-- petalinux-sdimage.wic 	# wic image for SD card with BOOT and ROOT partitions with required files
 | | | |-- BOOT.BIN			# ZynqMP boot BIN file
 | | | |-- boot.scr			# boot.scr to provide the required default boot
 | | | |-- pxelinux.cfg			# pxelinux.cfg directory with default configuration file for pxe boot
@@ -91,7 +92,7 @@ Note:	While building bsps, we use some openAMP, Xen and QEMU files from internal
 	II.d Configuring BSP
 
 		1. zcu102 rev1.0 boards
-		2. zcu106 and zcu104 boards
+		2. zcu104 and zcu106 boards
 		3. ultra96 board.
 		4. zcu111 board
 		5. zcu1275 and zc1285 boards
@@ -101,13 +102,13 @@ Note:	While building bsps, we use some openAMP, Xen and QEMU files from internal
 		1.zcu102 rev1.0 board
 			$ petalinux-config
 				Enter zcu102-rev1.0 for MACHINE_NAME option ( ZCU102 DTG board parameter for rev1.0)
-				Enter zcu102-zynqmp for YOCTO_MACHINE_NAME option
+				Enter zynqmp-generic for YOCTO_MACHINE_NAME option
 			$ petalinux-config -c rootfs
 				Select following packages and save it
 					libmali-xlnx
 					package-management
 
-		2.zcu106 and zcu104 boards
+		2. zcu104 boards
 			$ echo 'CONFIG_gstreamer-vcu-examples' >> <project root>/project-spec/meta-user/conf/user-rootfsconfig
 			$ petalinux-config --silentconfig
 			$ petalinux-config -c rootfs
@@ -125,13 +126,44 @@ Note:	While building bsps, we use some openAMP, Xen and QEMU files from internal
 					package-management
 
 			$ petalinux-config
-				Enter zcu106-reva for MACHINE_NAME option for zcu106 boards (ZCU106 DTG board parameter )
-				Enter zcu106-zynqmp for YOCTO_MACHINE_NAME option for zcu106 boards
-
 				Enter zcu104-revc for MACHINE_NAME option for zcu104 board ( ZCU104 DTG board parameter)
-				Enter zcu104-zynqmp for YOCTO_MACHINE_NAME option for zcu104 board
+				Enter zynqmp-generic for YOCTO_MACHINE_NAME option for zcu104 board
 
 		NOTE: zcu104/zcu106 - Due to limited flash size, reduce the rootfs size to flash image.ub to qspi.
+
+                2.1 zcu106 boards
+                        $ echo 'CONFIG_gstreamer-vcu-examples' >> <project root>/project-spec/meta-user/conf/user-rootfsconfig
+                        $ petalinux-config --silentconfig
+                        $ petalinux-config -c rootfs
+                                Select following packages and save it
+					packagegroup-petalinux-gstreamer \
+					packagegroup-petalinux-matchbox \
+					packagegroup-petalinux-x11 \
+					libdrm \
+					libdrm-kms \
+					libdrm-tests \
+					gstreamer-vcu-examples \
+					packagegroup-petalinux-v4lutils \
+					packagegroup-petalinux-audio \
+					board-fpga-autoload \
+					libmali-xlnx \
+		# For zcu106 create xsa dir in proj-spec
+		mkdir project-spec/xsa_dir/
+		cp hardware/xilinx-zcu106-2020.2/outputs/zcu106_1.xsa project-spec/xsa_dir/
+		cp hardware/xilinx-zcu106-2020.2-Rev2/outputs/zcu106_2.xsa roject-spec/xsa_dir/zcu106_2.0.xsa
+		# if rev1 or rev2 board info found in EEPROM it loads bitstream and dtbo of the corresponding board goes to the root prompt.
+		# if it is not able to identify as rev1 or rev2. It prints a bold warning like below and It loads rev 1 bitstream and dtbo and goes to the root prompt.
+		Valid Board Information Not Found, Loading zcu106 rev1.0 bitstream and dtbo (see fpgautil -h for removing and loading different bitstream and dtbo).
+
+		$ petalinux-config
+			check the below are enable
+				CONFIG_SUBSYSTEM_REMOVE_PL_DTB
+				CONFIG_SUBSYSTEM_FPGA_MANAGER
+
+		$ petalinux-config --silentconfig
+		$ petalinux-config
+			Enter zcu106-reva for MACHINE_NAME option for zcu106 boards (ZCU106 DTG board parameter )
+			Enter zynqmp-generic for YOCTO_MACHINE_NAME option for zcu106 board
 
 		3. ultra96 board
 			$ cat >>  project-spec/meta-user/conf/user-rootfsconfig <<EOF
@@ -236,7 +268,7 @@ EOF
 				$petalinux-config -c u-boot
 					Enter 0x10080000 to CONFIG_SYS_TEXT_BASE.
 
-		6.zcu216 and zcu208 boards
+		6.zcu216 and zcu208 and zcu208-sdfec boards
 			$ cat >> project-spec/meta-user/conf/user-rootfsconfig << EOF
 CONFIG_peekpoke
 CONFIG_gpio-demo
@@ -251,6 +283,7 @@ EOF
                                 rfdc-read-write
                                 rfdc-selftest
 				rfclk
+				sdfec (only for zcu208 sdfec board)
 			$ petalinux-config
                                 Enter zcu216-reva for MACHINE_NAME option  ( ZCU216 DTG board parameter)
                                 Enter zcu208-reva for MACHINE_NAME option  ( ZCU208 DTG board parameter)
@@ -261,8 +294,10 @@ EOF
 
 		1. Build regular images
 			$ petalinux-build
+			$ petalinux-package --boot --u-boot --force
 			$ mkdir -p pre-built/linux/images
 			$ cp <project root>/images/linux/* <project root>/pre-built/linux/images/
+			$ petalinux-package --wic --extra-bootfiles "rootfs.cpio.gz.u-boot" --images-dir <project root>/pre-built/linux/images --outdir <project root>/pre-built/linux/images
 
 		2. Build xen images
 			$ echo '/include/ "xen.dtsi"' >> <project root>/project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi

@@ -380,7 +380,9 @@ void SetMMCM(convData_t *cmdVals, char *txstrPtr, int *status)
 	u8 found_ratio = 0;
 
 	/* TODO: Look at reducing the equation by negating. */
-	u32 ConstDivider = (RFdcInst.RFdc_Config.IPType < XRFDC_GEN3 ||
+	u32 ConstDivider = ((Type == XRFDC_ADC_TILE &&
+			     RFdcInst.RFdc_Config.IPType < XRFDC_GEN3 &&
+			     XRFdc_IsHighSpeedADC(&RFdcInst, Tile_Id)) ||
 			    Type == XRFDC_DAC_TILE ||
 			    (Type == XRFDC_ADC_TILE &&
 			     (RFdcInst.RFdc_Config.IPType >= XRFDC_GEN3) &&
@@ -461,21 +463,16 @@ void SetMMCM(convData_t *cmdVals, char *txstrPtr, int *status)
 			  1; /* Div min can only be 1 or 2 in our case. */
 	Div_Max = (u32)Fplin / Fpdmin;
 	if (Div_Max == 0) {
-		*status |= WARN_EXECUTE;
-		metal_log(METAL_LOG_WARNING,
-			  "\nFin=%f Mhz is below Minimum phase detector spec of"
-			  " PLL %d, reverting to MMCM spec, try to reduce "
-			  "FabClkoutDiv\n",
-			  Fplin, Fpdmin);
 		Fpdmin = 10;
 		Div_Max = (u32)(Fplin / Fpdmin);
 	}
 	if (Div_Max == 0) {
 		*status |= FAIL;
-		metal_log(
-			METAL_LOG_ERROR,
-			"\nMMCM specification violation, Fin=%f is below %d\n",
-			Fplin, Fpdmin);
+		metal_log(METAL_LOG_ERROR,
+			  "\nMMCM spec violation %s Tile %d: Fin=%f"
+			  " is below %d\n",
+			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
+			  Fplin, Fpdmin);
 	}
 
 	int i = 0;
@@ -496,7 +493,7 @@ void SetMMCM(convData_t *cmdVals, char *txstrPtr, int *status)
 		}
 		Mult_Max = (u32)(FvcoMax * Div / Fplin);
 		for (Mult = Mult_Max; Mult >= Mult_Min; Mult--) {
-			for (i = 1; i < 128; i++) {
+			for (i = 1; i <= 128; i++) {
 				if (Div * Fratio_N * i == Mult * Fratio_D) {
 					clkout0_div = i;
 					found_ratio = 1;
@@ -509,7 +506,7 @@ void SetMMCM(convData_t *cmdVals, char *txstrPtr, int *status)
 end:
 	if (Mult < 2 || Mult > 128) {
 		metal_log(METAL_LOG_ERROR,
-			  "\nMMCM specification violation %s Tile %d: Mult=%d "
+			  "\nMMCM spec violation %s Tile %d: Mult=%d "
 			  "is outside range 2 to 128\r\n",
 			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
 			  Mult);
@@ -525,22 +522,44 @@ end:
 	}
 	/* Check the VCO frequency and MMCM input freq is ok
 	   before ruining the MMCM */
-	if (!((10 < Fplin) && (FvcoMin * Div <= (Fplin * Mult)) &&
-	      (Div * FvcoMax >= (Fplin * Mult))) ||
-	    (Fpdmin > Fplin / (double)Div) || (Fpdmax < Fplin / (double)Div) ||
-	    (1000 * Fplin * Mult / (double)(Div * clkout0_div) < FoutMin)) {
+	if (Fplin < 10) {
 		metal_log(METAL_LOG_ERROR,
-			  "\nMMCM %s Tile %d specification violation: "
-			  "Fin=%f Fin<10, or VCO=%f 800<VCO<%d or Fph is "
-			  "outside range %d<%f<%d, or Fout=%f kHz <%d kHz, "
-			  "M=%d, Div=%d, clkout0div=%d\r\n",
+			  "\nMMCM %s Tile %d specification violation: Fin=%f"
+			  " Fin<10, M=%d, Div=%d, clkout0div=%d\r\n",
 			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
-			  FDCout, FDCout * Mult / (double)Div, FvcoMax, Fpdmin,
-			  Fplin / (double)Div, Fpdmax,
+			  FDCout, Mult, Div, clkout0_div);
+		*status |= FAIL;
+	}
+	if ((FvcoMin * Div > (Fplin * Mult)) ||
+	    (Div * FvcoMax < (Fplin * Mult))) {
+		metal_log(METAL_LOG_ERROR,
+			  "\nMMCM %s Tile %d specification violation: VCO=%f"
+			  " 800<VCO<%d, M=%d, Div=%d, clkout0div=%d\r\n",
+			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
+			  FDCout * Mult / (double)Div, FvcoMax, Mult, Div,
+			  clkout0_div);
+		*status |= FAIL;
+	}
+	if ((Fpdmin > Fplin / (double)Div) || (Fpdmax < Fplin / (double)Div)) {
+		metal_log(METAL_LOG_ERROR,
+			  "\nMMCM %s Tile %d specification violation: Fph is"
+			  " outside range %d<%f<%d, M=%d, Div=%d, "
+			  "clkout0div=%d\r\n",
+			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
+			  Fpdmin, Fplin / (double)Div, Fpdmax, Mult, Div,
+			  clkout0_div);
+		*status |= FAIL;
+	}
+	if ((1000 * Fplin * Mult / (double)(Div * clkout0_div) < FoutMin)) {
+		metal_log(METAL_LOG_ERROR,
+			  "\nMMCM %s Tile %d specification violation:"
+			  " Fout=%fkHz<%dkHz, M=%d, Div=%d, clkout0div=%d\r\n",
+			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
 			  1000 * Fplin * Mult / (double)(Div * clkout0_div),
 			  FoutMin, Mult, Div, clkout0_div);
 		*status |= FAIL;
-	} else if (*status == SUCCESS || *status == WARN_EXECUTE) {
+	}
+	if (*status == SUCCESS || *status == WARN_EXECUTE) {
 		usleep(200);
 		(void)MMCM_Reprog_HW(Type, Tile_Id, Mult, 0, Div, clkout0_div,
 				     Clk0DivFrac);
@@ -558,8 +577,7 @@ end:
 			*status |= FAIL;
 		}
 	}
-	if (*status == SUCCESS || *status == WARN_EXECUTE ||
-	    *status == (WARN_EXECUTE | SUCCESS)) {
+	if (*status == SUCCESS) {
 		sprintf(Response, " %u %u %u %u %u ", MMCM_Lock, Mult, Div,
 			clkout0_div, Clk0DivFrac);
 		strncat(txstrPtr, Response, BUF_MAX_LEN);
@@ -587,6 +605,7 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 	XRFdc_Mixer_Settings Mixer_Settings;
 	u32 DataIQ = 1; /* 1 is real, 2 is IQ */
 	u32 DataPathMode = 1;
+	u32 FDCout = 0;
 	u32 SampleRate = 0;
 	double FRatio = 0;
 	u32 InterDecim = 1;
@@ -602,6 +621,8 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 	u32 Div;
 	u8 found_ratio = 0;
 
+	u32 Interrupt[16];
+	u32 i;
 	/* TODO: Look at reducing the equation by negating. */
 	u32 Clk0DivFrac = 0;
 	u32 clkout0_div = 1;
@@ -673,11 +694,6 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 			  1; /* Div min can only be 1 or 2 in our case. */
 	Div_Max = (u32)(Fplin / Fpdmin);
 	if (Div_Max == 0) {
-		*status |= WARN_EXECUTE;
-		metal_log(METAL_LOG_WARNING,
-			  "\nFin=%fMhz is below Minimum phase detector spec of"
-			  " PLL %d, reverting to MMCM spec 10MHz\n",
-			  Fplin, Fpdmin);
 		Fpdmin = 10;
 		Div_Max = (u32)(Fplin / Fpdmin);
 	}
@@ -689,7 +705,7 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 			Fplin, Fpdmin);
 	}
 
-	int i = 0;
+	i = 0;
 	u32 Fratio_N;
 	u32 Fratio_D;
 
@@ -706,7 +722,7 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 		}
 		Mult_Max = (u32)(FvcoMax * Div / Fplin);
 		for (Mult = Mult_Max; Mult >= Mult_Min; Mult--) {
-			for (i = 1; i < 128; i++) {
+			for (i = 1; i <= 128; i++) {
 				if ((Div * Fratio_N * i) == (Mult * Fratio_D)) {
 					clkout0_div = i;
 					found_ratio = 1;
@@ -725,6 +741,16 @@ end:
 			  Mult);
 		*status |= FAIL;
 	}
+	if (FRatio * Fplin < 6250) {
+		metal_log(
+			METAL_LOG_ERROR,
+			"\nMMCM spec violation %s Tile %d: Output frequency %f"
+			" < 6.25MHz is too low, may be due to"
+			" interpolation/decimation too high\r\n",
+			(Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
+			FRatio * Fplin);
+		*status |= FAIL;
+	}
 	if (found_ratio == 0) {
 		metal_log(METAL_LOG_ERROR,
 			  "\nCould not find MMCM/PLL ratio for %s Tile %d "
@@ -735,23 +761,45 @@ end:
 	}
 	/* Check the VCO frequency and MMCM input freq is ok before
 	   ruining the MMCM */
-	if (!((10000 < Fplin) && (FvcoMin * Div <= (Fplin * Mult)) &&
-	      (Div * FvcoMax >= (Fplin * Mult))) ||
-	    (Fpdmin > Fplin / Div) || (Fpdmax < Fplin / Div) ||
-	    (Fplin * Mult / (Div * clkout0_div) < FoutMin)) {
+	if (Fplin < 10) {
 		metal_log(METAL_LOG_ERROR,
-			  "\nMMCM %s Tile %d specification violation "
-			  "(all numbers in kHz): Fin=%d Fin<10000, "
-			  "or VCO=%f 800000<VCO<%d or Fph is outside range "
-			  "%d<%f<%d, or Fout=%f<%d, M=%d, Div=%d, "
+			  "\nMMCM %s Tile %d specification violation: Fin=%f"
+			  " Fin<10, M=%d, Div=%d, clkout0div=%d\r\n",
+			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
+			  FDCout, Mult, Div, clkout0_div);
+		*status |= FAIL;
+	}
+	if ((FvcoMin * Div > (Fplin * Mult)) ||
+	    (Div * FvcoMax < (Fplin * Mult))) {
+		metal_log(METAL_LOG_ERROR,
+			  "\nMMCM %s Tile %d specification violation: VCO=%f"
+			  " 800<VCO<%d, M=%d, Div=%d, clkout0div=%d\r\n",
+			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
+			  FDCout * Mult / (double)Div, FvcoMax, Mult, Div,
+			  clkout0_div);
+		*status |= FAIL;
+	}
+	if ((Fpdmin > Fplin / (double)Div) || (Fpdmax < Fplin / (double)Div)) {
+		metal_log(METAL_LOG_ERROR,
+			  "\nMMCM %s Tile %d specification violation: Fph is "
+			  "outside range %d<%f<%d, M=%d, Div=%d, "
 			  "clkout0div=%d\r\n",
 			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
-			  Fplin, Fplin * Mult / (double)Div, FvcoMax, Fpdmin,
-			  Fplin / (double)Div, Fpdmax,
-			  Fplin * Mult / (double)(Div * clkout0_div), FoutMin,
-			  Mult, Div, clkout0_div);
+			  Fpdmin, Fplin / (double)Div, Fpdmax, Mult, Div,
+			  clkout0_div);
 		*status |= FAIL;
-	} else if (*status == SUCCESS || *status == WARN_EXECUTE) {
+	}
+	if ((1000 * Fplin * Mult / (double)(Div * clkout0_div) < FoutMin)) {
+		metal_log(METAL_LOG_ERROR,
+			  "\nMMCM %s Tile %d specification violation: "
+			  "Fout=%fkHz<%dkHz, M=%d, Div=%d, clkout0div=%d\r\n",
+			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
+			  1000 * Fplin * Mult / (double)(Div * clkout0_div),
+			  FoutMin, Mult, Div, clkout0_div);
+		*status |= FAIL;
+	}
+	/* Reprogram the MMMCM */
+	if (*status == SUCCESS || *status == WARN_EXECUTE) {
 		usleep(200);
 		(void)MMCM_Reprog_HW(Type, Tile_Id, Mult, 0, Div, clkout0_div,
 				     Clk0DivFrac);
@@ -768,9 +816,28 @@ end:
 				  Tile_Id, Fplin, Mult, Div, clkout0_div);
 			*status |= FAIL;
 		}
+	} else {
+		metal_log(METAL_LOG_ERROR,
+			  "MMCM/PLL has not been reprogrammed, it is likely the"
+			  " AXI Stream clock is incorrect");
 	}
-	if (*status == SUCCESS || *status == WARN_EXECUTE ||
-	    *status == (WARN_EXECUTE | SUCCESS)) {
+	*status |=
+		XRFdc_IntrClr(&RFdcInst, Type, Tile_Id, Block_Id, 0xffffffff);
+	for (i = 0; i < 16; i++) {
+		XRFdc_GetIntrStatus(&RFdcInst, Type, Tile_Id, Block_Id,
+				    &Interrupt[i]);
+		if ((0x80000003 & Interrupt[i]) != 0x00000000) {
+			metal_log(
+				METAL_LOG_WARNING,
+				"FIFO under/overflow detected on %s Tile %d"
+				" Block %d, Fabric clock frequency is probably"
+				" incorrect\r\n",
+				(Type == XRFDC_ADC_TILE) ? "ADC" : "DAC",
+				Tile_Id, Block_Id);
+			*status |= WARN_EXECUTE;
+		}
+	}
+	if (*status == SUCCESS) {
 		sprintf(Response, " %u %u %u %u %u ", MMCM_Lock, Mult, Div,
 			clkout0_div, Clk0DivFrac);
 		strncat(txstrPtr, Response, BUF_MAX_LEN);

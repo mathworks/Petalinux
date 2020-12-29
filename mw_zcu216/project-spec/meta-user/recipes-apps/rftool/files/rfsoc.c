@@ -35,6 +35,7 @@
  ******************************************************************************/
 /***************************** Include Files *********************************/
 
+#include "clock_interface.h"
 #include "cmd_interface.h"
 #include "data_interface.h"
 #include "gpio_interface.h"
@@ -57,22 +58,9 @@
 #define DEFAULT_INTERPOLATION_FACTOR XRFDC_INTERP_DECIM_1X
 #define DEFAULT_DATA_PATH_MODE XRFDC_DATAPATH_MODE_NODUC_0_FSDIVTWO
 
-#ifdef XPS_BOARD_ZCU208
-#define DEFAULT_DAC_SOURCETILE 3
-#else
-#define DEFAULT_DAC_SOURCETILE 1
-#endif
-#define DEFAULT_DAC_PLLENABLE 1
-#define DEFAULT_DAC_REFCLKFREQ 245.76
-#define DEFAULT_DAC_SAMPLERATE 7864.32
-#define DEFAULT_DAC_DIVISIONFACTOR 1
-#define DEFAULT_ADC_SOURCETILE 5
-#define DEFAULT_ADC_PLLENABLE 1
-#define DEFAULT_ADC_REFCLKFREQ 245.76
-#define DEFAULT_ADC_SAMPLERATE 4423.68
-#define DEFAULT_ADC_DIVISIONFACTOR 1
-
 extern int LMKCurrentFreq;
+extern struct lmk_freq LMKFreq;
+extern u32 programingConfigFlag;
 
 /**************************** Variable Definitions ***************************/
 
@@ -94,65 +82,8 @@ void StartUpConfig()
 	int status;
 	u32 ret;
 	u32 adc_blocks;
-	u32 dac_blocks;
+	u32 dac_blocks = 4;
 	XRFdc_Mixer_Settings Mixer_Settings;
-	XRFdc_Distribution_Settings Distribution_Settings;
-
-	/* Work around for the issue RF-DAC register settings are incorrect
-	 * for tiles where PLL is enabled and PLL divider is set to 1 */
-	memset(&Distribution_Settings, 0, sizeof(Distribution_Settings));
-	for (Tile_Id = 0; Tile_Id < MAX_DAC_TILE; Tile_Id++) {
-		Distribution_Settings.DAC[Tile_Id].SourceTile =
-			DEFAULT_DAC_SOURCETILE;
-		Distribution_Settings.DAC[Tile_Id].PLLEnable =
-			DEFAULT_DAC_PLLENABLE;
-		Distribution_Settings.DAC[Tile_Id].PLLSettings.RefClkFreq =
-			DEFAULT_DAC_REFCLKFREQ;
-		Distribution_Settings.DAC[Tile_Id].PLLSettings.SampleRate =
-			DEFAULT_DAC_SAMPLERATE;
-		Distribution_Settings.DAC[Tile_Id].DivisionFactor =
-			DEFAULT_DAC_DIVISIONFACTOR;
-#ifdef XPS_BOARD_ZCU208
-		if (0 == Tile_Id) {
-			Distribution_Settings.DAC[Tile_Id].DistributedClock =
-				XRFDC_DIST_OUT_RX;
-		} else {
-			Distribution_Settings.DAC[Tile_Id].DistributedClock =
-				XRFDC_DIST_OUT_NONE;
-		}
-#else
-		if (2 == Tile_Id) {
-			Distribution_Settings.DAC[Tile_Id].DistributedClock =
-				XRFDC_DIST_OUT_RX;
-		} else {
-			Distribution_Settings.DAC[Tile_Id].DistributedClock =
-				XRFDC_DIST_OUT_NONE;
-		}
-#endif
-	}
-	for (Tile_Id = 0; Tile_Id < MAX_ADC_TILE; Tile_Id++) {
-		Distribution_Settings.ADC[Tile_Id].SourceTile =
-			DEFAULT_ADC_SOURCETILE;
-		Distribution_Settings.ADC[Tile_Id].PLLEnable =
-			DEFAULT_ADC_PLLENABLE;
-		Distribution_Settings.ADC[Tile_Id].PLLSettings.RefClkFreq =
-			DEFAULT_ADC_REFCLKFREQ;
-		Distribution_Settings.ADC[Tile_Id].PLLSettings.SampleRate =
-			DEFAULT_ADC_SAMPLERATE;
-		Distribution_Settings.ADC[Tile_Id].DivisionFactor =
-			DEFAULT_ADC_DIVISIONFACTOR;
-		if (2 == Tile_Id) {
-			Distribution_Settings.ADC[Tile_Id].DistributedClock =
-				XRFDC_DIST_OUT_RX;
-		} else {
-			Distribution_Settings.ADC[Tile_Id].DistributedClock =
-				XRFDC_DIST_OUT_NONE;
-		}
-	}
-	ret = XRFdc_SetClkDistribution(&RFdcInst, &Distribution_Settings);
-	if (FAIL == ret) {
-		printf("%s: XRFdc_SetClkDistribution failed\n", __func__);
-	}
 
 	/* ADC default settings */
 	for (Tile_Id = 0; Tile_Id < MAX_TILE_ID; Tile_Id++) {
@@ -193,9 +124,17 @@ void StartUpConfig()
 	}
 
 	for (Tile_Id = 0; Tile_Id < MAX_TILE_ID; Tile_Id++) {
-		dac_blocks = RFdcInst.DAC_Tile[Tile_Id].NumOfDACBlocks;
-#ifdef XPS_BOARD_ZCU208 /* Odd blocks are disabled in ZCU208 */
-		dac_blocks = dac_blocks * 2;
+#ifdef XPS_BOARD_ZCU208
+		printf("Changing Multiband of tile %u\n", Tile_Id);
+		ret = XRFdc_MultiBand(&RFdcInst, XRFDC_DAC_TILE, Tile_Id, 0x1,
+				      0x4, 0x1);
+		ret |= XRFdc_MultiBand(&RFdcInst, XRFDC_DAC_TILE, Tile_Id, 0x4,
+				       0x4, 0x4);
+		if (FAIL == ret) {
+			printf("%s: Error from XRFdc_MultiBand"
+			       " for DAC Tile_Id = %u Block_Id = %u\n",
+			       __func__, Tile_Id, Block_Id);
+		}
 #endif
 		for (Block_Id = 0; Block_Id < dac_blocks; Block_Id++) {
 			ret = XRFdc_GetMixerSettings(&RFdcInst, XRFDC_DAC_TILE,
@@ -206,15 +145,19 @@ void StartUpConfig()
 				       " for DAC Tile_Id = %u Block_Id = %u\n",
 				       __func__, Tile_Id, Block_Id);
 			}
+
 			Mixer_Settings.MixerType = XRFDC_MIXER_TYPE_COARSE;
 			Mixer_Settings.CoarseMixFreq = XRFDC_COARSE_MIX_BYPASS;
 			Mixer_Settings.MixerMode = XRFDC_MIXER_MODE_R2R;
 			Mixer_Settings.EventSource = XRFDC_EVNT_SRC_TILE;
+
 			ret = XRFdc_SetMixerSettings(&RFdcInst, XRFDC_DAC_TILE,
 						     Tile_Id, Block_Id,
 						     &Mixer_Settings);
+			ret |= XRFdc_ResetNCOPhase(&RFdcInst, XRFDC_DAC_TILE,
+						   Tile_Id, Block_Id);
 			if (FAIL == ret) {
-				printf("%s: Error from XRFdc_SetMixerSettings"
+				printf("%s: Error from XRFdc_SetMixerSettings or XRFdc_ResetNCOPhase"
 				       " for DAC Tile_Id = %u Block_Id = %u\n",
 				       __func__, Tile_Id, Block_Id);
 			}
@@ -227,30 +170,83 @@ void StartUpConfig()
 				       " for DAC Tile_Id = %u Block_Id = %u\n",
 				       __func__, Tile_Id, Block_Id);
 			}
-
+#ifdef XPS_BOARD_ZCU208
+			if (Block_Id == 1 || Block_Id == 3) {
+				printf("ZCU208 Interpolation for block_id %u\n",
+				       Block_Id);
+				ret = XRFdc_SetInterpolationFactor(
+					&RFdcInst, Tile_Id, Block_Id,
+					XRFDC_INTERP_DECIM_OFF);
+			} else {
+				printf("ZCU208 Interpolation for block_id %u\n",
+				       Block_Id);
+				ret = XRFdc_SetInterpolationFactor(
+					&RFdcInst, Tile_Id, Block_Id,
+					DEFAULT_INTERPOLATION_FACTOR);
+			}
+#else
+			printf("ZCU216 Interpolation for block_id %u\n",
+			       Block_Id);
 			ret = XRFdc_SetInterpolationFactor(
 				&RFdcInst, Tile_Id, Block_Id,
 				DEFAULT_INTERPOLATION_FACTOR);
+#endif
 			if (FAIL == ret) {
 				printf("%s: Error from XRFdc_SetInterpolationFactor"
 				       " for DAC Tile_Id = %u Block_Id = %u\n",
 				       __func__, Tile_Id, Block_Id);
 			}
+#ifdef XPS_BOARD_ZCU208
+			if (Block_Id == 0 || Block_Id == 2) {
+				printf("ZCU208 datapathmode for block_id %u\n",
+				       Block_Id);
+				ret = XRFdc_SetDataPathMode(
+					&RFdcInst, Tile_Id, Block_Id,
+					DEFAULT_DATA_PATH_MODE);
+			}
+#else
+			printf("ZCU216 datapathmode for block_id %u\n",
+			       Block_Id);
 			ret = XRFdc_SetDataPathMode(&RFdcInst, Tile_Id,
 						    Block_Id,
 						    DEFAULT_DATA_PATH_MODE);
+#endif
 			if (FAIL == ret) {
 				printf("%s: Error from XRFdc_SetDataPathMode"
 				       " for DAC Tile_Id = %u Block_Id = %u\n",
 				       __func__, Tile_Id, Block_Id);
 			}
-
-			cmdVals[0].u = DAC;
-			cmdVals[1].u = Tile_Id;
-			SetMMCM(cmdVals, txstrPtr, &status);
-#ifdef XPS_BOARD_ZCU208 /* Odd blocks are disabled in ZCU208. Hence it is skipped.*/
-			Block_Id++;
-#endif
+		}
+		cmdVals[0].u = DAC;
+		cmdVals[1].u = Tile_Id;
+		SetMMCM(cmdVals, txstrPtr, &status);
+	}
+	for (Tile_Id = 0; Tile_Id < 4; Tile_Id++) {
+		for (Block_Id = 0;
+		     Block_Id < RFdcInst.ADC_Tile[Tile_Id].NumOfADCBlocks;
+		     Block_Id++) {
+			if (XRFdc_IsADCBlockEnabled(&RFdcInst, Tile_Id,
+						    Block_Id)) {
+				XRFdc_IntrDisable(&RFdcInst, XRFDC_ADC_TILE,
+						  Tile_Id, Block_Id,
+						  0xffffffff);
+				XRFdc_IntrEnable(&RFdcInst, XRFDC_ADC_TILE,
+						 Tile_Id, Block_Id, 0xffffffff);
+				XRFdc_IntrClr(&RFdcInst, XRFDC_ADC_TILE,
+					      Tile_Id, Block_Id, 0xffffffff);
+			}
+		}
+		for (Block_Id = 0; Block_Id < 4; Block_Id++) {
+			if (XRFdc_IsDACBlockEnabled(&RFdcInst, Tile_Id,
+						    Block_Id)) {
+				XRFdc_IntrDisable(&RFdcInst, XRFDC_DAC_TILE,
+						  Tile_Id, Block_Id,
+						  0xffffffff);
+				XRFdc_IntrEnable(&RFdcInst, XRFDC_DAC_TILE,
+						 Tile_Id, Block_Id, 0xffffffff);
+				XRFdc_IntrClr(&RFdcInst, XRFDC_DAC_TILE,
+					      Tile_Id, Block_Id, 0xffffffff);
+			}
 		}
 	}
 }
@@ -265,7 +261,7 @@ int main(void)
 	int ret;
 	pthread_t thread_id;
 
-	printf("\nVersion number; %s\n\n", RFTOOL_VERSION);
+	printf("\nVersion number; %s\n\n", RFTOOL_INTERNAL_VERSION);
 #ifdef XPS_BOARD_ZCU208
 	printf("\nBoard version ZCU208\n\n");
 #else
@@ -274,24 +270,39 @@ int main(void)
 
 	printf("\nRFCLK v%s\n", RFCLK_VERSION);
 #ifdef XPS_BOARD_ZCU208
-	ret = XRFClk_Init(494);
+	ret = XRFClk_Init(493);
 #else
-	ret = XRFClk_Init(486);
+	ret = XRFClk_Init(485);
 #endif
 	if (ret != SUCCESS)
 		printf("\nCLK104 is broken or not present\r\n");
 	else {
+		programingConfigFlag = 1;
+		/* Configure LMK with a default config */
 		ret = XRFClk_SetConfigOnOneChipFromConfigId(
 			RFCLK_LMK, DEFAULT_RFCLK_LMK_CONFIG);
 		if (ret != SUCCESS)
-			printf("\nError: Failed to set LMK in CLK-104 %s \r\n",
-			       __func__);
+			printf("\nError: Config LMK in CLK-104\r\n");
 		else {
-			RFCLK_present = SUCCESS;
+			RFCLK_present = 1;
 			LMKCurrentFreq = DEFAULT_RFCLK_LMK_CONFIG;
 			printf("\nRFCLK v%s Init Done\n", RFCLK_VERSION);
+
+			/* Power down LMX1 (DAC) */
+			if (SUCCESS != XRFClk_WriteReg(RFCLK_LMX2594_1, 0x1)) {
+				printf("\nError: Power down LMX1\r\n");
+			}
+
+			/* Power down LMX2 (ADC0) */
+			if (SUCCESS != XRFClk_WriteReg(RFCLK_LMX2594_2, 0x1)) {
+				printf("\nError: Power down LMX2\r\n");
+			}
 		}
+		programingConfigFlag = 0;
 	}
+
+	if (RFCLK_present != 1)
+		memset(&LMKFreq, 0, sizeof(LMKFreq));
 
 	ret = rfdc_init();
 	if (ret != SUCCESS) {
@@ -317,10 +328,9 @@ int main(void)
 		deinit_mem();
 		printf("Unable to initialise memory\n");
 		return -1;
-	}        
+	}
 	printf("going to init gpio\n");
 	ret = init_gpio();
-        
 	if (ret) {
 		printf("Unable to initialise gpio's\n");
 		deinit_gpio();
@@ -390,7 +400,6 @@ newConn:
 				       " thread\n");
                     */
 			thread_stat = 0;
-                    
 			break;
 		}
 	}

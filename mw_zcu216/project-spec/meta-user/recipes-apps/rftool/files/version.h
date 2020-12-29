@@ -24,12 +24,21 @@
 #ifndef SRC_VERSION_
 #define SRC_VERSION_
 
-#define RFTOOL_VERSION "2.2"
+#define RFTOOL_VERSION "2020.2"
+#define RFTOOL_INTERNAL_VERSION "2.4"
 
 #ifdef XPS_BOARD_ZCU208
-#define IDCODE 0x047FB093
+#ifdef XPS_BOARD_ES1
+#define IDCODE 0x047FB093 /* ZCU208 Engineering Sample */
 #else
-#define IDCODE 0x047FE093
+#define IDCODE 0x147FB093 /* ZCU208 Production */
+#endif
+#else
+#ifdef XPS_BOARD_ES1
+#define IDCODE 0x047FE093 /* ZCU216 Engineering Sample */
+#else
+#define IDCODE 0x147FE093 /* ZCU216 Production */
+#endif
 #endif
 
 #endif /* SRC_VERSION_ */

@@ -40,6 +40,7 @@
 #define MEM_SIZE_SHIFT (0)
 #define MEM_NUM_MASK (0x7f)
 #define MEM_NUM_SHIFT (24)
+#define EFFECTIVE_FS_LIMIT (4500.0)
 
 /***************** Macros (Inline Functions) Definitions *********************/
 int LocalMemTriggerHw(u32 type, void *memBaseAddr, u8 clk_sel, u32 numsamples,
@@ -107,7 +108,7 @@ void LocalMemInfo(convData_t *cmdVals, char *txstrPtr, int *status)
 			mem_enable = 0;
 			mem_clksel = 0;
 		} else {
-			numTiles = 2;
+			numTiles = 4;
 			memBaseAddr = (void *)86000000;
 			mem_enable = 0;
 			mem_clksel = 1;
@@ -167,8 +168,7 @@ void LocalMemAddr(convData_t *cmdVals, char *txstrPtr, int *status)
 
 	if (Addr_I == 0xffffffff) {
 		*status = FAIL;
-		metal_log(METAL_LOG_ERROR, "\nChannel does not exist %s\r\n",
-			  __func__);
+		metal_log(METAL_LOG_ERROR, "\nChannel does not exist \r\n");
 	} else {
 		*status = SUCCESS;
 		sprintf(Response, " %u %d %u %8X %8X ", type, tile_id, block_id,
@@ -239,29 +239,27 @@ void LocalMemTrigger_bram(u32 type, u32 tile_id, u32 block_id, u32 clksel,
 	XRFdc_GetIntrStatus(&RFdcInst, type, tile_id, block_id, &interrupt[i]);
 	if ((0x80000003 & interrupt[i]) != 0x00000000) {
 		if (type == ADC) {
-			metal_log(
-				METAL_LOG_WARNING,
-				"FIFO under or overflow detected on ADC Tile Id"
-				" %d Block Id %d, Fabric clock frequency"
-				" is probably incorrect,Try changing"
-				" Interpolation or decimation factor\r\n",
-				tile_id, block_id);
+			metal_log(METAL_LOG_WARNING,
+				  "FIFO under/overflow on ADC Tile"
+				  " %d Block %d, Fabric frequency"
+				  " probably incorrect: check I/Q, decimation"
+				  " and Fabric width\r\n",
+				  tile_id, block_id);
 		} else {
-			metal_log(
-				METAL_LOG_WARNING,
-				"FIFO under or overflow detected on DAC Tile"
-				" Id %d Block Id %d, Fabric clock frequency is"
-				" probably incorrect,Try changing"
-				" Interpolation or decimation factor\r\n",
-				tile_id, block_id);
+			metal_log(METAL_LOG_WARNING,
+				  "FIFO under/overflow on DAC Tile"
+				  " %d Block %d, Fabric frequency"
+				  " probably incorrect: check I/Q, "
+				  "interpolation and Fabric width\r\n",
+				  tile_id, block_id);
 		}
 		*status |= WARN_EXECUTE;
 		/* removing marginal FIFO over/underflow */
 	} else if ((0xfffffff2 & interrupt[i]) != 0x00000000) {
-		metal_log(
-			METAL_LOG_WARNING,
-			"interrupt 0x%x detected on Tile Id %d Block Id %d\r\n",
-			interrupt[i], tile_id, block_id);
+		metal_log(METAL_LOG_WARNING,
+			  "interrupt 0x%x on Tile %d Block %d, please check "
+			  "interrupt screen for details\r\n",
+			  interrupt[i], tile_id, block_id);
 		*status |= WARN_EXECUTE;
 	}
 	*status |= LocalMemTriggerHw(type, memBaseAddr, clksel, numsamples,
@@ -309,9 +307,11 @@ void LocalMemTrigger(convData_t *cmdVals, char *txstrPtr, int *status)
 					     (1 << tile_id)) != 0);
 
 				if (mem_type == DDR) {
-					gpio_index = i/(MAX_DAC_TILE/MAX_DAC_PER_TILE);
-					ret = set_gpio(dac_userselect_gpio[gpio_index],
-						       1);
+					gpio_index = i / (MAX_DAC_TILE /
+							  MAX_DAC_PER_TILE);
+					ret = set_gpio(
+						dac_userselect_gpio[gpio_index],
+						1);
 					if (ret) {
 						ret = GPIO_SET_FAIL;
 						MetalLoghandler_firmware(
@@ -497,6 +497,8 @@ void SetLocalMemSample(convData_t *cmdVals, char *txstrPtr, int *status)
 	double SampleRate;
 	double Effective_FS = 0;
 	XRFdc_PLL_Settings PLLSettings;
+	double DataIQ = 1.0;
+	double Max_Effective_Fs_Limit = EFFECTIVE_FS_LIMIT;
 
 	*status = SUCCESS;
 	if (type == DAC)
@@ -550,11 +552,43 @@ void SetLocalMemSample(convData_t *cmdVals, char *txstrPtr, int *status)
 		}
 		SampleRate = 1000 * PLLSettings.SampleRate;
 		Effective_FS = SampleRate / (double)InterDecim;
-		if (Effective_FS > 4500) {
+		*status |= XRFdc_GetMixerSettings(&RFdcInst, type, tile_id,
+						  block_id, &Mixer_Settings);
+		if (type == XRFDC_DAC_TILE) {
+			if ((4 == DataPathMode) ||
+			    (Mixer_Settings.MixerMode ==
+			     XRFDC_MIXER_MODE_R2R) ||
+			    (Mixer_Settings.MixerMode ==
+			     XRFDC_MIXER_MODE_R2C) ||
+			    (Mixer_Settings.MixerType ==
+				     XRFDC_MIXER_TYPE_COARSE &&
+			     Mixer_Settings.CoarseMixFreq ==
+				     XRFDC_COARSE_MIX_BYPASS)) {
+				DataIQ = 1.0;
+			} else {
+				DataIQ = 2.0;
+			}
+		} else {
+			if (!XRFdc_IsHighSpeedADC(&RFdcInst, tile_id) &&
+			    ((Mixer_Settings.MixerMode ==
+			      XRFDC_MIXER_MODE_R2R) ||
+			     ((Mixer_Settings.MixerType ==
+			       XRFDC_MIXER_TYPE_COARSE) &&
+			      (Mixer_Settings.CoarseMixFreq ==
+			       XRFDC_COARSE_MIX_BYPASS)))) {
+				DataIQ = 1.0;
+			} else {
+				DataIQ = 2.0;
+			}
+		}
+		Effective_FS = SampleRate / (double)InterDecim;
+		Max_Effective_Fs_Limit /= DataIQ;
+		if (Effective_FS > Max_Effective_Fs_Limit) {
 			metal_log(METAL_LOG_ERROR,
-				  " Effective FS is greater than 4.5GHz "
-				  " for Tile Id %d Block Id %d\r\n",
-				  tile_id, block_id);
+				  " Effective FS is greater than %0.2lf GHz"
+				  " for Tile %d Block %d\r\n",
+				  Max_Effective_Fs_Limit / 1000, tile_id,
+				  block_id);
 			*status |= FAIL;
 		}
 		return;
@@ -562,18 +596,18 @@ void SetLocalMemSample(convData_t *cmdVals, char *txstrPtr, int *status)
 	if (mem_type != BRAM) {
 		return;
 	}
+	num_tiles = 4;
 	if (type == ADC) {
 		memBaseAddr = info.vaddr_adc;
 		chMap = AdcMap;
-		num_tiles = 4;
-		numblockpertile = (!XRFdc_IsADC4GSPS(&RFdcInst) << 1) + 2;
+		numblockpertile =
+			(!XRFdc_IsHighSpeedADC(&RFdcInst, tile_id) << 1) + 2;
 		XRFdc_GetFabRdVldWords(&RFdcInst, type, tile_id, block_id,
 				       &FifoWidth);
 	} else {
 		memBaseAddr = info.vaddr_dac;
 
 		chMap = DacMap;
-		num_tiles = (!XRFdc_IsADC4GSPS(&RFdcInst) << 1) + 2;
 		numblockpertile = 4;
 		XRFdc_GetFabWrVldWords(&RFdcInst, type, tile_id, block_id,
 				       &FifoWidth);
@@ -582,7 +616,7 @@ void SetLocalMemSample(convData_t *cmdVals, char *txstrPtr, int *status)
 	GetMemInfoHw(type, memBaseAddr, &num_tiles, &num_mem, &mem_size,
 		     &num_words, &mem_enable, &mem_clksel);
 	/* Calculate numsamples according to IQ mode for 2Gsps */
-	if (type == ADC && !XRFdc_IsADC4GSPS(&RFdcInst)) {
+	if (type == ADC && !XRFdc_IsHighSpeedADC(&RFdcInst, tile_id)) {
 		XRFdc_GetMixerSettings(&RFdcInst, type, tile_id, block_id,
 				       &Mixer_Settings);
 		if (!(Mixer_Settings.CoarseMixFreq == XRFDC_COARSE_MIX_BYPASS &&
@@ -622,7 +656,7 @@ void SetLocalMemSample(convData_t *cmdVals, char *txstrPtr, int *status)
 		memBaseAddr + LMEM0_ENDADDR +
 		(chMap[(tile_id * numblockpertile) + block_id].Channel_I * 4);
 	lmem_wr32(reg_addr, numsamples_channel);
-	if ((type == ADC && XRFdc_IsADC4GSPS(&RFdcInst))) {
+	if (type == ADC && XRFdc_IsHighSpeedADC(&RFdcInst, tile_id)) {
 		reg_addr =
 			memBaseAddr + LMEM0_ENDADDR +
 			(chMap[tile_id * numblockpertile + block_id].Channel_Q *

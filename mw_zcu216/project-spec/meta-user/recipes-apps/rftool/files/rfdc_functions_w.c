@@ -39,6 +39,9 @@
 
 /***************** Macros (Inline Functions) Definitions *********************/
 #define MAX_DAC_SAMPLE_RATE_FULL_NYQUIST 7.0
+#define CONFIG_REG_FILE "/sys/firmware/zynqmp/config_reg"
+#define IDCODE_REG 0xFFCA0040
+#define PRODUCTION_BIT_POS 28
 /************************** Variable Definitions *****************************/
 extern int enTermMode; /* Enable printing in terminal mode */
 extern XRFdc RFdcInst;
@@ -783,7 +786,7 @@ void GetOutputCurr(convData_t *cmdVals, char *txstrPtr, int *status)
 					}
 				}
 				if (*status == SUCCESS) {
-					metal_set_log_level(METAL_LOG_ERROR);
+					metal_set_log_level(METAL_LOG_WARNING);
 					sprintf(Response, " %d %d %d", Tile_Id,
 						Block_Id, OutputCurr);
 					strncat(txstrPtr, Response,
@@ -793,7 +796,7 @@ void GetOutputCurr(convData_t *cmdVals, char *txstrPtr, int *status)
 			}
 		}
 		*status = SUCCESS;
-		metal_set_log_level(METAL_LOG_ERROR);
+		metal_set_log_level(METAL_LOG_WARNING);
 	} else {
 		if (enTermMode) {
 			if (*status != SUCCESS) {
@@ -806,7 +809,7 @@ void GetOutputCurr(convData_t *cmdVals, char *txstrPtr, int *status)
 			}
 		}
 		if (*status == SUCCESS) {
-			metal_set_log_level(METAL_LOG_ERROR);
+			metal_set_log_level(METAL_LOG_WARNING);
 			sprintf(Response, " %d %d %d", Tile_Id, Block_Id,
 				OutputCurr);
 			strncat(txstrPtr, Response, BUF_MAX_LEN);
@@ -1885,7 +1888,7 @@ void RF_ReadReg32(convData_t *cmdVals, char *txstrPtr, int *status)
 	}
 
 	if (*status == SUCCESS) {
-		sprintf(Response, " %d ", Value);
+		sprintf(Response, " 0x%08X ", Value);
 		strncat(txstrPtr, Response, BUF_MAX_LEN);
 	}
 }
@@ -2557,7 +2560,7 @@ void GetIntrStatus(convData_t *cmdVals, char *txstrPtr, int *status)
 	}
 
 	if (*status == SUCCESS) {
-		sprintf(Response, " %d %d %d %d ", Type, Tile_Id, Block_Id,
+		sprintf(Response, " %u %d %u 0x%08X ", Type, Tile_Id, Block_Id,
 			IntrStatus);
 		strncat(txstrPtr, Response, BUF_MAX_LEN);
 	}
@@ -2602,7 +2605,7 @@ void GetEnabledInterrupts(convData_t *cmdVals, char *txstrPtr, int *status)
 	*status = XRFdc_GetEnabledInterrupts(&RFdcInst, Type, Tile_Id, Block_Id,
 					     &IntrMask);
 	if (*status == SUCCESS) {
-		sprintf(Response, " %u %u %u %08X ", Type, Tile_Id, Block_Id,
+		sprintf(Response, " %u %u %u 0x%08X ", Type, Tile_Id, Block_Id,
 			IntrMask);
 		strncat(txstrPtr, Response, BUF_MAX_LEN);
 	}
@@ -2775,7 +2778,7 @@ void MultiConverter_Sync(convData_t *cmdVals, char *txstrPtr, int *status)
 	}
 
 	strncat(txstrPtr, Response, BUF_MAX_LEN);
-	metal_set_log_level(METAL_LOG_ERROR);
+	metal_set_log_level(METAL_LOG_WARNING);
 
 	return;
 }
@@ -2978,4 +2981,126 @@ void CheckDigitalPathEnabled(convData_t *cmdVals, char *txstrPtr, int *status)
 	*status = SUCCESS;
 	sprintf(Response, " %u ", Enable);
 	strncat(txstrPtr, Response, BUF_MAX_LEN);
+}
+
+void CheckImage(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char buffer[255];
+	u32 idcode;
+	int ret;
+	FILE *fp;
+	(void)cmdVals;
+
+	*status = FAIL;
+	/* Write idcode register to config register file */
+	sprintf(buffer, "echo %x > %s", IDCODE_REG, CONFIG_REG_FILE);
+	fp = popen(buffer, "w");
+	if (NULL == fp) {
+		metal_log(METAL_LOG_ERROR, "Unable to open file %s to write\n",
+			  CONFIG_REG_FILE);
+		return;
+	}
+	ret = fprintf(fp, "%s", buffer);
+	if (ret <= 0) {
+		metal_log(METAL_LOG_ERROR, "Unable to write to %s\n",
+			  CONFIG_REG_FILE);
+		pclose(fp);
+		return;
+	}
+	ret = pclose(fp);
+	if (SUCCESS != ret) {
+		metal_log(METAL_LOG_ERROR,
+			  "Unable to close file %s after "
+			  "write\n",
+			  CONFIG_REG_FILE);
+		return;
+	}
+
+	/* Read idcode from config register file */
+	sprintf(buffer, "cat %s", CONFIG_REG_FILE);
+	fp = popen(buffer, "r");
+	if (NULL == fp) {
+		metal_log(METAL_LOG_ERROR, "Unable to open file %s to read\n",
+			  CONFIG_REG_FILE);
+		return;
+	}
+	ret = fscanf(fp, "%x\n", &idcode);
+	if (ret <= 0) {
+		metal_log(METAL_LOG_ERROR, "Unable to read from %s\n",
+			  CONFIG_REG_FILE);
+		pclose(fp);
+		return;
+	}
+
+	ret = pclose(fp);
+	if (SUCCESS != ret) {
+		metal_log(METAL_LOG_ERROR,
+			  "Unable to close file %s after "
+			  "read\n",
+			  CONFIG_REG_FILE);
+		return;
+	}
+
+	/* Compare the idcode value read from the register with the
+	 * hard coded value in the source code. If different return FAIL */
+	if (idcode == IDCODE) {
+		*status = SUCCESS;
+	} else {
+		metal_log(METAL_LOG_ERROR,
+			  "Linux image targets IDCODE 0x%X %s"
+			  " device but actual device IDCODE 0x%X is %s",
+			  IDCODE,
+			  ((IDCODE & (0x1 << PRODUCTION_BIT_POS)) >>
+			   PRODUCTION_BIT_POS) ?
+				  "Production" :
+				  "ES",
+			  idcode,
+			  ((idcode & (0x1 << PRODUCTION_BIT_POS)) >>
+			   PRODUCTION_BIT_POS) ?
+				  "Production" :
+				  "ES");
+		*status = FAIL;
+	}
+	return;
+}
+
+void SetPwrMode(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	XRFdc_Pwr_Mode_Settings SettingsPtr;
+	u32 Type = cmdVals[0].u;
+	u32 Tile_Id = cmdVals[1].u;
+	u32 Block_Id = cmdVals[2].u;
+
+	/*Disables IP RTS control of the power mode*/
+	SettingsPtr.DisableIPControl = cmdVals[3].u;
+	/*The power mode*/
+	SettingsPtr.PwrMode = cmdVals[4].u;
+
+	*status = XRFdc_SetPwrMode(&RFdcInst, Type, Tile_Id, Block_Id,
+				   &SettingsPtr);
+	if (*status == SUCCESS) {
+		sprintf(Response, " %u %u %u %u %u ", Type, Tile_Id, Block_Id,
+			SettingsPtr.DisableIPControl, SettingsPtr.PwrMode);
+		strncat(txstrPtr, Response, BUF_MAX_LEN);
+	}
+	return;
+}
+
+void GetPwrMode(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	XRFdc_Pwr_Mode_Settings SettingsPtr;
+	u32 Type = cmdVals[0].u;
+	u32 Tile_Id = cmdVals[1].u;
+	u32 Block_Id = cmdVals[2].u;
+
+	*status = XRFdc_GetPwrMode(&RFdcInst, Type, Tile_Id, Block_Id,
+				   &SettingsPtr);
+	if (*status == SUCCESS) {
+		sprintf(Response, " %u %u %u %u %u ", Type, Tile_Id, Block_Id,
+			SettingsPtr.DisableIPControl, SettingsPtr.PwrMode);
+		strncat(txstrPtr, Response, BUF_MAX_LEN);
+	}
+	return;
 }

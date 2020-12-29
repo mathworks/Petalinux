@@ -67,7 +67,7 @@ int rfdc_inst_init(u16 rfdc_id)
 	struct metal_device *device;
 	struct metal_init_params init_param = {
 		.log_handler = MetalLoghandler,
-		.log_level = METAL_LOG_ERROR,
+		.log_level = METAL_LOG_WARNING,
 	};
 	if (metal_init(&init_param)) {
 		if (0 >
@@ -123,7 +123,7 @@ int RFInitBuildMemoryMap(void)
 	u32 num_mem = 0;
 	u32 mem_info;
 	u16 channel;
-	u16 numblockpertile = 4 >> RFdcInst.ADC4GSPS;
+	u16 numblockpertile = 0;
 	int i;
 	u32 CurAddr;
 
@@ -171,10 +171,12 @@ int RFInitBuildMemoryMap(void)
 	i = 0;
 	channel = 0;
 	for (Tile_Id = 0; Tile_Id < 4; Tile_Id++) {
+		numblockpertile =
+			RFdcInst.RFdc_Config.ADCTile_Config[Tile_Id].NumSlices;
 		for (Block_Id = 0; Block_Id < numblockpertile; Block_Id++) {
 			i++;
-			if (XRFdc_IsADCBlockEnabled(&RFdcInst, Tile_Id,
-						    Block_Id)) {
+			if (XRFdc_IsADCDigitalPathEnabled(&RFdcInst, Tile_Id,
+							  Block_Id)) {
 				printf("ADC: Tile %d Block %d, addr = %x"
 				       " channel=%d\n",
 				       Tile_Id, Block_Id, CurAddr, channel);
@@ -188,12 +190,11 @@ int RFInitBuildMemoryMap(void)
 						Block_Id] = 0;
 				CurAddr += mem_size;
 				channel++;
-				if (XRFdc_IsADC4GSPS(&RFdcInst) &&
+				if (XRFdc_IsHighSpeedADC(&RFdcInst, Tile_Id) &&
 				    XRFdc_GetDataType(
 					    &RFdcInst, ADC, Tile_Id,
 					    Block_Id << RFdcInst.ADC4GSPS)) {
-					printf("ADC: Tile %d Block %d, addrQ="
-					       " %x channel = %d \n",
+					printf("ADC: Tile %d Block %d, addrQ= %x channel = %d \n",
 					       Tile_Id, Block_Id, CurAddr,
 					       channel);
 					AdcMap[Tile_Id * numblockpertile +
@@ -265,10 +266,9 @@ int RFInitBuildMemoryMap(void)
 	     Tile_Id++) {
 		for (Block_Id = 0; Block_Id < 4; Block_Id++) {
 			i++;
-			if (XRFdc_IsDACBlockEnabled(&RFdcInst, Tile_Id,
-						    Block_Id)) {
-				printf("DAC: Tile %d Block %d, addrQ1 = %x"
-				       " channel = %d\n",
+			if (XRFdc_IsDACDigitalPathEnabled(&RFdcInst, Tile_Id,
+							  Block_Id)) {
+				printf("DAC: Tile %d Block %d, addrQ1 = %x channel = %d\n",
 				       Tile_Id, Block_Id, CurAddr, channel);
 				DacMap[Tile_Id * 4 + Block_Id].addr_I = CurAddr;
 				DacMap[Tile_Id * 4 + Block_Id].addr_Q = CurAddr;
