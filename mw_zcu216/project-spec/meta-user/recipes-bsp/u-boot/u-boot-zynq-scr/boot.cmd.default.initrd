@@ -1,0 +1,144 @@
+# This is a boot script for U-Boot
+# Generate boot.scr:
+# mkimage -c none -A arm -T script -d boot.cmd.default boot.scr
+#
+################
+@@PRE_BOOTENV@@
+
+for boot_target in ${boot_targets};
+do
+	if test "${boot_target}" = "jtag" ; then
+		@@KERNEL_BOOTCMD@@ @@KERNEL_LOAD_ADDRESS@@ @@RAMDISK_IMAGE_ADDRESS@@ @@DEVICETREE_ADDRESS@@
+		exit;
+	fi
+	if test "${boot_target}" = "mmc0" || test "${boot_target}" = "mmc1" ; then
+                echo Entered boot script
+
+                # FIT Image booting... use image.ub
+                if test -e ${devtype} ${devnum}:${distro_bootpart} /@@FIT_IMAGE@@; then
+			fatload ${devtype} ${devnum}:${distro_bootpart} @@FIT_IMAGE_LOAD_ADDRESS@@ @@FIT_IMAGE@@;
+			bootm @@FIT_IMAGE_LOAD_ADDRESS@@;
+			exit;
+                fi
+                
+                # Leagcy Image booting... (Non-FIT kernel)
+                echo Storing default uboot environment...;
+                mmc rescan;
+                saveenv
+
+                # check and apply uEnv.txt if it exists
+    		if test -e ${devtype} ${devnum}:${distro_bootpart} /uEnv.txt; then
+			echo Importing uEnv.txt environment from SD ...
+			load ${devtype} ${devnum}:${distro_bootpart} 0x00100000 uEnv.txt
+			echo  Loaded environment from 0x00100000
+			env import -t 0x00100000 ${filesize}	
+		fi
+
+                # Load FPGA bit file
+                if test -n ${bitstream_image}; then
+                    if test -e ${devtype} ${devnum}:${distro_bootpart} ${bitstream_image}; then
+                        echo Loading bitstream from ${bitstream_image} to RAM..
+                        load ${devtype} ${devnum}:${distro_bootpart} 0x1000000 ${bitstream_image};
+                        fpga loadb ${devtype}:${devnum} 0x1000000 ${filesize};
+                    else
+                        echo No FPGA bit-file ${bitstream_image} found, exiting...
+                        exit;
+                    fi              
+                
+                else
+                    # Load Default bit-file "system.bit" if uboot env not set
+                    if test -e ${devtype} ${devnum}:${distro_bootpart} /system.bit; then
+                        echo Loading default bitstream from SD/MMC/eMMC to RAM..
+                        load ${devtype} ${devnum}:${distro_bootpart} 0x1000000 system.bit;
+                        fpga loadb ${devtype}:${devnum} 0x1000000 ${filesize};
+                    else
+                        echo No default system.bit bitstream detected, exiting...
+                        exit;
+                    fi               
+                fi
+                
+                # Load image kernel
+		if test -e ${devtype} ${devnum}:${distro_bootpart} /@@KERNEL_IMAGE@@; then
+                    fatload ${devtype} ${devnum}:${distro_bootpart} @@KERNEL_LOAD_ADDRESS@@ @@KERNEL_IMAGE@@;;
+                else
+                    echo Kernel image not found, exiting...
+                    exit;
+		fi
+
+                # Load device-tree
+                if test -n ${fdt_image}; then
+                    if test -e ${devtype} ${devnum}:${distro_bootpart} ${fdt_image}; then
+		        fatload ${devtype} ${devnum}:${distro_bootpart} @@DEVICETREE_ADDRESS@@ ${fdt_image};
+                    else
+                        echo Device-tree ${fdt_image} not found, exiting...
+                        exit;
+                    fi
+                else
+                    if test -e ${devtype} ${devnum}:${distro_bootpart} /devicetree.dtb; then
+		        fatload ${devtype} ${devnum}:${distro_bootpart} @@DEVICETREE_ADDRESS@@ devicetree.dtb;
+                        echo Loading default devicetree.dtb device-tree...
+                    else
+                        echo No default device-tree devicetree.dtb found, exiting...
+                        exit;
+                    fi
+		fi
+
+		# Apply Device-tree Overlay if it exists..
+                if test -n ${fdt_overlay}; then
+                        setenv fdtov_addr 240bf000
+
+	        	if test -e ${devtype} ${devnum}:${distro_bootpart} ${fdt_overlay}; then
+		            echo Applying device-tree overlay
+                            fdt addr @@DEVICETREE_ADDRESS@@
+                            fatload ${devtype} ${devnum}:${distro_bootpart} ${fdtov_addr} ${fdt_overlay}
+                            fdt resize ${filesize}
+                            fdt apply $fdtov_addr
+                            echo Applied Device-Tree Overlay: ${fdt_overlay}...
+		        else
+			    echo Skipping device-tree overlay, could not find ${fdt_overlay}...
+		        fi
+                else
+                    echo Skipping device-tree overlay, no fdt_overlay env defined...
+                fi
+
+		# Non-FIT kernel loading
+                if test -e ${devtype} ${devnum}:${distro_bootpart} /@@RAMDISK_IMAGE@@; then
+                        echo Copying Linux from SD to RAM...
+                        fatload ${devtype} ${devnum}:${distro_bootpart} @@RAMDISK_IMAGE_ADDRESS@@ @@RAMDISK_IMAGE@@;
+                        @@KERNEL_BOOTCMD@@ @@KERNEL_LOAD_ADDRESS@@ @@RAMDISK_IMAGE_ADDRESS@@ @@DEVICETREE_ADDRESS@@
+                        exit;
+		fi
+
+		@@KERNEL_BOOTCMD@@ @@KERNEL_LOAD_ADDRESS@@ - @@DEVICETREE_ADDRESS@@
+		exit;
+	fi
+	if test "${boot_target}" = "xspi0" || test "${boot_target}" = "qspi" || test "${boot_target}" = "qspi0"; then
+		sf probe 0 0 0;
+		if test "@@QSPI_KERNEL_IMAGE@@" = "@@FIT_IMAGE@@"; then
+			sf read @@QSPI_FIT_IMAGE_LOAD_ADDRESS@@ @@QSPI_KERNEL_OFFSET@@ @@QSPI_FIT_IMAGE_SIZE@@;
+			bootm @@QSPI_FIT_IMAGE_LOAD_ADDRESS@@;
+			exit;
+		fi
+		if test "@@QSPI_KERNEL_IMAGE@@" = "@@KERNEL_IMAGE@@"; then
+			sf read @@KERNEL_LOAD_ADDRESS@@ @@QSPI_KERNEL_OFFSET@@ @@QSPI_KERNEL_SIZE@@;
+			sf read @@RAMDISK_IMAGE_ADDRESS@@ @@QSPI_RAMDISK_OFFSET@@ @@QSPI_RAMDISK_SIZE@@
+			@@KERNEL_BOOTCMD@@ @@KERNEL_LOAD_ADDRESS@@ @@RAMDISK_IMAGE_ADDRESS@@ @@DEVICETREE_ADDRESS@@
+			exit;
+		fi
+		exit;
+	fi
+	if test "${boot_target}" = "nand" || test "${boot_target}" = "nand0"; then
+		nand info
+		if test "@@NAND_KERNEL_IMAGE@@" = "@@FIT_IMAGE@@"; then
+			nand read @@NAND_FIT_IMAGE_LOAD_ADDRESS@@ @@NAND_KERNEL_OFFSET@@ @@NAND_FIT_IMAGE_SIZE@@;
+			bootm @@NAND_FIT_IMAGE_LOAD_ADDRESS@@;
+			exit;
+		fi
+		if test "@@NAND_KERNEL_IMAGE@@" = "@@KERNEL_IMAGE@@"; then
+			nand read @@KERNEL_LOAD_ADDRESS@@ @@NAND_KERNEL_OFFSET@@ @@NAND_KERNEL_SIZE@@;
+			nand read @@RAMDISK_IMAGE_ADDRESS@@ @@NAND_RAMDISK_OFFSET@@  @@NAND_RAMDISK_SIZE@@;
+			@@KERNEL_BOOTCMD@@ @@KERNEL_LOAD_ADDRESS@@ @@RAMDISK_IMAGE_ADDRESS@@ @@DEVICETREE_ADDRESS@@
+			exit;
+		fi
+	fi
+done

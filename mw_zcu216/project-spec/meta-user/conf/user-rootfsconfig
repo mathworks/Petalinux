@@ -1,0 +1,16 @@
+#Note: Mention Each package in individual line
+#These packages will get added into rootfs menu entry
+
+CONFIG_gpio-demo
+CONFIG_peekpoke
+CONFIG_rfdc
+CONFIG_rfdc-read-write
+CONFIG_rfdc-selftest
+CONFIG_rfclk
+CONFIG_trd-autostart
+CONFIG_rftool
+CONFIG_libiio
+CONFIG_libusb
+CONFIG_libserialport
+CONFIG_mw-fs-overlay
+CONFIG_mw-rf-init

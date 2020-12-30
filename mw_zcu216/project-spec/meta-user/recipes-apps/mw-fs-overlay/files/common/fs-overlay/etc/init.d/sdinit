@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Run the init.sh/shutdown.sh script on the SD card
+#
+
+source /etc/bootvars.conf
+
+if [ "${_SYS_BOOT_MODE}" == "RECOVERY" ]; then
+    exit 0
+fi
+
+case "$1" in
+	start)
+		/usr/bin/rftool &
+                /usr/bin/mw-rf-init &
+                if [ -f ${_SD_ROOT}/init.sh ]; then
+			echo "+++ Running sd card init.sh"
+			${_SD_ROOT}/init.sh
+		fi
+		;;
+	stop)
+		if [ -f ${_SD_ROOT}/shutdown.sh ]; then
+			echo "+++ Running sd card shutdown.sh"
+			${_SD_ROOT}/shutdown.sh
+		fi
+		;;
+	restart | reload)
+		"$0" stop
+		"$0" start
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+esac
+
+exit $?

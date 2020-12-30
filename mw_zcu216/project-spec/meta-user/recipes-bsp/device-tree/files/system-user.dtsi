@@ -1,0 +1,66 @@
+/include/ "system-conf.dtsi"
+/include/ "pl.dtsi"
+
+/delete-node/ &axi_dmac_mm2s;
+/delete-node/ &axi_dmac_s2mm;
+/delete-node/ &mw_ip_tes_ip_0;
+
+/* MathWorks AXI-DMA & AXI-lite nodes */
+#include "axistream.dtsi"
+//#include "base.dtsi"
+
+/ {
+	
+	chosen {
+		bootargs = "console=ttyPS0,115200n8 earlycon clk_ignore_unused initcall_blacklist=si570_driver_init debug root=/dev/ram rw cma=1700M cpuidle.off=1";
+		stdout-path = "serial0:115200n8";
+	};
+
+};
+	/*
+        &clocking_block_clk_wiz_adc1 {
+			clock-output-names = "clk_out11", "clk_out12", "clk_out13", "clk_out14", "clk_out15", "clk_out16", "clk_out17";
+	};
+	&clocking_block_clk_wiz_adc2 {
+			clock-output-names = "clk_out21", "clk_out22", "clk_out23", "clk_out24", "clk_out25", "clk_out26", "clk_out27";
+	};
+	&clocking_block_clk_wiz_adc3 {
+			clock-output-names = "clk_out31", "clk_out32", "clk_out33", "clk_out34", "clk_out35", "clk_out36", "clk_out37";
+	};
+
+	&clocking_block_clk_wiz_dac0 {
+			clock-output-names = "clk_out41", "clk_out42", "clk_out43", "clk_out44", "clk_out45", "clk_out46", "clk_out47";
+	};
+
+	&clocking_block_clk_wiz_dac1 {
+			clock-output-names = "clk_out51", "clk_out52", "clk_out53", "clk_out54", "clk_out55", "clk_out56", "clk_out57";
+	};
+	&clocking_block_clk_wiz_dac2 {
+			clock-output-names = "clk_out61", "clk_out62", "clk_out63", "clk_out64", "clk_out65", "clk_out66", "clk_out67";
+	};
+	&clocking_block_clk_wiz_dac3 {
+			clock-output-names = "clk_out71", "clk_out72", "clk_out73", "clk_out74", "clk_out75", "clk_out76", "clk_out77";
+	};
+*/
+
+/*
+ * CAUTION: This should be disabled for single A53 run.
+ */
+
+/ {
+	gpio-keys {
+		sw19 {
+			status = "disabled";
+		};
+	};
+	leds {
+		heartbeat_led {
+			status = "disabled";
+		};
+	};
+};
+
+&uart1
+{
+	status = "disabled";
+};

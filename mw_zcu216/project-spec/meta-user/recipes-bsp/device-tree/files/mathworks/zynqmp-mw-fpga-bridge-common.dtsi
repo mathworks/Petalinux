@@ -1,0 +1,18 @@
+/{
+	fpd_hpm0_32: fpd-hpm0-32 {
+		compatible = "simple-bus";
+                interrupt-names = "irq";
+		interrupt-parent = <&gic>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0xA0000000 0x0 0xA0000000 0x10000000>;
+		dma-ranges = <0x00000000 0x0 0x00000000 0x80000000>;
+	};
+
+        fpd_hpm1_32: fpd-hpm1-32 {
+                compatible = "simple-bus";
+
+        };
+};
+
+#define fpga_axi fpd_hpm0_32
