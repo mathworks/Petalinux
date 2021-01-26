@@ -1,22 +1,23 @@
-# MathWorks&reg; Zynq Petalinux 
+# MathWorks&reg; Zynq Petalinux Repository
 
-MathWorks Petalinux build system for Zynq SoC platforms
+MathWorks Petalinux build repository for generating Zynq SoC SD card images.
 
 #### Current Supported Boards
-- ZCU111 Zynq RFSoC
+- ZCU111 Evaluation Kit
+- ZCU216 Evaluation Kit
 
 #### General build instructions
-- Clone this repository and switch branches to the matching board, for instance:
+- Clone this repository and switch tags to the corresponding version. The most up to date tag is **mathworks_zynqrfsoc_R21.1.0**. The last set numbers of the tag "R21.1.0" is interperted as MATLAB R2021a where "R21" represents R2021 and "1.0" is for release 'a'. Version "2.0" would represent 'b'.
 
+`$ git checkout mathworks_zynqrfsoc_R21.1.0`
 
-`$ git checkout zcu111_2018.2`
+- Setup the petalinux environment in your terminal (ie: `$ source /local/petalinux/settings.sh`).
 
-- Setup the petalinux environment in your terminal (ie
+   Ensure you are using `/bin/bash` before calling this.
+   
+- In the project directory, change directories to the board of interest then run the build command. As an example:
 
-`$ source /local/petalinux/settings.sh`).
-
-   Ensure you are using /bin/bash
-- In the project directory, run the build command
+`$ cd zcu111`
 
 `$ petalinux-build`
 
@@ -26,11 +27,11 @@ MathWorks Petalinux build system for Zynq SoC platforms
 
 - A directory with the following files should appear
 
-`$ ls MW_Petalinux_2018-12-01_18-38-58/`
+`$ ls mw_zcu111_2020-12-29_01-27-32/`
 
     BOOT.BIN
     system.bit
-	devicetree.dtb
+    devicetree.dtb
     Image
     uramdisk.image.gz
 	
