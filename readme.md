@@ -3,8 +3,8 @@
 MathWorks Petalinux build repository for generating Zynq SoC SD card images.
 
 #### Current Supported Boards
-- ZCU111 Evaluation Kit
-- ZCU216 Evaluation Kit
+- ZCU111 Evaluation Kit - built with Petalinux 2018.3
+- ZCU216 Evaluation Kit - built with Petalinux 2020.2
 
 #### General build instructions
 - Clone this repository and switch tags to the corresponding version. The most up to date tag for RFSoC is **mathworks_zynqrfsoc_R21.1.1**. The last set numbers of the tag "R21.1.0" is interperted as MATLAB R2021a where "R21" represents R2021 and "1.0" is for release 'a'. Version "2.0" would represent 'b'.
@@ -13,7 +13,7 @@ MathWorks Petalinux build repository for generating Zynq SoC SD card images.
 
 - Setup the petalinux environment in your terminal (ie: `$ source /local/petalinux/settings.sh`).
 
-   Ensure you are using `/bin/bash` before calling this.
+   Ensure you are using `/bin/bash` before calling this. Note that the version of Petalinux will matter here. Please use a matching Petalinux version described in the above board list.
    
 - In the project directory, change directories to the board of interest then run the build command. As an example:
 
