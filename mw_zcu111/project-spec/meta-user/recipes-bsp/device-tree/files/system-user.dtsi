@@ -4,7 +4,7 @@
 / {
 	
 	chosen {
-		bootargs = "earlycon clk_ignore_unused root=/dev/ram rw cma=1700M cpuidle.off=1";
+		bootargs = "earlycon clk_ignore_unused root=/dev/ram rw cma=256M cpuidle.off=1";
 		stdout-path = "serial0:115200n8";
 	};
 
