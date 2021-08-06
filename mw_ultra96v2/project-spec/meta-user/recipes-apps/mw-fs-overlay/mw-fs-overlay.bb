@@ -50,7 +50,6 @@ do_install() {
 	update-rc.d -r ${D} inetd start 41 1 2 3 4 5 .
 	update-rc.d -r ${D} udhcpd start 42 1 2 3 4 5 .
 	update-rc.d -r ${D} restoreSSHkeys start 49 1 2 3 4 5 .
-	update-rc.d -r ${D} alsa start 50 1 2 3 4 5 .
 	update-rc.d -r ${D} backupSSHkeys start 51 1 2 3 4 5 .
 	update-rc.d -r ${D} hdlrd_init start 95 1 2 3 4 5 .
 	update-rc.d -r ${D} user_init start 97 1 2 3 4 5 .

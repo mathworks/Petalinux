@@ -42,8 +42,6 @@ do_deploy() {
 			ln -sf ${DTB_BASE_NAME}.${DTB_FILE#*.} ${DEPLOYDIR}/${MACHINE}-system.${DTB_FILE#*.}
 			ln -sf ${DTB_BASE_NAME}.${DTB_FILE#*.} ${DEPLOYDIR}/system.${DTB_FILE#*.}
 		else
-			echo "######"
-			echo "${PLNX_DEPLOY_DIR}/${DTB_FILE}"
 			install -Dm 0644 ${B}/${DTB_FILE} ${PLNX_DEPLOY_DIR}/${DTB_FILE}
 		fi
 	done
