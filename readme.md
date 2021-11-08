@@ -7,7 +7,7 @@ MathWorks Petalinux build repository for generating Zynq SoC SD card images.
 - ZCU216 Evaluation Kit
 
 #### General build instructions
-- Clone this repository and switch tags to the corresponding version. The most up to date tag is **mathworks_zynqrfsoc_R22.1.0**. The last set numbers of the tag "R22.1.0" is interperted as MATLAB R2022a where "R22" represents R2022 and "1.0" is for release 'a'. Version "2.0" would represent 'b'.
+- Clone this repository and switch tags to the corresponding version. The release tags are labeled as **mathworks_zynqrfsoc_R2x.y.z**, where the "R2x" denotes the year of the MATLAB release and "y" denotes the 'a' or 'b' release. The "z" is used for updates to the image within a particular MATLAB release. For example, the tag "R22.1.0" is interperted as MATLAB R2022a where "R22" represents R2022 and "1.0" is for release 'a'. If there were updates to the image within the R2022a release, the versions would be "R22.1.1", "R22.1.2", etc. The MATLAB R2022b release would then start with the tag "R22.2.0".
 
 `$ git checkout mathworks_zynqrfsoc_R22.1.0`
 
