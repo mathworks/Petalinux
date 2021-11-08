@@ -7,9 +7,9 @@ MathWorks Petalinux build repository for generating Zynq SoC SD card images.
 - ZCU216 Evaluation Kit
 
 #### General build instructions
-- Clone this repository and switch tags to the corresponding version. The most up to date tag is **mathworks_zynqrfsoc_R21.1.0**. The last set numbers of the tag "R21.1.0" is interperted as MATLAB R2021a where "R21" represents R2021 and "1.0" is for release 'a'. Version "2.0" would represent 'b'.
+- Clone this repository and switch tags to the corresponding version. The most up to date tag is **mathworks_zynqrfsoc_R22.1.0**. The last set numbers of the tag "R22.1.0" is interperted as MATLAB R2022a where "R22" represents R2022 and "1.0" is for release 'a'. Version "2.0" would represent 'b'.
 
-`$ git checkout mathworks_zynqrfsoc_R21.1.0`
+`$ git checkout mathworks_zynqrfsoc_R22.1.0`
 
 - Setup the petalinux environment in your terminal (ie: `$ source /local/petalinux/settings.sh`).
 
