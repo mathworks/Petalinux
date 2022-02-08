@@ -10,6 +10,7 @@ SRC_URI += "file://system-user.dtsi"
 SRC_URI += "file://axilite.dts"
 SRC_URI += "file://axistream.dts"
 SRC_URI += "file://axistream_64.dts"
+SRC_URI += "file://sharedmem_iio.dts"
 
 # MathWorks devicetree includes
 SRC_URI += "file://base.dtsi"
@@ -24,7 +25,8 @@ SRC_URI += "file://adi-mw-axistream-dma.dtsi"
 SRC_URI += "file://adi-mw-axistream-iio-common.dtsi"
 SRC_URI += "file://mw-axistream-iio-common.dtsi"
 SRC_URI += "file://mw-axistream-iio-common.h"
-SRC_URI += "file://mw-sharedmemory-iio.dtsi"
+SRC_URI += "file://mw-sharedmem-iio-common.dtsi"
+SRC_URI += "file://zynqmp-mw-sharedmem-iio-common.dtsi"
 
 # Copy MW sources to devicetree workspace so they will be compiled
 do_configure_append() {
