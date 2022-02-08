@@ -255,7 +255,7 @@ CONFIG_mtd-utils=y
 #
 # procps 
 #
-# CONFIG_procps is not set
+CONFIG_procps=y
 # CONFIG_procps-dev is not set
 # CONFIG_procps-dbg is not set
 
