@@ -384,7 +384,7 @@ newConn:
 				shutdown_sock(COMMAND);
 				shutdown_sock(DATA);
 				printf("Closed data and command sockets\n");
-				pthread_join(thread_id, NULL);
+				// pthread_join(thread_id, NULL);
 				break;
 			}
 			/* clear rcvBuf each time anew command is received and
