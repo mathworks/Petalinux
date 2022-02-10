@@ -8,7 +8,10 @@
 #include "zynqmp-mw-common.dtsi"
 #include "mw-aximm-common.dtsi"
 
+
 / {
+	model = "Avnet Ultra96-V2";
+	
 	sdio_pwrseq: sdio_pwrseq {  /* This needs to be able to manipulate the chip_en and the resetn properly */
 		compatible = "mmc-pwrseq-simple";
 		/* post-power-on-delay-ms = <10>; */
