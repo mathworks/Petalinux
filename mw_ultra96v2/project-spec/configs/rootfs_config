@@ -2430,7 +2430,7 @@ CONFIG_udev-extraconf=y
 # gcc-runtime 
 #
 # CONFIG_libstdcPLUSPLUS-dev is not set
-# CONFIG_libstdcPLUSPLUS is not set
+CONFIG_libstdcPLUSPLUS=y
 
 #
 # gcr 
@@ -4240,6 +4240,7 @@ CONFIG_libiio=y
 CONFIG_libserialport=y
 CONFIG_libusb=y
 # CONFIG_bonniePLUSPLUS is not set
+CONFIG_boost=y
 # CONFIG_cmake is not set
 # CONFIG_iperf3 is not set
 # CONFIG_iw is not set

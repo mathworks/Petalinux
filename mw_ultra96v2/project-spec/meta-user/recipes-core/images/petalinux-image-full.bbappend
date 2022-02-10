@@ -34,3 +34,6 @@ IMAGE_INSTALL_append = " wilc3000-fw"
 IMAGE_INSTALL_append = " wilc"
 IMAGE_INSTALL_append = " ultra96-wpa"
 IMAGE_INSTALL_append = " ultra96-radio-leds"
+
+# SoCB profiling tools
+IMAGE_INSTALL_append = " boost"
