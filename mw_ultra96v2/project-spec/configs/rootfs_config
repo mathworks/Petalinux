@@ -4235,12 +4235,13 @@ CONFIG_wilc=y
 #
 # user packages 
 #
+CONFIG_nanomsg=y
+CONFIG_boost=y
 CONFIG_libftdi=y
 CONFIG_libiio=y
 CONFIG_libserialport=y
 CONFIG_libusb=y
 # CONFIG_bonniePLUSPLUS is not set
-CONFIG_boost=y
 # CONFIG_cmake is not set
 # CONFIG_iperf3 is not set
 # CONFIG_iw is not set
