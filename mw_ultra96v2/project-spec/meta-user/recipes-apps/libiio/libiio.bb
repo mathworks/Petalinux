@@ -45,12 +45,13 @@ PACKAGECONFIG[NETWORK_BACKEND] = "-DWITH_NETWORK_BACKEND=ON,-DWITH_NETWORK_BACKE
 PACKAGECONFIG[PYTHON_BINDINGS] = ",,python"
 PACKAGECONFIG[TESTS] = "-DWITH_TESTS=ON,-DWITH_TESTS=OFF,libxml2"
 
-PACKAGES =+ "${PN}-iiod ${PN}-tests ${PN}-python"
+#PACKAGES =+ "${PN}-iiod ${PN}-tests ${PN}-python"
+PACKAGES =+ "${PN}-iiod ${PN}-tests"
 
-RDEPENDS_${PN}-python = "${PN} python-ctypes python-stringold"
+#RDEPENDS_${PN}-python = "${PN} python-ctypes python-stringold"
 
 #FILES_${PN}-tests = "${bindir}"
-FILES_${PN}-python = "${PYTHON_SITEPACKAGES_DIR}"
+#FILES_${PN}-python = "${PYTHON_SITEPACKAGES_DIR}"
 
 SYSTEMD_PACKAGES = "${PN}-iiod"
 SYSTEMD_SERVICE_${PN}-iiod = "iiod.service"
