@@ -1,0 +1,15 @@
+diff --git a/Makefile b/Makefile
+index e955242..f729bf6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -220,8 +220,8 @@ install-bin: all $(SCRIPTS)
+ install-lib: all
+ 	@$(VECHO) INSTALL-LIB
+ 	$(INSTALL) -d $(DESTDIR)$(LIBDIR)
+-	$(INSTALL_LIB) $(LIBFDT_lib) $(DESTDIR)$(LIBDIR)
+-	ln -sf $(notdir $(LIBFDT_lib)) $(DESTDIR)$(LIBDIR)/$(LIBFDT_soname)
++	$(INSTALL) $(LIBFDT_lib) $(DESTDIR)$(LIBDIR)/$(LIBFDT_soname)
++	ln -sf $(LIBFDT_soname) $(DESTDIR)$(LIBDIR)/$(notdir $(LIBFDT_lib))
+ 	ln -sf $(LIBFDT_soname) $(DESTDIR)$(LIBDIR)/libfdt.$(SHAREDLIB_EXT)
+ 	$(INSTALL_DATA) $(LIBFDT_archive) $(DESTDIR)$(LIBDIR)
+ 

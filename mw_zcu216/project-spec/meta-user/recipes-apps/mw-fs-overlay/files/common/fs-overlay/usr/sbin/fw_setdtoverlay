@@ -1,0 +1,21 @@
+#!/bin/sh
+# Set uboot to use a new devicetree overlay when booting
+# Syntax fw_setoverlay <new overlay>
+
+source /etc/bootvars.conf
+
+NEWDTOVLY=$1
+shift
+
+# Determine if anything was passed in
+if [ "$NEWDTOVLY" = "" ]; then
+    # No arguement passed in, use $_SYS_DEFAULT_DEVICETREE_FILE
+     echo "# No devicetree overlay specified, using default ${_SYS_DEFAULT_DEVICETREE_FILE} without overlays"
+     exit
+fi
+
+_mw_setbootfile fdt_overlay "$NEWDTOVLY" DTO-file
+rc=$?
+
+exit $rc
+

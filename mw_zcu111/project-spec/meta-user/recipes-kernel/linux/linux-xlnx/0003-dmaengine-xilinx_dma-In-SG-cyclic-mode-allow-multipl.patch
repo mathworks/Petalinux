@@ -1,0 +1,73 @@
+From 8ba96ac8c81c78e722baec8db89b3f2d0a973792 Mon Sep 17 00:00:00 2001
+From: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
+Date: Fri, 31 Aug 2018 09:31:02 -0600
+Subject: [PATCH 3/7] dmaengine: xilinx_dma: In SG cyclic mode allow multiple
+ descriptors submit
+
+Patch is to fix below issues in AXI DMA driver.
+
+1.In AXIDMA SG cyclic mode allow multiple prep_dma_cyclic and tx_submit. It
+enables descriptors having different buf_addr/buf_len to be programmed in
+the cyclic mode. This feature is used in implementing AXIDMA Time-division
+multiplexing for multichannel usecase.
+
+2.Increase AXI DMA transaction segments count to ensure that even in high
+load we always get a free segment in prepare descriptor for a DMA_SLAVE transaction.
+
+3.In AXIDMA simple mode also pass MSB bits of source address to xilinx_write
+function. This fixes simple DMA operation mode using 64-bit addressing.
+
+Signed-off-by: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
+---
+ drivers/dma/xilinx/xilinx_dma.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/dma/xilinx/xilinx_dma.c b/drivers/dma/xilinx/xilinx_dma.c
+index 3eaca48..0634da2 100644
+--- a/drivers/dma/xilinx/xilinx_dma.c
++++ b/drivers/dma/xilinx/xilinx_dma.c
+@@ -170,7 +170,7 @@
+ #define XILINX_DMA_BD_SOP		BIT(27)
+ #define XILINX_DMA_BD_EOP		BIT(26)
+ #define XILINX_DMA_COALESCE_MAX		255
+-#define XILINX_DMA_NUM_DESCS		255
++#define XILINX_DMA_NUM_DESCS		4096
+ #define XILINX_DMA_NUM_APP_WORDS	5
+ 
+ /* Multi-Channel DMA Descriptor offsets*/
+@@ -1290,6 +1290,10 @@ static void xilinx_dma_start_transfer(struct xilinx_dma_chan *chan)
+ 	tail_segment = list_last_entry(&tail_desc->segments,
+ 				       struct xilinx_axidma_tx_segment, node);
+ 
++	/* Set the tail segment next_desc to first BD */
++	if (chan->cyclic)
++		tail_segment->hw.next_desc = (u32)head_desc->async_tx.phys;
++
+ 	reg = dma_ctrl_read(chan, XILINX_DMA_REG_DMACR);
+ 
+ 	if (chan->desc_pendingcount <= XILINX_DMA_COALESCE_MAX) {
+@@ -1355,7 +1359,8 @@ static void xilinx_dma_start_transfer(struct xilinx_dma_chan *chan)
+ 					   node);
+ 		hw = &segment->hw;
+ 
+-		xilinx_write(chan, XILINX_DMA_REG_SRCDSTADDR, hw->buf_addr);
++		xilinx_write(chan, XILINX_DMA_REG_SRCDSTADDR, (dma_addr_t)
++			     ((u64)hw->buf_addr_msb << 32 | hw->buf_addr));
+ 
+ 		/* Start the transfer */
+ 		dma_ctrl_write(chan, XILINX_DMA_REG_BTT,
+@@ -1589,11 +1594,6 @@ static dma_cookie_t xilinx_dma_tx_submit(struct dma_async_tx_descriptor *tx)
+ 	unsigned long flags;
+ 	int err;
+ 
+-	if (chan->cyclic) {
+-		xilinx_dma_free_tx_descriptor(chan, desc);
+-		return -EBUSY;
+-	}
+-
+ 	if (chan->err) {
+ 		/*
+ 		 * If reset fails, need to hard reset the system.
+-- 
+2.7.4
+

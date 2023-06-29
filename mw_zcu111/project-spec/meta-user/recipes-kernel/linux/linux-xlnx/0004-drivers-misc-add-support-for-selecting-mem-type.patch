@@ -1,0 +1,420 @@
+From 488823c26875116f999e9331fcef4fe7c8388c18 Mon Sep 17 00:00:00 2001
+From: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+Date: Wed, 5 Sep 2018 12:05:45 +0530
+Subject: [PATCH 4/7] drivers: misc: add support for selecting mem type
+
+Patch is to support below features
+
+1.Depending on mem type create the BD chain and trigger
+cyclic/simple DMA.
+
+2.Add support to create BD's in TDM mode for different channels
+in driver.
+
+Signed-off-by: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+---
+ drivers/misc/pl_mem.c | 266 ++++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 228 insertions(+), 38 deletions(-)
+
+diff --git a/drivers/misc/pl_mem.c b/drivers/misc/pl_mem.c
+index ed68ef5..1adac41 100644
+--- a/drivers/misc/pl_mem.c
++++ b/drivers/misc/pl_mem.c
+@@ -51,6 +51,7 @@
+ #define MAX_INSTANCES	    4
+ #define DRIVER_NAME        "plmem"
+ #define DEVICE_NAME_FORMAT "plmem%d"
++#define PKT_SIZE (16 * 1024)
+ /**
+  * sync_mode(synchronous mode) value
+  */
+@@ -61,7 +62,6 @@
+ #define SYNC_MODE_MASK          (0x03)
+ #define SYNC_ALWAYS             (0x04)
+ 
+-
+ /**
+  * _PGPROT_NONCACHED    : vm_page_prot value when ((sync_mode & SYNC_MODE_MASK)
+  *			== SYNC_MODE_NONCACHED)
+@@ -101,6 +101,12 @@ enum {
+ 	ADC7,
+ };
+ 
++enum {
++	DDR,
++	BRAM,
++	MAX,
++};
++
+ static DEFINE_IDA(plmem_device_ida);
+ static dev_t  plmem_device_number;
+ static bool plmem_platform_driver_done;
+@@ -110,6 +116,22 @@ struct dma_chan *chan_dac;
+ struct dma_chan *chan_adc;
+ 
+ /**
++ * struct rf_channel_info - channel info exposed to userspace
++ *
++ * @num_channels: number of available channels
++ * @channel: channels number.
++ * @channel_size: channel size.
++ */
++struct rf_channel_info {
++	int num_channels;
++	int channel[8];
++	int channel_size[8];
++};
++
++
++dma_addr_t phys_addr_dac_adc[16];
++
++/**
+  * struct plmem_driver_data - Plmem driver data
+  * @sys_dev: character device pointer
+  * @dma_dev: Device pointer
+@@ -120,7 +142,6 @@ struct dma_chan *chan_adc;
+  * @is_dac: DAC or ADC device
+  * @is_open: holds whether file is opened
+  * @size: size of memory pool
+- * @count: no.of bytes to transfer
+  * @alloc_size: size of memory pool, aligned to a page size
+  * @virt_addr: virtual address of memory region
+  * @phys_addr: physical address of memory region
+@@ -137,12 +158,12 @@ struct plmem_driver_data {
+ 	bool is_dac;
+ 	bool is_open;
+ 	int size;
+-	int count;
+ 	size_t alloc_size;
+ 	void *virt_addr;
+ 	dma_addr_t phys_addr;
+ 	int sync_mode;
+ 	int mem_used;
++	u32 mem_type;
+ };
+ 
+ /**
+@@ -155,6 +176,7 @@ static int plmem_driver_file_open(struct inode *inode, struct file *file)
+ {
+ 	struct plmem_driver_data *this;
+ 	int status = 0;
++	u32 minor;
+ 
+ 	this = container_of(inode->i_cdev, struct plmem_driver_data, cdev);
+ 	file->private_data = this;
+@@ -168,6 +190,9 @@ static int plmem_driver_file_open(struct inode *inode, struct file *file)
+ 		this->virt_addr = NULL;
+ 		return -ENOMEM;
+ 	}
++
++	minor = MINOR(this->device_number);
++	phys_addr_dac_adc[minor] = this->phys_addr;
+ 	return status;
+ }
+ 
+@@ -182,7 +207,6 @@ static int plmem_driver_file_release(struct inode *inode, struct file *file)
+ 	struct plmem_driver_data *this = file->private_data;
+ 	/* Terminate DMA transfer and reset required flags */
+ 	this->is_open = 0;
+-	this->count = 0;
+ 	dmaengine_terminate_all(this->chan);
+ 	return 0;
+ }
+@@ -250,34 +274,95 @@ static ssize_t plmem_driver_file_read(struct file *file, char __user *buff,
+ 	struct dma_async_tx_descriptor *desc;
+ 	dma_cookie_t cookie;
+ 	int adc;
++	int i = 0, j = 0;
++	int iter;
++	dma_addr_t phys_addr_adc;
++	u32 residue;
++	struct rf_channel_info adc_chan_info;
+ 
+ 	if (this->is_dac) {
+ 		dev_err(this->dma_dev, "%s Not a adc device\n", __func__);
+ 		return -EINVAL;
+ 	}
+-	adc = (MINOR(this->device_number - 8));
+-	/*
+-	 * set tlast register.
+-	 */
+-	iowrite32(count, adc_regs[adc]);
+-	/* Trigger DMA transfer */
+-	this->count = count;
+-	desc = dmaengine_prep_slave_single(this->chan,
+-		this->phys_addr, this->count, DMA_DEV_TO_MEM, 0);
+-	if (!desc) {
+-		dev_err(this->dma_dev, "%s Failed to initiate DMA\n", __func__);
+-		return -ENOMEM;
+-	}
+-	desc->callback = plmem_driver_dma_read_done;
+-	desc->callback_param = this;
+-	cookie = dmaengine_submit(desc);
+-	if (dma_submit_error(cookie)) {
+-		dev_err(this->dma_dev, "%s Failed to submit DMA\n", __func__);
+-		return -EINVAL;
++
++	if (this->mem_type == BRAM) {
++		adc = (MINOR(this->device_number - 8));
++		/*
++		 * set tlast register.
++		 */
++		iowrite32(count, adc_regs[adc]);
++		/* Trigger DMA transfer */
++		desc = dmaengine_prep_slave_single(this->chan,
++				this->phys_addr, count, DMA_DEV_TO_MEM, 0);
++		if (!desc) {
++			dev_err(this->dma_dev, "%s Failed to initiate DMA\n",
++					__func__);
++			return -ENOMEM;
++		}
++		desc->callback = plmem_driver_dma_read_done;
++		desc->callback_param = this;
++		cookie = dmaengine_submit(desc);
++		if (dma_submit_error(cookie)) {
++			dev_err(this->dma_dev, "%s Failed to submit DMA\n",
++					__func__);
++			return -EINVAL;
++		}
++	} else {
++		if (copy_from_user(&adc_chan_info, buff,
++					sizeof(struct rf_channel_info))) {
++			dev_err(this->dma_dev, "%s copy_from_user failed\n",
++					__func__);
++			return -EINVAL;
++		}
++		pr_debug("no.of channels = %d\n", adc_chan_info.num_channels);
++		for (i = 0; i < adc_chan_info.num_channels; i++) {
++			pr_debug("channel = %d\n", adc_chan_info.channel[i]);
++			pr_debug("channel_size = %d\n",
++					adc_chan_info.channel_size[i]);
++		}
++		/* Trigger DMA transfer */
++		iter = (count / PKT_SIZE);
++		residue = (count % PKT_SIZE);
++		if (residue)
++			iter++;
++		for (i = 0; i < iter; i++) {
++			for (j = 0; j < adc_chan_info.num_channels; j++) {
++				phys_addr_adc = (phys_addr_dac_adc[
++						(adc_chan_info.channel[j] + 8)]
++						+ (i * PKT_SIZE));
++				desc = dmaengine_prep_slave_single(this->chan,
++						phys_addr_adc, PKT_SIZE,
++						DMA_DEV_TO_MEM, 0);
++				if (!desc) {
++					dev_err(this->dma_dev, "%s Failed to initiate DMA\n",
++							__func__);
++					return -ENOMEM;
++				}
++				if (j == (adc_chan_info.num_channels - 1)
++						&& (i == (iter - 1))) {
++					desc->callback =
++						plmem_driver_dma_read_done;
++					desc->callback_param = this;
++				} else {
++					desc->callback = NULL;
++					desc->callback_param = NULL;
++				}
++				cookie = dmaengine_submit(desc);
++				if (dma_submit_error(cookie)) {
++					dev_err(this->dma_dev, "%s Failed to submit DMA %d\n",
++							__func__, cookie);
++					return -EINVAL;
++				}
++			}
++		}
++		/* update tlast register for the selectd ADC channels */
++		for (j = 0; j < adc_chan_info.num_channels; j++)
++			iowrite32(PKT_SIZE, adc_regs[adc_chan_info.channel[j]]);
+ 	}
+-	dma_async_issue_pending(this->chan);
+ 	/* re-initialize the completion variable */
+ 	reinit_completion(&this->complete);
++	/* Start DMA */
++	dma_async_issue_pending(this->chan);
+ 	/* wait for done event */
+ 	wait_for_completion(&this->complete);
+ 	return 0;
+@@ -309,28 +394,100 @@ static ssize_t plmem_driver_file_write(struct file *file,
+ 	struct plmem_driver_data *this = file->private_data;
+ 	struct dma_async_tx_descriptor *desc;
+ 	dma_cookie_t cookie;
++	int i = 0, j = 0;
++	dma_addr_t phys_addr_dac;
++	int iter;
++	u32 residue;
++	struct rf_channel_info dac_chan_info;
+ 
+ 	if (this->is_dac == 0) {
+ 		dev_err(this->dma_dev, "%s Not a dac device\n", __func__);
+ 		return -EINVAL;
+ 	}
+-	/* Trigger DMA transfer */
+-	this->count = count;
+-	desc = dmaengine_prep_slave_single(this->chan,
+-		this->phys_addr, this->count, DMA_MEM_TO_DEV, 0);
+-	if (!desc) {
+-		dev_err(this->dma_dev, "%s Failed to initiate DMA\n", __func__);
+-		return -ENOMEM;
+-	}
+-	desc->callback = plmem_driver_dma_write_done;
+-	desc->callback_param = this;
+-	cookie = dmaengine_submit(desc);
+-	if (dma_submit_error(cookie)) {
+-		dev_err(this->dma_dev, "%s Failed to submit DMA\n", __func__);
++	if (this->mem_type >= MAX) {
++		dev_err(this->dma_dev, "%s Invalid mem type\n", __func__);
+ 		return -EINVAL;
+ 	}
++
++	if (this->mem_type == BRAM) {
++		/* Trigger DMA transfer */
++		desc = dmaengine_prep_slave_single(this->chan,
++				this->phys_addr, count, DMA_MEM_TO_DEV, 0);
++		if (!desc) {
++			dev_err(this->dma_dev, "%s Failed to initiate DMA\n",
++					__func__);
++			return -ENOMEM;
++		}
++		desc->callback = plmem_driver_dma_write_done;
++		desc->callback_param = this;
++		cookie = dmaengine_submit(desc);
++		if (dma_submit_error(cookie)) {
++			dev_err(this->dma_dev, "%s Failed to submit DMA\n",
++					__func__);
++			return -EINVAL;
++		}
++	} else {
++		if (copy_from_user(&dac_chan_info, buff,
++					sizeof(struct rf_channel_info))) {
++			dev_err(this->dma_dev, "%s copy_from_user failed\n",
++					__func__);
++			return -EINVAL;
++		}
++
++		/* Trigger DMA transfer */
++		residue = (count % PKT_SIZE);
++		iter = (count / PKT_SIZE);
++		for (i = 0; i < iter; i++) {
++			for (j = 0; j < dac_chan_info.num_channels; j++) {
++				phys_addr_dac = (phys_addr_dac_adc[
++						dac_chan_info.channel[j]]
++						+ (i * PKT_SIZE));
++				desc = dmaengine_prep_dma_cyclic(this->chan,
++						phys_addr_dac, PKT_SIZE,
++						PKT_SIZE, DMA_MEM_TO_DEV, 0);
++				if (!desc) {
++					dev_err(this->dma_dev, "%s Failed to initiate DMA\n",
++							__func__);
++					return -ENOMEM;
++				}
++				desc->callback = plmem_driver_dma_write_done;
++				desc->callback_param = this;
++				cookie = dmaengine_submit(desc);
++				if (dma_submit_error(cookie)) {
++					dev_err(this->dma_dev, "%s Failed to submit DMA %d\n",
++							__func__, cookie);
++					return -EINVAL;
++				}
++			}
++		}
++
++		if (residue != 0) {
++			for (j = 0; j < dac_chan_info.num_channels; j++) {
++				phys_addr_dac = (phys_addr_dac_adc[
++						dac_chan_info.channel[j]]
++						+ (i * PKT_SIZE));
++				desc = dmaengine_prep_dma_cyclic(this->chan,
++						phys_addr_dac, residue,
++						residue, DMA_MEM_TO_DEV, 0);
++				if (!desc) {
++					dev_err(this->dma_dev, "%s Failed to initiate DMA\n",
++							__func__);
++					return -ENOMEM;
++				}
++				desc->callback = plmem_driver_dma_write_done;
++				desc->callback_param = this;
++				cookie = dmaengine_submit(desc);
++				if (dma_submit_error(cookie)) {
++					dev_err(this->dma_dev, "%s Failed to submit DMA %d\n",
++							__func__, cookie);
++					return -EINVAL;
++				}
++			}
++		}
++	}
+ 	/* re-initialize the completion variable */
+ 	reinit_completion(&this->complete);
++	/* Start DMA */
+ 	dma_async_issue_pending(this->chan);
+ 	/* wait for done event */
+ 	wait_for_completion(&this->complete);
+@@ -344,7 +501,6 @@ static int plmem_driver_file_fsync(struct file *file, loff_t size, loff_t size1,
+ 
+ 	dev_dbg(this->dma_dev, " %s\n", __func__);
+ 	/* Terminate DMA transfer and reset required flags */
+-	this->count = 0;
+ 	this->is_open = 0;
+ 	dmaengine_terminate_all(this->chan);
+ 	return 0;
+@@ -466,6 +622,7 @@ static struct plmem_driver_data *plmem_driver_create(const char *name,
+ 			chan = chan_adc;
+ 	}
+ 	this->chan = chan;
++	this->mem_type = BRAM;
+ 	init_completion(&this->complete);
+ 
+ 	return this;
+@@ -484,6 +641,34 @@ static struct plmem_driver_data *plmem_driver_create(const char *name,
+ 	return NULL;
+ }
+ 
++static ssize_t plmem_show_mem_type(struct device *dev,
++			    struct device_attribute *attr,
++			    char *buf)
++{
++	struct plmem_driver_data *this = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%d", this->mem_type);
++}
++
++static ssize_t plmem_store_mem_type(struct device *dev,
++			     struct device_attribute *attr,
++			     const char *buf, size_t len)
++{
++	struct plmem_driver_data *this = dev_get_drvdata(dev);
++	unsigned long val;
++	int ret;
++
++	if (kstrtoul(buf, 0, &val))
++		return -EINVAL;
++
++	if (val < 0)
++		return -EINVAL;
++
++	this->mem_type = val;
++	dev_dbg(dev, "this->mem_type = %d\n", this->mem_type);
++	return sizeof(ret);
++}
++
+ static ssize_t plmem_show_selected_mem(struct device *dev,
+ 			    struct device_attribute *attr,
+ 			    char *buf)
+@@ -563,8 +748,13 @@ static ssize_t plmem_store_selected_mem(struct device *dev,
+ static DEVICE_ATTR(select_mem, S_IRUGO | S_IWUSR,
+ 		   plmem_show_selected_mem, plmem_store_selected_mem);
+ 
++
++static DEVICE_ATTR(mem_type, S_IRUGO | S_IWUSR,
++		   plmem_show_mem_type, plmem_store_mem_type);
++
+ static struct attribute *plmem_attributes[] = {
+ 	&dev_attr_select_mem.attr,
++	&dev_attr_mem_type.attr,
+ 	NULL,
+ };
+ 
+-- 
+2.7.4
+

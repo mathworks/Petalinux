@@ -1,0 +1,635 @@
+From d6e3d208e32622571bbfe3db1071ff58317feb8b Mon Sep 17 00:00:00 2001
+From: Sai Krishna Potthuri <lakshmi.sai.krishna.potthuri@xilinx.com>
+Date: Tue, 24 Jul 2018 16:47:37 +0530
+Subject: [EMBEDDEDSW PATCH] rfdc: ADC Multiband fix and minor updates
+
+This patch includes following updates/fixes.
+1. Update ADC Multiband Crossbar setting in C2C mode.
+2. Update DAC min sampling rate and update range checks for VCO and
+PLL related parameters.
+3. Add XRFdc_GetFabClkOutDiv() API.
+4. Add support to dump HSCOM registers.
+
+Signed-off-by: Sai Krishna Potthuri <lakshmi.sai.krishna.potthuri@xilinx.com>
+---
+ ./xrfdc.c      | 198 +++++++++++++++++----
+ ./xrfdc.h      | 124 ++++++++++++-
+ ./xrfdc_hw.h   |   4 -
+ ./xrfdc_intr.c |   4 -
+ ./xrfdc_mts.c  |   8 +-
+ ./xrfdc_mts.h  |   4 -
+ .../xrfdc_sinit.c                 |   4 -
+ 7 files changed, 287 insertions(+), 59 deletions(-)
+
+diff --git a/xrfdc.c b/xrfdc.c
+index 957b1db..b202aca 100644
+--- a/xrfdc.c
++++ b/xrfdc.c
+@@ -12,10 +12,6 @@
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+-* Use of the Software is limited solely to applications:
+-* (a) running on a Xilinx device, or
+-* (b) that interact with a Xilinx device through a bus or interconnect.
+-*
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+@@ -106,6 +102,13 @@
+ *       sk     04/28/18 Implement timeouts for PLL Lock, Startup and shutdown.
+ *       sk     05/30/18 Removed CalibrationMode check for DAC.
+ *       sk     06/05/18 Updated minimum Ref clock value to 102.40625MHz.
++* 5.0   sk     06/25/18 Update DAC min sampling rate to 500MHz and also update
++*                       VCO Range, PLL_DIVIDER and PLL_FPDIV ranges.
++*       sk     06/25/18 Add XRFdc_GetFabClkOutDiv() API to read fabric clk div.
++*                       Add Inline APIs XRFdc_CheckBlockEnabled(),
++*                       XRFdc_CheckTileEnabled().
++*       sk     07/06/18 Add support to dump HSCOM regs in XRFdc_DumpRegs() API
++*       sk     07/12/18 Fixed Multiband crossbar settings in C2C mode.
+ * </pre>
+ *
+ ******************************************************************************/
+@@ -2866,6 +2869,56 @@ RETURN_PATH:
+ /*****************************************************************************/
+ /**
+ *
++* This API is to get the divider for clock fabric out.
++*
++* @param	InstancePtr is a pointer to the XRfdc instance.
++* @param	Type is ADC or DAC. 0 for ADC and 1 for DAC
++* @param	Tile_Id Valid values are 0-3.
++* @param	FabClkDiv is a pointer to get fabric clock for a tile.
++*           XRFDC_FAB_CLK_* defines the valid divider values.
++*
++* @return
++*		- XRFDC_SUCCESS if successful.
++*       - XRFDC_FAILURE if Tile not enabled.
++*
++* @note		API is applicable for both ADC and DAC Tiles
++*
++******************************************************************************/
++u32 XRFdc_GetFabClkOutDiv(XRFdc *InstancePtr, u32 Type, u32 Tile_Id,
++								u16 *FabClkDiv)
++{
++	s32 Status;
++	u32 BaseAddr;
++
++#ifdef __BAREMETAL__
++	Xil_AssertNonvoid(InstancePtr != NULL);
++	Xil_AssertNonvoid(InstancePtr->IsReady == XRFDC_COMPONENT_IS_READY);
++#endif
++
++	Status = XRFdc_CheckTileEnabled(InstancePtr, Type, Tile_Id);
++	if (Status != XRFDC_SUCCESS)
++		return Status;
++
++	if (Type == XRFDC_ADC_TILE)
++		BaseAddr = XRFDC_ADC_TILE_DRP_ADDR(Tile_Id) + XRFDC_HSCOM_ADDR;
++	else
++		BaseAddr = XRFDC_DAC_TILE_DRP_ADDR(Tile_Id) + XRFDC_HSCOM_ADDR;
++
++	*FabClkDiv = XRFdc_ReadReg16(InstancePtr, BaseAddr,
++				XRFDC_HSCOM_CLK_DIV_OFFSET) & XRFDC_FAB_CLK_DIV_MASK;
++
++	if ((*FabClkDiv < XRFDC_FAB_CLK_DIV1) ||
++			(*FabClkDiv > XRFDC_FAB_CLK_DIV16))
++		*FabClkDiv = XRFDC_FAB_CLK_DIV16;
++
++	Status = XRFDC_SUCCESS;
++
++	return Status;
++}
++
++/*****************************************************************************/
++/**
++*
+ * This API is to set the interpolation factor and also update the FIFO read
+ * words w.r.t to interpolation factor.
+ *
+@@ -4234,6 +4287,18 @@ u32 XRFdc_MultiBand(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ 		}
+ 	}
+ 
++	if (BlockIndex[0] != DataPathIndex[0]) {
++#ifdef __MICROBLAZE__
++		xdbg_printf(XDBG_DEBUG_ERROR, "\n Not a valid MB/SB "
++				"combination in %s\r\n", __func__);
++#else
++		metal_log(METAL_LOG_ERROR, "\n Not a valid MB/SB "
++					"combination in %s\r\n", __func__);
++#endif
++		Status = XRFDC_FAILURE;
++		goto RETURN_PATH;
++	}
++
+ 	if (NoOfDataPaths == 1U)
+ 		Mode = XRFDC_SINGLEBAND_MODE;
+ 	else if (NoOfDataPaths == 2U)
+@@ -4257,9 +4322,9 @@ u32 XRFdc_MultiBand(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ 			if (DataPathIndex[0] == 1U)
+ 				DataPathIndex[0] = 2U;
+ 			XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, DataPathIndex[0],
+-					DataType, BlockIndex[0U], BlockIndex[0U]+2);
++					DataType, BlockIndex[0U], BlockIndex[0U]+1);
+ 			XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, DataPathIndex[0]+1,
+-					DataType, BlockIndex[1U], BlockIndex[1U]+2);
++					DataType, BlockIndex[1U]+1, BlockIndex[1U]+2);
+ 			Block_Id = (DataPathIndex[0] == 2U ? 0U : 2U);
+ 			XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, Block_Id,
+ 					DataType, -1, -1);
+@@ -4296,16 +4361,6 @@ u32 XRFdc_MultiBand(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ 		}
+ 	} else if (((DataType == XRFDC_MB_DATATYPE_R2C) ||
+ 			(DataType == XRFDC_MB_DATATYPE_C2R)) && (Mode == XRFDC_SINGLEBAND_MODE)) {
+-		if ((Type == XRFDC_ADC_TILE) && (InstancePtr->ADC4GSPS == XRFDC_ADC_4GSPS)) {
+-			if (DataPathIndex[0] == 1U)
+-				DataPathIndex[0] = 2U;
+-			if (BlockIndex[0] == 1U)
+-				BlockIndex[0] = 2U;
+-			XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, DataPathIndex[0]+1,
+-					DataType, BlockIndex[0U]+1, -1);
+-		}
+-		XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, DataPathIndex[0],
+-				DataType, BlockIndex[0U], -1);
+ 		if (Type == XRFDC_ADC_TILE) {
+ 			InstancePtr->ADC_Tile[Tile_Id].ADCBlock_Digital_Datapath[DataPathIndex[0]].
+ 							ConnectedIData = BlockIndex[0U];
+@@ -4317,19 +4372,29 @@ u32 XRFdc_MultiBand(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ 			InstancePtr->DAC_Tile[Tile_Id].DACBlock_Digital_Datapath[DataPathIndex[0]].
+ 							ConnectedQData = -1;
+ 		}
++		if ((Type == XRFDC_ADC_TILE) && (InstancePtr->ADC4GSPS == XRFDC_ADC_4GSPS)) {
++			if (DataPathIndex[0] == 1U)
++				DataPathIndex[0] = 2U;
++			if (BlockIndex[0] == 1U)
++				BlockIndex[0] = 2U;
++			XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, DataPathIndex[0]+1,
++					DataType, BlockIndex[0U]+1, -1);
++		}
++		XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, DataPathIndex[0],
++				DataType, BlockIndex[0U], -1);
+ 	}
+ 
+ 	if ((DataType == XRFDC_MB_DATATYPE_C2C) &&
+ 			((Mode == XRFDC_MULTIBAND_MODE_2X) || (Mode == XRFDC_MULTIBAND_MODE_4X))) {
+ 		if ((Type == XRFDC_ADC_TILE) && (InstancePtr->ADC4GSPS == XRFDC_ADC_4GSPS)) {
+ 			XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, DataPathIndex[0],
+-					DataType, BlockIndex[0U], BlockIndex[0U]+2);
++					DataType, BlockIndex[0U], BlockIndex[0U]+1);
+ 			XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, DataPathIndex[0]+1,
+-					DataType, BlockIndex[0U]+1, BlockIndex[0U]+3);
++					DataType, BlockIndex[0U]+2, BlockIndex[0U]+3);
+ 			XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, DataPathIndex[0]+2,
+-					DataType, BlockIndex[0U], BlockIndex[0U]+2);
++					DataType, BlockIndex[0U], BlockIndex[0U]+1);
+ 			XRFdc_SetSignalFlow(InstancePtr, Type, Tile_Id, Mode, DataPathIndex[0]+3,
+-					DataType, BlockIndex[0U]+1, BlockIndex[0U]+3);
++					DataType, BlockIndex[0U]+2, BlockIndex[0U]+3);
+ 			InstancePtr->ADC_Tile[Tile_Id].ADCBlock_Digital_Datapath[DataPathIndex[0]].
+ 							ConnectedIData = BlockIndex[0U];
+ 			InstancePtr->ADC_Tile[Tile_Id].ADCBlock_Digital_Datapath[DataPathIndex[0]].
+@@ -5465,6 +5530,57 @@ void XRFdc_DumpRegs(XRFdc* InstancePtr, u32 Type, int Tile_Id)
+ 				}
+ 			}
+ 		}
++		if (Type == XRFDC_ADC_TILE) {
++#ifdef __MICROBLAZE__
++			xdbg_printf(XDBG_DEBUG_GENERAL, "\n ADC%d HSCOM:: \r\n", Tile_Id);
++			xdbg_printf(XDBG_DEBUG_GENERAL, "\n Offset\tValue \r\n");
++#else
++			metal_log(METAL_LOG_DEBUG, "\n ADC%d HSCOM:: \r\n", Tile_Id);
++			metal_log(METAL_LOG_DEBUG, "\n Offset\tValue \r\n");
++#endif
++			BaseAddr = XRFDC_ADC_TILE_DRP_ADDR(Tile_Id) + XRFDC_HSCOM_ADDR;
++			for (Offset = 0x0; Offset <= 0x148; Offset += 0x4) {
++				if ((Offset >= 0x60 && Offset <= 0x88) ||
++					(Offset == 0xBC) ||
++					(Offset >= 0xC4 && Offset <= 0xFC) ||
++					(Offset >= 0x110 && Offset <= 0x11C) ||
++					(Offset >= 0x12C && Offset <= 0x13C))
++					continue;
++				ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, Offset);
++#ifdef __MICROBLAZE__
++				xdbg_printf(XDBG_DEBUG_GENERAL, "\n 0x%x \t 0x%x \t",
++							Offset, ReadReg);
++#else
++				metal_log(METAL_LOG_DEBUG, "\n 0x%x \t 0x%x \t",
++							Offset, ReadReg);
++#endif
++			}
++		} else {
++#ifdef __MICROBLAZE__
++			xdbg_printf(XDBG_DEBUG_GENERAL, "\n DAC%d HSCOM:: \r\n", Tile_Id);
++			xdbg_printf(XDBG_DEBUG_GENERAL, "\n Offset\tValue \r\n");
++#else
++			metal_log(METAL_LOG_DEBUG, "\n DAC%d HSCOM:: \r\n", Tile_Id);
++			metal_log(METAL_LOG_DEBUG, "\n Offset\tValue \r\n");
++#endif
++			BaseAddr = XRFDC_DAC_TILE_DRP_ADDR(Tile_Id) + XRFDC_HSCOM_ADDR;
++			for (Offset = 0x0; Offset <= 0x148; Offset += 0x4) {
++				if ((Offset >= 0x60 && Offset <= 0x88) ||
++					(Offset == 0xBC) ||
++					(Offset >= 0xC4 && Offset <= 0xFC) ||
++					(Offset >= 0x110 && Offset <= 0x11C) ||
++					(Offset >= 0x12C && Offset <= 0x13C))
++					continue;
++				ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, Offset);
++#ifdef __MICROBLAZE__
++				xdbg_printf(XDBG_DEBUG_GENERAL, "\n 0x%x \t 0x%x \t",
++							Offset, ReadReg);
++#else
++				metal_log(METAL_LOG_DEBUG, "\n 0x%x \t 0x%x \t",
++							Offset, ReadReg);
++#endif
++			}
++		}
+ 	}
+ 	(void)BaseAddr;
+ 	(void)ReadReg;
+@@ -5681,13 +5797,13 @@ static u32 XRFdc_SetPLLConfig(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ 
+ 		PllFreq = FeedbackDiv * RefClkFreq;
+ 
+-		if ((PllFreq > VCO_RANGE_MIN) && (PllFreq <= VCO_RANGE_MAX)) {
++		if ((PllFreq >= VCO_RANGE_MIN) && (PllFreq <= VCO_RANGE_MAX)) {
+ 			/*
+ 			 * Sweep values of OutputDiv(M) to find the output frequency
+ 			 * that best matches the user requested value
+ 			 */
+ 
+-			for (OutputDiv = PLL_DIVIDER_MIN; OutputDiv < PLL_DIVIDER_MAX;
++			for (OutputDiv = PLL_DIVIDER_MIN; OutputDiv <= PLL_DIVIDER_MAX;
+ 					OutputDiv += 2) {
+ 
+ 				CalcSamplingRate = (PllFreq / OutputDiv);
+@@ -5892,11 +6008,18 @@ static u32 XRFdc_SetPLLConfig(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ 				PllTuningMatrix[PllFreqIndex][FbDivIndex][1]);
+ 	}
+ 
++	CalcSamplingRate = (Best_FeedbackDiv * RefClkFreq) / Best_OutputDiv;
++	CalcSamplingRate /= XRFDC_MILLI;
++
+ 	if(Type == XRFDC_ADC_TILE) {
++		InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.SampleRate =
++							CalcSamplingRate;
+ 		InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.RefClkDivider = 0x1;
+ 		InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.FeedbackDivider = Best_FeedbackDiv;
+ 		InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.OutputDivider = Best_OutputDiv;
+ 	} else {
++		InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.SampleRate =
++					CalcSamplingRate;
+ 		InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.RefClkDivider = 0x1;
+ 		InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.FeedbackDivider = Best_FeedbackDiv;
+ 		InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.OutputDivider = Best_OutputDiv;
+@@ -5972,7 +6095,8 @@ u32 XRFdc_DynamicPLLConfig(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ 		Status = XRFDC_SUCCESS;
+ 		goto RETURN_PATH;
+ 	} else {
+-		if((((SamplingRate < 100) || (SamplingRate > 6554)) &&
++		if((((SamplingRate < XRFDC_DAC_SAMPLING_MIN) ||
++				(SamplingRate > XRFDC_DAC_SAMPLING_MAX)) &&
+ 				(Type == XRFDC_DAC_TILE))) {
+ #ifdef __MICROBLAZE__
+ 			xdbg_printf(XDBG_DEBUG_ERROR, "\n Invalid sampling "
+@@ -5983,7 +6107,8 @@ u32 XRFdc_DynamicPLLConfig(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ #endif
+ 			Status = XRFDC_FAILURE;
+ 			goto RETURN_PATH;
+-		} else if((((SamplingRate < 1000) || (SamplingRate > 4116)) &&
++		} else if((((SamplingRate < XRFDC_ADC_4G_SAMPLING_MIN) ||
++				(SamplingRate > XRFDC_ADC_4G_SAMPLING_MAX)) &&
+ 			((Type == XRFDC_ADC_TILE) && (InstancePtr->ADC4GSPS == XRFDC_ADC_4GSPS)))) {
+ #ifdef __MICROBLAZE__
+ 			xdbg_printf(XDBG_DEBUG_ERROR, "\n Invalid sampling "
+@@ -5994,7 +6119,8 @@ u32 XRFdc_DynamicPLLConfig(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ #endif
+ 			Status = XRFDC_FAILURE;
+ 			goto RETURN_PATH;
+-		} else if((((SamplingRate < 500) || (SamplingRate > 2058)) &&
++		} else if((((SamplingRate < XRFDC_ADC_2G_SAMPLING_MIN) ||
++				(SamplingRate > XRFDC_ADC_2G_SAMPLING_MAX)) &&
+ 			((Type == XRFDC_ADC_TILE) && (InstancePtr->ADC4GSPS != XRFDC_ADC_4GSPS)))) {
+ #ifdef __MICROBLAZE__
+ 			xdbg_printf(XDBG_DEBUG_ERROR, "\n Invalid sampling "
+@@ -6054,7 +6180,8 @@ u32 XRFdc_DynamicPLLConfig(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ 
+ 		if (Source == XRFDC_INTERNAL_PLL_CLK) {
+ 
+-			if((RefClkFreq < 102.40625) || (RefClkFreq > 1200)) {
++			if((RefClkFreq < XRFDC_REFFREQ_MIN) ||
++					(RefClkFreq > XRFDC_REFFREQ_MAX)) {
+ 		#ifdef __MICROBLAZE__
+ 				xdbg_printf(XDBG_DEBUG_ERROR, "\n Invalid Reference "
+ 							"clock value in %s\r\n", __func__);
+@@ -6086,6 +6213,21 @@ u32 XRFdc_DynamicPLLConfig(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ 			ReadReg &= ~XRFDC_CLK_NETWORK_CTRL1_USE_PLL_MASK;
+ 			XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_CLK_NETWORK_CTRL1,
+ 					ReadReg);
++			SamplingRate /= XRFDC_MILLI;
++
++			if(Type == XRFDC_ADC_TILE) {
++				InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.SampleRate =
++						SamplingRate;
++				InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.RefClkDivider = 0x0;
++				InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.FeedbackDivider = 0x0;
++				InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.OutputDivider = 0x0;
++			} else {
++				InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.SampleRate =
++						SamplingRate;
++				InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.RefClkDivider = 0x0;
++				InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.FeedbackDivider = 0x0;
++				InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.OutputDivider = 0x0;
++			}
+ 		}
+ 
+ 	}
+@@ -6166,13 +6308,9 @@ u32 XRFdc_DynamicPLLConfig(XRFdc* InstancePtr, u32 Type, u32 Tile_Id,
+ 	}
+ 
+ 	if(Type == XRFDC_ADC_TILE) {
+-		InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.SampleRate =
+-					(SamplingRate/1000);
+ 		InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.RefClkFreq = RefClkFreq;
+ 		InstancePtr->ADC_Tile[Tile_Id].PLL_Settings.Enabled = PLLEnable;
+ 	} else {
+-		InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.SampleRate =
+-					(SamplingRate/1000);
+ 		InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.RefClkFreq = RefClkFreq;
+ 		InstancePtr->DAC_Tile[Tile_Id].PLL_Settings.Enabled = PLLEnable;
+ 	}
+diff --git a/xrfdc.h b/xrfdc.h
+index 298732a..a96388a 100644
+--- a/xrfdc.h
++++ b/xrfdc.h
+@@ -12,10 +12,6 @@
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+-* Use of the Software is limited solely to applications:
+-* (a) running on a Xilinx device, or
+-* (b) that interact with a Xilinx device through a bus or interconnect.
+-*
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+@@ -156,6 +152,14 @@
+ *       sk     04/28/18 Implement timeouts for PLL Lock, Startup and shutdown.
+ *       sk     05/30/18 Removed CalibrationMode check for DAC.
+ *       sk     06/05/18 Updated minimum Ref clock value to 102.40625MHz.
++* 5.0   sk     06/25/18 Update DAC min sampling rate to 500MHz and also update
++*                       VCO Range, PLL_DIVIDER and PLL_FPDIV ranges.
++*                       Update PLL structure with calculated sampling rate.
++*       sk     06/25/18 Add XRFdc_GetFabClkOutDiv() API to read fabric clk div.
++*                       Add Inline APIs XRFdc_CheckBlockEnabled(),
++*                       XRFdc_CheckTileEnabled().
++*       sk     07/06/18 Add support to dump HSCOM regs in XRFdc_DumpRegs() API
++*       sk     07/12/18 Fixed Multiband crossbar settings in C2C mode.
+ *
+ * </pre>
+ *
+@@ -506,6 +510,8 @@ typedef struct {
+ 
+ #define XRFDC_ADC_TILE				0U
+ #define XRFDC_DAC_TILE				1U
++#define XRFDC_TILE_ID_MAX			0x3
++#define XRFDC_BLOCK_ID_MAX			0x3
+ #define XRFDC_EVNT_SRC_IMMEDIATE	0x00000000U
+ #define XRFDC_EVNT_SRC_SLICE		0x00000001U
+ #define XRFDC_EVNT_SRC_TILE			0x00000002U
+@@ -614,12 +620,12 @@ typedef struct {
+ #define XRFDC_INTERNAL_PLL_CLK		0x1U
+ #define XRFDC_EXTERNAL_CLK		0x2U
+ 
+-#define PLL_FPDIV_MIN			10U
+-#define PLL_FPDIV_MAX			255U
++#define PLL_FPDIV_MIN			13U
++#define PLL_FPDIV_MAX			128U
+ #define PLL_DIVIDER_MIN			2U
+-#define PLL_DIVIDER_MAX			130U
++#define PLL_DIVIDER_MAX			28U
+ #define VCO_RANGE_MIN			8500U
+-#define VCO_RANGE_MAX			13108U
++#define VCO_RANGE_MAX			13200U
+ #define XRFDC_PLL_LPF1_VAL		0x6U
+ #define XRFDC_PLL_CRS2_VAL		0x7008U
+ #define XRFDC_VCO_UPPER_BAND	0x0U
+@@ -646,6 +652,16 @@ typedef struct {
+ #define XRFDC_LINK_COUPLING_DC	0x0
+ #define XRFDC_LINK_COUPLING_AC	0x1
+ 
++#define XRFDC_MILLI		1000U
++#define XRFDC_DAC_SAMPLING_MIN	500
++#define XRFDC_DAC_SAMPLING_MAX	6554
++#define XRFDC_ADC_4G_SAMPLING_MIN	1000
++#define XRFDC_ADC_4G_SAMPLING_MAX	4116
++#define XRFDC_ADC_2G_SAMPLING_MIN	500
++#define XRFDC_ADC_2G_SAMPLING_MAX	2058
++#define XRFDC_REFFREQ_MIN	102.40625
++#define XRFDC_REFFREQ_MAX	614
++
+ /*****************************************************************************/
+ /**
+ *
+@@ -1107,6 +1123,94 @@ static inline void XRFdc_GetPLLConfig(XRFdc* InstancePtr, u32 Type,
+ /*****************************************************************************/
+ /**
+ *
++* Checks whether ADC/DAC block is enabled or not.
++*
++* @param	InstancePtr is a pointer to the XRfdc instance.
++* @param    Type is ADC or DAC. 0 for ADC and 1 for DAC.
++* @param	Tile_Id Valid values are 0-3.
++* @param	Block_Id is ADC/DAC block number inside the tile. Valid values
++*			are 0-3.
++*
++* @return
++*		- XRFDC_SUCCESS if block enabled.
++*       - XRFDC_FAILURE if Block not enabled.
++*
++******************************************************************************/
++static inline u32 XRFdc_CheckBlockEnabled(XRFdc* InstancePtr, u32 Type,
++			u32 Tile_Id, u32 Block_Id)
++{
++	u8 IsBlockAvail;
++
++	if ((Type != XRFDC_ADC_TILE) && (Type != XRFDC_DAC_TILE))
++		return XRFDC_FAILURE;
++
++	if ((Tile_Id > XRFDC_TILE_ID_MAX) || (Block_Id > XRFDC_BLOCK_ID_MAX))
++			return XRFDC_FAILURE;
++
++	if (Type == XRFDC_ADC_TILE) {
++		IsBlockAvail = XRFdc_IsADCBlockEnabled(InstancePtr, Tile_Id, Block_Id);
++	} else {
++		IsBlockAvail = XRFdc_IsDACBlockEnabled(InstancePtr, Tile_Id, Block_Id);
++	}
++	if (IsBlockAvail == 0U) {
++#ifdef __MICROBLAZE__
++		xdbg_printf(XDBG_DEBUG_ERROR, "\n Requested block not "
++						"available in %s\r\n", __func__);
++#else
++		metal_log(METAL_LOG_ERROR, "\n Requested block not "
++						"available in %s\r\n", __func__);
++#endif
++		return XRFDC_FAILURE;
++	} else
++		return XRFDC_SUCCESS;
++}
++
++/*****************************************************************************/
++/**
++*
++* Checks whether ADC/DAC tile is enabled or not.
++*
++* @param	InstancePtr is a pointer to the XRfdc instance.
++* @param    Type is ADC or DAC. 0 for ADC and 1 for DAC.
++* @param	Tile_Id Valid values are 0-3.
++*
++* @return
++*		- XRFDC_SUCCESS if tile enabled.
++*       - XRFDC_FAILURE if tile not enabled.
++*
++******************************************************************************/
++static inline u32 XRFdc_CheckTileEnabled(XRFdc* InstancePtr, u32 Type,
++								u32 Tile_Id)
++{
++	u8 IsTileAvail;
++
++	if ((Type != XRFDC_ADC_TILE) && (Type != XRFDC_DAC_TILE))
++		return XRFDC_FAILURE;
++
++	if (Tile_Id > XRFDC_TILE_ID_MAX)
++		return XRFDC_FAILURE;
++
++	if (Type == XRFDC_ADC_TILE) {
++		IsTileAvail = InstancePtr->RFdc_Config.ADCTile_Config[Tile_Id].Enable;
++	} else {
++		IsTileAvail = InstancePtr->RFdc_Config.DACTile_Config[Tile_Id].Enable;
++	}
++	if (IsTileAvail == 0U) {
++#ifdef __MICROBLAZE__
++		xdbg_printf(XDBG_DEBUG_ERROR, "\n Requested tile not "
++						"available in %s\r\n", __func__);
++#else
++		metal_log(METAL_LOG_ERROR, "\n Requested tile not "
++						"available in %s\r\n", __func__);
++#endif
++		return XRFDC_FAILURE;
++	} else
++		return XRFDC_SUCCESS;
++}
++
++/*****************************************************************************/
++/**
++*
+ * This API is used to get the driver version.
+ *
+ * @param	None
+@@ -1119,7 +1223,7 @@ static inline void XRFdc_GetPLLConfig(XRFdc* InstancePtr, u32 Type,
+ ******************************************************************************/
+ static inline double XRFdc_GetDriverVersion()
+ {
+-	return 4.0;
++	return 5.0;
+ }
+ 
+ /************************** Function Prototypes ******************************/
+@@ -1221,6 +1325,8 @@ u32 XRFdc_GetInvSincFIR(XRFdc *InstancePtr, u32 Tile_Id, u32 Block_Id,
+ 								u16 *Enable);
+ u32 XRFdc_GetLinkCoupling(XRFdc* InstancePtr, u32 Tile_Id, u32 Block_Id,
+ 								u32 *Mode);
++u32 XRFdc_GetFabClkOutDiv(XRFdc *InstancePtr, u32 Type, u32 Tile_Id,
++								u16 *FabClkDiv);
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/xrfdc_hw.h b/xrfdc_hw.h
+index 325c479..68eba18 100644
+--- a/xrfdc_hw.h
++++ b/xrfdc_hw.h
+@@ -12,10 +12,6 @@
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+-* Use of the Software is limited solely to applications:
+-* (a) running on a Xilinx device, or
+-* (b) that interact with a Xilinx device through a bus or interconnect.
+-*
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+diff --git a/xrfdc_intr.c b/xrfdc_intr.c
+index 3e019d0..67419f9 100644
+--- a/xrfdc_intr.c
++++ b/xrfdc_intr.c
+@@ -12,10 +12,6 @@
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+-* Use of the Software is limited solely to applications:
+-* (a) running on a Xilinx device, or
+-* (b) that interact with a Xilinx device through a bus or interconnect.
+-*
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+diff --git a/xrfdc_mts.c b/xrfdc_mts.c
+index 727150c..2210621 100644
+--- a/xrfdc_mts.c
++++ b/xrfdc_mts.c
+@@ -12,10 +12,6 @@
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+-* Use of the Software is limited solely to applications:
+-* (a) running on a Xilinx device, or
+-* (b) that interact with a Xilinx device through a bus or interconnect.
+-*
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+@@ -334,6 +330,10 @@ static void XRFdc_MTS_Dtc_Flag_Debug(u8 *Flags, u32 Type, u32 Tile_Id,
+ 	metal_log(METAL_LOG_INFO, "%s%d: %s\n",
+ 			(Type == XRFDC_DAC_TILE) ? "DAC" : "ADC", Tile_Id, buf);
+ 
++	(void)buf;
++	(void)Type;
++	(void)Tile_Id;
++
+ }
+ 
+ /*****************************************************************************/
+diff --git a/xrfdc_mts.h b/xrfdc_mts.h
+index f1ed704..3019c38 100644
+--- a/xrfdc_mts.h
++++ b/xrfdc_mts.h
+@@ -12,10 +12,6 @@
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+-* Use of the Software is limited solely to applications:
+-* (a) running on a Xilinx device, or
+-* (b) that interact with a Xilinx device through a bus or interconnect.
+-*
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+diff --git a/xrfdc_sinit.c b/xrfdc_sinit.c
+index ea7f03b..6dd5d96 100644
+--- a/xrfdc_sinit.c
++++ b/xrfdc_sinit.c
+@@ -12,10 +12,6 @@
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+-* Use of the Software is limited solely to applications:
+-* (a) running on a Xilinx device, or
+-* (b) that interact with a Xilinx device through a bus or interconnect.
+-*
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-- 
+2.7.4
+

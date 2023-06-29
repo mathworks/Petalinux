@@ -1,0 +1,49 @@
+/{	
+ fpd-hpm1-32 {
+    compatible = "simple-bus";
+    #address-cells = <1>;
+    #size-cells = <1>;
+    ranges = <5 0 1 0>;
+
+    memory@500000000{
+    device_type = "memory";
+    reg =  <5 0 1 0>;
+    };
+ };
+
+  reserved-memory {
+      pl_ddr: region@500000000 {
+         reg = <5 0 1 0>;
+         no-map;
+	};
+  };
+
+};		
+	
+&fpga_axi {
+    mwipcore0: mwipcore@A0000000 {	
+	sharedmem@0 {
+                reg = <0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "mathworks,sharedmem-v1.00";
+		memory-region = <&pl_ddr>;
+		mathworks,dev-name = "sharedmem0";
+
+		read-channel@0 {
+		reg = <0>;
+		compatible = "mathworks,sharedmem-read-channel-v1.00";
+		mathworks,dev-name = "rd0";
+		};
+
+		write-channel@1 {
+		reg = <1>;
+		compatible = "mathworks,sharedmem-write-channel-v1.00";
+		mathworks,dev-name = "wr0";
+		};
+	};
+    };
+};
+
+
+

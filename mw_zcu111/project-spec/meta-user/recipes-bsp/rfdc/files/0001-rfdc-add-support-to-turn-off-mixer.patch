@@ -1,0 +1,53 @@
+From a699de6b2ab9bcef881023e4bcd487e0f6aa9614 Mon Sep 17 00:00:00 2001
+From: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+Date: Thu, 29 Nov 2018 14:45:40 +0530
+Subject: [PATCH] rfdc: add support to turn off mixer
+
+Add driver support to turn off mixer.
+
+Signed-off-by: Nagaradhesh Yeleswarapu <nagaradh@xilinx.com>
+---
+ xrfdc_mixer.c | 20 +++-----------------
+ 1 file changed, 3 insertions(+), 17 deletions(-)
+
+diff --git a/xrfdc_mixer.c b/xrfdc_mixer.c
+index 056e82e..7d90b17 100644
+--- a/xrfdc_mixer.c
++++ b/xrfdc_mixer.c
+@@ -445,22 +445,6 @@ static u32 XRFdc_MixerRangeCheck(XRFdc *InstancePtr, u32 Type,
+ 				"source is not supported in 4GSPS ADC %s\r\n", __func__);
+ 		goto RETURN_PATH;
+ 	}
+-	if (((MixerSettingsPtr->MixerType == XRFDC_MIXER_TYPE_COARSE) &&
+-			(MixerSettingsPtr->CoarseMixFreq == XRFDC_COARSE_MIX_OFF)) ||
+-			((MixerSettingsPtr->MixerType == XRFDC_MIXER_TYPE_FINE) &&
+-			(MixerSettingsPtr->MixerMode == XRFDC_MIXER_MODE_OFF))) {
+-		Status = XRFDC_FAILURE;
+-		metal_log(METAL_LOG_ERROR, "\n Invalid Combination of "
+-				"Mixer settings in %s\r\n", __func__);
+-		goto RETURN_PATH;
+-	}
+-	if ((MixerSettingsPtr->MixerType == XRFDC_MIXER_TYPE_COARSE) &&
+-			(MixerSettingsPtr->MixerMode == XRFDC_MIXER_MODE_OFF)) {
+-		Status = XRFDC_FAILURE;
+-		metal_log(METAL_LOG_ERROR, "\n Invalid Combination of "
+-				"Mixer type and Mixer mode in %s\r\n", __func__);
+-		goto RETURN_PATH;
+-	}
+ 	if ((MixerSettingsPtr->MixerType == XRFDC_MIXER_TYPE_FINE) &&
+ 			(MixerSettingsPtr->MixerMode == XRFDC_MIXER_MODE_R2R)) {
+ 		Status = XRFDC_FAILURE;
+@@ -470,7 +454,9 @@ static u32 XRFdc_MixerRangeCheck(XRFdc *InstancePtr, u32 Type,
+ 	}
+ 	if ((MixerSettingsPtr->MixerType == XRFDC_MIXER_TYPE_COARSE) &&
+ 			(MixerSettingsPtr->MixerMode == XRFDC_MIXER_MODE_R2R) &&
+-			(MixerSettingsPtr->CoarseMixFreq != XRFDC_COARSE_MIX_BYPASS)) {
++			(MixerSettingsPtr->CoarseMixFreq != XRFDC_COARSE_MIX_BYPASS) &&
++			(MixerSettingsPtr->CoarseMixFreq != XRFDC_COARSE_MIX_OFF)
++        ) {
+ 		Status = XRFDC_FAILURE;
+ 		metal_log(METAL_LOG_ERROR, "\n Invalid Combination of "
+ 				"Mixer type and Mixer mode in %s\r\n", __func__);
+-- 
+2.7.4
+
