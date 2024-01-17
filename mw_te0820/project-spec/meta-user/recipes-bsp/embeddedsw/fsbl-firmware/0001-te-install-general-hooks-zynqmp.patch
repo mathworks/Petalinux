@@ -1,0 +1,178 @@
+From 345f58c3eb9014c9bdbd7aa06071631f914e0461 Mon Sep 17 00:00:00 2001
+From: Markus Kirberg <m.kirberg@trenz-electronic.de>
+Date: Wed, 1 Feb 2023 12:52:34 +0100
+Subject: [PATCH] te install general hooks
+
+---
+ lib/sw_apps/zynqmp_fsbl/src/xfsbl_board.c |  5 +++
+ lib/sw_apps/zynqmp_fsbl/src/xfsbl_board.h |  4 ++
+ lib/sw_apps/zynqmp_fsbl/src/xfsbl_hooks.c | 48 ++++++++++++++++-------
+ lib/sw_apps/zynqmp_fsbl/src/xfsbl_hooks.h |  4 +-
+ lib/sw_apps/zynqmp_fsbl/src/xfsbl_main.c  | 14 ++++++-
+ 5 files changed, 58 insertions(+), 17 deletions(-)
+
+diff --git a/lib/sw_apps/zynqmp_fsbl/src/xfsbl_board.c b/lib/sw_apps/zynqmp_fsbl/src/xfsbl_board.c
+index 328332402d..4e67e5a760 100644
+--- a/lib/sw_apps/zynqmp_fsbl/src/xfsbl_board.c
++++ b/lib/sw_apps/zynqmp_fsbl/src/xfsbl_board.c
+@@ -815,6 +815,11 @@ static void XFsbl_PcieReset(void)
+ u32 XFsbl_BoardInit(void)
+ {
+ 	u32 Status;
++  
++/* TE Mod:*/  
++  Status = TE_XFsbl_BoardInit();
++/* TE Mod: finished*/
++                    
+ #if defined(XPS_BOARD_ZCU102) || defined(XPS_BOARD_ZCU106)		\
+ 		|| defined(XPS_BOARD_ZCU104) || defined(XPS_BOARD_ZCU111) \
+ 		|| defined(XPS_BOARD_ZCU216) || defined(XPS_BOARD_ZCU208) \
+diff --git a/lib/sw_apps/zynqmp_fsbl/src/xfsbl_board.h b/lib/sw_apps/zynqmp_fsbl/src/xfsbl_board.h
+index 6177fb61f9..72dee593d5 100644
+--- a/lib/sw_apps/zynqmp_fsbl/src/xfsbl_board.h
++++ b/lib/sw_apps/zynqmp_fsbl/src/xfsbl_board.h
+@@ -39,6 +39,10 @@ extern "C" {
+ 
+ /***************************** Include Files *********************************/
+ #include "xfsbl_hw.h"
++/* TE Mod:*/
++#include "te_xfsbl_hooks.h"
++/* TE Mod: finished*/
++
+ #if defined(XPS_BOARD_ZCU102) || defined(XPS_BOARD_ZCU106)		\
+ 		|| defined(XPS_BOARD_ZCU104) || defined(XPS_BOARD_ZCU111) \
+ 		|| defined(XPS_BOARD_ZCU216) || defined(XPS_BOARD_ZCU208) \
+diff --git a/lib/sw_apps/zynqmp_fsbl/src/xfsbl_hooks.c b/lib/sw_apps/zynqmp_fsbl/src/xfsbl_hooks.c
+index 80a1314203..45388a8178 100644
+--- a/lib/sw_apps/zynqmp_fsbl/src/xfsbl_hooks.c
++++ b/lib/sw_apps/zynqmp_fsbl/src/xfsbl_hooks.c
+@@ -46,7 +46,9 @@ u32 XFsbl_HookBeforeBSDownload(void )
+ 	/**
+ 	 * Add the code here
+ 	 */
+-
++/* TE Mod:*/
++  Status = TE_XFsbl_HookBeforeBSDownload();
++/* TE Mod: finished*/
+ 
+ 	return Status;
+ }
+@@ -59,7 +61,9 @@ u32 XFsbl_HookAfterBSDownload(void )
+ 	/**
+ 	 * Add the code here
+ 	 */
+-
++/* TE Mod:*/
++  Status = TE_XFsbl_HookAfterBSDownload();
++/* TE Mod: finished*/
+ 	return Status;
+ }
+ #endif
+@@ -71,6 +75,9 @@ u32 XFsbl_HookBeforeHandoff(u32 EarlyHandoff)
+ 	/**
+ 	 * Add the code here
+ 	 */
++/* TE Mod:*/
++  Status = TE_XFsbl_HookBeforeHandoff(EarlyHandoff); 
++/* TE Mod: finished*/
+ 
+ 	return Status;
+ }
+@@ -93,6 +100,9 @@ u32 XFsbl_HookBeforeFallback(void)
+ 	/**
+ 	 * Add the code here
+ 	 */
++/* TE Mod:*/
++  Status = TE_XFsbl_HookBeforeFallback(); 
++/* TE Mod: finished*/
+ 
+ 	return Status;
+ }
+@@ -118,19 +128,27 @@ u32 XFsbl_HookPsuInit(void)
+ #endif
+ 
+ 	/* Add the code here */
+-
+-#ifdef XFSBL_ENABLE_DDR_SR
+-	/* Check if DDR is in self refresh mode */
+-	RegVal = Xil_In32(XFSBL_DDR_STATUS_REGISTER_OFFSET) &
+-		DDR_STATUS_FLAG_MASK;
+-	if (RegVal) {
+-		Status = (u32)psu_init_ddr_self_refresh();
+-	} else {
+-		Status = (u32)psu_init();
+-	}
+-#else
+-	Status = (u32)psu_init();
+-#endif
++/* TE Mod:*/
++  Status = TE_XFsbl_HookPsuInit(); 
++  if (Status != XFSBL_SUCCESS) {
++     xil_printf("Error: TE_XFsbl_HookPsuInit failed\r\n");
++     goto END;
++  }
++
++// #ifdef XFSBL_ENABLE_DDR_SR
++	// /* Check if DDR is in self refresh mode */
++	// RegVal = Xil_In32(XFSBL_DDR_STATUS_REGISTER_OFFSET) &
++		// DDR_STATUS_FLAG_MASK;
++	// if (RegVal) {
++		// Status = (u32)psu_init_ddr_self_refresh();
++	// } else {
++		// Status = (u32)psu_init();
++	// }
++// #else
++	// Status = (u32)psu_init();
++// #endif
++  END:
++/* TE Mod: finished*/
+ 
+ 	if (XFSBL_SUCCESS != Status) {
+ 			XFsbl_Printf(DEBUG_GENERAL,"XFSBL_PSU_INIT_FAILED\n\r");
+diff --git a/lib/sw_apps/zynqmp_fsbl/src/xfsbl_hooks.h b/lib/sw_apps/zynqmp_fsbl/src/xfsbl_hooks.h
+index 604cb08f17..e8f9113f73 100644
+--- a/lib/sw_apps/zynqmp_fsbl/src/xfsbl_hooks.h
++++ b/lib/sw_apps/zynqmp_fsbl/src/xfsbl_hooks.h
+@@ -32,7 +32,9 @@ extern "C" {
+ 
+ /***************************** Include Files *********************************/
+ #include "xil_types.h"
+-
++/* TE Mod:*/
++#include "te_xfsbl_hooks.h"
++/* TE Mod: finished*/                  
+ /************************** Constant Definitions *****************************/
+ 
+ /**************************** Type Definitions *******************************/
+diff --git a/lib/sw_apps/zynqmp_fsbl/src/xfsbl_main.c b/lib/sw_apps/zynqmp_fsbl/src/xfsbl_main.c
+index d38f799e91..70d02d77a2 100644
+--- a/lib/sw_apps/zynqmp_fsbl/src/xfsbl_main.c
++++ b/lib/sw_apps/zynqmp_fsbl/src/xfsbl_main.c
+@@ -342,11 +342,23 @@ void XFsbl_PrintFsblBanner(void )
+ 	 */
+ #if !defined(XFSBL_PERF) || defined(FSBL_DEBUG) || defined(FSBL_DEBUG_INFO) \
+ 			|| defined(FSBL_DEBUG_DETAILED)
++// TE Mod :
+ 	XFsbl_Printf(DEBUG_PRINT_ALWAYS,
+-                 "Xilinx Zynq MP First Stage Boot Loader \n\r");
++                 "\r\n--------------------------------------------------------------------------------\r\n");  
++
++	XFsbl_Printf(DEBUG_PRINT_ALWAYS,
++                 "Xilinx Zynq MP First Stage Boot Loader (TE modified)\n\r");
+ 	XFsbl_Printf(DEBUG_PRINT_ALWAYS,
+                  "Release %d.%d   %s  -  %s\r\n",
+                  SDK_RELEASE_YEAR, SDK_RELEASE_QUARTER,__DATE__,__TIME__);
++	/* Build Device name and print it */
++  char DevName[20U];
++	(void)XFsbl_Strcpy(DevName, "XCZU");
++	(void)XFsbl_Strcat(DevName, XFsbl_GetSiliconIdName());
++	(void)XFsbl_Strcat(DevName, XFsbl_GetProcEng());
++	XFsbl_Printf(DEBUG_PRINT_ALWAYS, "Device Name: %s\n\r", DevName);  
++                 
++// TE Mod finished
+ 
+ 	XFsbl_Printf(DEBUG_GENERAL, "MultiBootOffset: 0x%0x\r\n",
+ 		XFsbl_In32(CSU_CSU_MULTI_BOOT));
+-- 
+2.34.1
+

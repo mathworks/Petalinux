@@ -1,0 +1,95 @@
+From efd029f8cbe0a47af9f94226b7943cb54e82a012 Mon Sep 17 00:00:00 2001
+From: Markus Kirberg <m.kirberg@trenz-electronic.de>
+Date: Tue, 7 Feb 2023 14:50:28 +0100
+Subject: [PATCH] te install general hooks zynq
+
+---
+ lib/sw_apps/zynq_fsbl/src/fsbl_hooks.c | 15 +++++++++++++--
+ lib/sw_apps/zynq_fsbl/src/fsbl_hooks.h |  3 +++
+ lib/sw_apps/zynq_fsbl/src/main.c       |  9 ++++++++-
+ 3 files changed, 24 insertions(+), 3 deletions(-)
+
+diff --git a/lib/sw_apps/zynq_fsbl/src/fsbl_hooks.c b/lib/sw_apps/zynq_fsbl/src/fsbl_hooks.c
+index c1014e53c9..6f24826dfe 100644
+--- a/lib/sw_apps/zynq_fsbl/src/fsbl_hooks.c
++++ b/lib/sw_apps/zynq_fsbl/src/fsbl_hooks.c
+@@ -58,6 +58,10 @@ u32 FsblHookBeforeBitstreamDload(void)
+ 	 * and returned
+ 	 */
+ 	fsbl_printf(DEBUG_INFO,"In FsblHookBeforeBitstreamDload function \r\n");
++  /* TE Mod:*/  
++  Status = TE_FsblHookBeforeBitstreamDload();
++/* TE Mod: finished*/                    
++
+ 
+ 	return (Status);
+ }
+@@ -85,7 +89,9 @@ u32 FsblHookAfterBitstreamDload(void)
+ 	 * Errors to be stored in the status variable and returned
+ 	 */
+ 	fsbl_printf(DEBUG_INFO, "In FsblHookAfterBitstreamDload function \r\n");
+-
++/* TE Mod:*/  
++  Status = TE_FsblHookAfterBitstreamDload();
++/* TE Mod: finished*/ 
+ 	return (Status);
+ }
+ 
+@@ -112,7 +118,9 @@ u32 FsblHookBeforeHandoff(void)
+ 	 * Errors to be stored in the status variable and returned
+ 	 */
+ 	fsbl_printf(DEBUG_INFO,"In FsblHookBeforeHandoff function \r\n");
+-
++/* TE Mod:*/  
++  Status = TE_FsblHookBeforeHandoff();
++/* TE Mod: finished*/
+ 	return (Status);
+ }
+ 
+@@ -132,6 +140,9 @@ void FsblHookFallback(void)
+ 	 * Errors to be stored in the status variable and returned
+ 	 */
+ 	fsbl_printf(DEBUG_INFO,"In FsblHookFallback function \r\n");
++/* TE Mod:*/  
++  TE_FsblHookFallback();
++/* TE Mod: finished*/
+ 	while(1);
+ }
+ 
+diff --git a/lib/sw_apps/zynq_fsbl/src/fsbl_hooks.h b/lib/sw_apps/zynq_fsbl/src/fsbl_hooks.h
+index 9490084153..70fb4dda7d 100644
+--- a/lib/sw_apps/zynq_fsbl/src/fsbl_hooks.h
++++ b/lib/sw_apps/zynq_fsbl/src/fsbl_hooks.h
+@@ -32,6 +32,9 @@ extern "C" {
+ 
+ /***************************** Include Files *********************************/
+ #include "fsbl.h"
++/* TE Mod:*/
++#include "te_fsbl_hooks.h"
++/* TE Mod: finished*/                  
+ 
+ 
+ /************************** Function Prototypes ******************************/
+diff --git a/lib/sw_apps/zynq_fsbl/src/main.c b/lib/sw_apps/zynq_fsbl/src/main.c
+index 62a5b4dd64..1bf4e3c0d3 100644
+--- a/lib/sw_apps/zynq_fsbl/src/main.c
++++ b/lib/sw_apps/zynq_fsbl/src/main.c
+@@ -270,7 +270,14 @@ int main(void)
+ 	fsbl_printf(DEBUG_GENERAL,"Release %d.%d	%s-%s\r\n",
+ 			SDK_RELEASE_YEAR, SDK_RELEASE_QUARTER,
+ 			__DATE__,__TIME__);
+-
++// TE Mod :
++	xil_printf("\r\n--------------------------------------------------------------------------------\r\n");
++	xil_printf("Xilinx First Stage Boot Loader (TE modified) \n\r");
++	xil_printf("Release %d.%d	%s-%s\r\n",
++			SDK_RELEASE_YEAR, SDK_RELEASE_QUARTER,
++			__DATE__,__TIME__);
++      
++// TE Mod finished 
+ #ifdef XPAR_PS7_DDR_0_S_AXI_BASEADDR
+ 
+     /*
+-- 
+2.34.1
+

@@ -1,0 +1,9 @@
+#include "base.dtsi"
+
+#undef MW_MM2S_DATAFMT
+#undef MW_S2MM_DATAFMT
+
+#define MW_MM2S_DATAFMT "u128/128>>0"
+#define MW_S2MM_DATAFMT "u128/128>>0"
+
+#include "zynqmp-adi-mw-axistream-iio-common.dtsi"

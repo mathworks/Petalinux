@@ -1,0 +1,97 @@
+# This is a boot script for U-Boot
+# Generate boot.scr:
+# mkimage -c none -A arm -T script -d boot.cmd.default boot.scr
+#
+################
+@@PRE_BOOTENV@@
+
+echo "Running MathWorks SD boot script from ${devtype}${devnum}"
+
+# Environment init
+if test -e ${devtype} ${devnum}:${distro_bootpart} /uboot.env -eq 1; then
+	echo "No environment found in ${devtype}${devnum}, saving default"
+	saveenv
+	# For uboot-redund.env if any
+	saveenv
+fi
+
+# Load extra environment settings through uEnv.txt
+if test -e ${devtype} ${devnum}:${distro_bootpart} /uEnv.txt; then
+	echo "Importing uEnv.txt environment from SD ..."
+	load ${devtype} ${devnum}:${distro_bootpart} 0x00100000 uEnv.txt
+	echo "Loaded environment to 0x00100000"
+	env import -t 0x00100000 ${filesize}
+fi
+
+# Load FPGA fpga file
+if test -z "${bitstream_image}" ; then
+	setenv bitstream_image system.bit
+fi
+if test -e ${devtype} ${devnum}:${distro_bootpart} ${bitstream_image}; then
+	echo "Loading fpga ${bitstream_image} from SD/MMC/eMMC to RAM.."
+	load ${devtype} ${devnum}:${distro_bootpart} 0x1000000 ${bitstream_image};
+	fpga loadb ${devtype}:${devnum} 0x1000000 ${filesize};
+else
+	echo "FPGA not found. Continue using default FPGA configuration in BOOT.BIN."
+fi
+
+# FIT Image booting... use image.ub
+if test -e ${devtype} ${devnum}:${distro_bootpart} /@@FIT_IMAGE@@; then
+	fatload ${devtype} ${devnum}:${distro_bootpart} @@FIT_IMAGE_LOAD_ADDRESS@@ @@FIT_IMAGE@@;
+	bootm @@FIT_IMAGE_LOAD_ADDRESS@@;
+	exit;
+fi
+
+# Legacy Image booting... (Non-FIT kernel)
+
+# Load kernel image
+if test -e ${devtype} ${devnum}:${distro_bootpart} /@@KERNEL_IMAGE@@; then
+	fatload ${devtype} ${devnum}:${distro_bootpart} @@KERNEL_LOAD_ADDRESS@@ @@KERNEL_IMAGE@@;;
+else
+	echo "Kernel image not found, exiting..."
+	exit;
+fi
+
+# Load device-tree
+if test -z "${fdt_image}" ; then
+	setenv fdt_image system.dtb
+fi
+if test -e ${devtype} ${devnum}:${distro_bootpart} ${fdt_image}; then
+	fatload ${devtype} ${devnum}:${distro_bootpart} @@DEVICETREE_ADDRESS@@ ${fdt_image};
+else
+	echo "Device-tree ${fdt_image} not found, exiting..."
+	exit;
+fi
+
+# Apply device-tree overlay if it exists
+if test -n ${fdt_overlay}; then
+	setenv fdtov_addr 0x1000000 
+	if test -e ${devtype} ${devnum}:${distro_bootpart} ${fdt_overlay}; then
+		echo "Applying device-tree overlay"
+		fdt addr @@DEVICETREE_ADDRESS@@
+		fatload ${devtype} ${devnum}:${distro_bootpart} ${fdtov_addr} ${fdt_overlay}
+		fdt resize ${filesize}
+		fdt apply $fdtov_addr
+		if test $? -eq 0 ; then
+			echo "Applied device-tree overlay: ${fdt_overlay}..."
+		else
+			echo "Unable to apply device-tree overlay"
+		fi
+	else
+		echo "Skipping device-tree overlay, could not find ${fdt_overlay}..."
+	fi
+else
+	echo "Skipping device-tree overlay, no fdt_overlay env defined..."
+fi
+
+# Non-FIT kernel loading
+if test -e ${devtype} ${devnum}:${distro_bootpart} /@@RAMDISK_IMAGE@@; then
+	echo "Copying Linux from SD to RAM..."
+	fatload ${devtype} ${devnum}:${distro_bootpart} @@RAMDISK_IMAGE_ADDRESS@@ @@RAMDISK_IMAGE@@;
+	@@KERNEL_BOOTCMD@@ @@KERNEL_LOAD_ADDRESS@@ @@RAMDISK_IMAGE_ADDRESS@@ @@DEVICETREE_ADDRESS@@
+	exit;
+fi
+
+@@KERNEL_BOOTCMD@@ @@KERNEL_LOAD_ADDRESS@@ - @@DEVICETREE_ADDRESS@@
+
+
