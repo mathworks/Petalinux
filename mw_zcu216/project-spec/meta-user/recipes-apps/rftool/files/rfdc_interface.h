@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -93,6 +93,20 @@ int rfdc_init(void);
 *
 * ***************************************************************************/
 int RFInitBuildMemoryMap(void);
+
+/****************************************************************************/
+/**
+*
+* Initalize signal dector
+*
+* @param	void
+*
+* @return	void
+*
+* @note         None.
+*
+* ***************************************************************************/
+void RFInit_SignalDetector(void);
 
 int InitMMCM_ADC(void);
 int InitMMCM_DAC(void);

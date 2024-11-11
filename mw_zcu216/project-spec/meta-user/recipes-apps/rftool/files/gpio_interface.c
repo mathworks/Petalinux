@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -42,42 +42,42 @@
 
 #ifdef XPS_BOARD_ZCU208
 int dac_userselect_gpio[(MAX_DAC_PER_TILE * MAX_DAC_TILE)] = {
-	503, 504, 505, 506, 507, 508, 509, 510,
+	499, 500, 501, 502, 503, 504, 505, 506,
 };
 int dac_mts_clk_en[MAX_DAC_TILE] = {
-	495,
-	496,
-	497,
-	498,
-};
-int adc_mts_clk_en[MAX_ADC_TILE] = {
-	499,
-	500,
-	501,
-	502,
-};
-int adc_axiswitchrst[1] = {
-	511,
-};
-#else
-int dac_userselect_gpio[(MAX_DAC_PER_TILE * MAX_DAC_TILE)] = {
-	495, 496, 497, 498, 499, 500, 501, 502,
-	503, 504, 505, 506, 507, 508, 509, 510,
-};
-int dac_mts_clk_en[MAX_DAC_TILE] = {
-	487,
-	488,
-	489,
-	490,
-};
-int adc_mts_clk_en[MAX_ADC_TILE] = {
 	491,
 	492,
 	493,
 	494,
 };
+int adc_mts_clk_en[MAX_ADC_TILE] = {
+	495,
+	496,
+	497,
+	498,
+};
 int adc_axiswitchrst[1] = {
-	511,
+	507,
+};
+#else
+int dac_userselect_gpio[(MAX_DAC_PER_TILE * MAX_DAC_TILE)] = {
+	491, 492, 493, 494, 495, 496, 497, 498,
+	499, 500, 501, 502, 503, 504, 505, 506,
+};
+int dac_mts_clk_en[MAX_DAC_TILE] = {
+	483,
+	484,
+	485,
+	486,
+};
+int adc_mts_clk_en[MAX_ADC_TILE] = {
+	487,
+	488,
+	489,
+	490,
+};
+int adc_axiswitchrst[1] = {
+	507,
 };
 #endif
 

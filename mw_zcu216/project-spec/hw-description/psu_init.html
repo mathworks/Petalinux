@@ -44,7 +44,7 @@
 </DIV>
 </A>
 </DIV>
-<DIV class="content_container">This design is targeted for xczu49dr board (part number: xczu49dr-ffvf1760-2-e-es1)
+<DIV class="content_container">This design is targeted for xczu49dr board (part number: xczu49dr-ffvf1760-2-e)
 
 <br>
 <H2><a name="summTAB">Zynq UltraScale+ Design Summary</a></H2>
@@ -70,7 +70,7 @@ xczu49dr
 <B>Part</B>
 </TD>
 <TD width=80% BGCOLOR=#E6E6E6>
-xczu49dr-ffvf1760-2-e-es1
+xczu49dr-ffvf1760-2-e
 </TD>
 </TR>
 <TR valign="top">
@@ -825,10 +825,10 @@ inout
 MIO 27
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-GPIO1 MIO
+DPAUX
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-gpio1[27]
+dp_aux_data_out
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 cmos
@@ -840,7 +840,7 @@ slow
 pullup
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-inout
+out
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 12
@@ -851,10 +851,10 @@ inout
 MIO 28
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-GPIO1 MIO
+DPAUX
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-gpio1[28]
+dp_hot_plug_detect
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 schmitt
@@ -866,7 +866,7 @@ fast
 pullup
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-inout
+in
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 12
@@ -877,10 +877,10 @@ inout
 MIO 29
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-GPIO1 MIO
+DPAUX
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-gpio1[29]
+dp_aux_data_oe
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 cmos
@@ -892,7 +892,7 @@ slow
 pullup
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-inout
+out
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 12
@@ -903,10 +903,10 @@ inout
 MIO 30
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-GPIO1 MIO
+DPAUX
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-gpio1[30]
+dp_aux_data_in
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 schmitt
@@ -918,7 +918,7 @@ fast
 pullup
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-inout
+in
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 12
@@ -955,13 +955,13 @@ inout
 MIO 32
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-GPIO1 MIO
+PMU GPO 0
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-gpio1[32]
+gpo[0]
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-schmitt
+cmos
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 slow
@@ -970,7 +970,7 @@ slow
 pullup
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-inout
+out
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 12
@@ -981,13 +981,13 @@ inout
 MIO 33
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-GPIO1 MIO
+PMU GPO 1
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-gpio1[33]
+gpo[1]
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-schmitt
+cmos
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 slow
@@ -996,7 +996,7 @@ slow
 pullup
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-inout
+out
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 12
@@ -1007,13 +1007,13 @@ inout
 MIO 34
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-GPIO1 MIO
+PMU GPO 2
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-gpio1[34]
+gpo[2]
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-schmitt
+cmos
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 slow
@@ -1022,7 +1022,7 @@ slow
 pullup
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-inout
+out
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 12
@@ -1033,13 +1033,13 @@ inout
 MIO 35
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-GPIO1 MIO
+PMU GPO 3
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-gpio1[35]
+gpo[3]
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-schmitt
+cmos
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 slow
@@ -1048,7 +1048,7 @@ slow
 pullup
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-inout
+out
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 12
@@ -1059,13 +1059,13 @@ inout
 MIO 36
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-GPIO1 MIO
+PMU GPO 4
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-gpio1[36]
+gpo[4]
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-schmitt
+cmos
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 slow
@@ -1074,7 +1074,7 @@ slow
 pullup
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-inout
+out
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 12
@@ -1085,13 +1085,13 @@ inout
 MIO 37
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-GPIO1 MIO
+PMU GPO 5
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-gpio1[37]
+gpo[5]
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-schmitt
+cmos
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 slow
@@ -1100,7 +1100,7 @@ slow
 pullup
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-inout
+out
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 12
@@ -2203,7 +2203,7 @@ RPLL
 PSS_REF_CLK
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
-2999.970
+1499.985
 </TD>
 </TR>
 <TR valign="top">
@@ -2293,6 +2293,20 @@ IOPLL
 <TR valign="top">
 <TD width=10% BGCOLOR=#FBF5EF>
 UART0 freq (MHz)
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+100
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+IOPLL
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+99.999001
+</TD>
+</TR>
+<TR valign="top">
+<TD width=10% BGCOLOR=#FBF5EF>
+UART1 freq (MHz)
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 100
@@ -2526,6 +2540,48 @@ IOPLL
 </TD>
 <TD width=10% BGCOLOR=#FBF5EF>
 249.997498
+</TD>
+</TR>
+<TR valign="top">
+<TD width=10% BGCOLOR=#FBF5EF>
+DP VIDEO freq (MHz)
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+300
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+VPLL
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+299.997009
+</TD>
+</TR>
+<TR valign="top">
+<TD width=10% BGCOLOR=#FBF5EF>
+DP AUDIO freq (MHz)
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+25
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+RPLL
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+24.999750
+</TD>
+</TR>
+<TR valign="top">
+<TD width=10% BGCOLOR=#FBF5EF>
+DP STC freq (MHz)
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+27
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+RPLL
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+26.785446
 </TD>
 </TR>
 <TR valign="top">
@@ -2908,6 +2964,20 @@ C_DDR_RAM_HIGHADDR
 </TD>
 <TD width=10% BGCOLOR=#E0F8F7>
 <B>Ref freq (MHz)</B>
+</TD>
+</TR>
+<TR valign="top">
+<TD width=10% BGCOLOR=#FBF5EF>
+DP
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+GT Lane0
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+Ref Clk1
+</TD>
+<TD width=10% BGCOLOR=#FBF5EF>
+27
 </TD>
 </TR>
 <TR valign="top">

@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -37,5 +37,21 @@ void SetMMCMReg(convData_t *cmdVals, char *txstrPtr, int *status);
 void SetMMCM(convData_t *cmdVals, char *txstrPtr, int *status);
 void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status);
 void GetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetTDDRTSPinCtrl(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetTDDRTSPinCtrl(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetTDDRTSTrigDelay(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetTDDRTSTrigDelay(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetTDDRTSTrigSlot(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetTDDRTSTrigSlot(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetTDDRTSSlot(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetTDDRTSSlot(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetTDDRTSEnables(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetTDDRTSEnables(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetTDDRTSRst(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetTDDRTSRst(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetTDDRTSTrig(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetTDDRTSTrig(convData_t *cmdVals, char *txstrPtr, int *status);
+int Write32TDDRTSCtrlOffset(u32 offset, u32 value);
+int Read32TDDRTSCtrlOffset(u32 offset, u32 *value);
 
 #endif

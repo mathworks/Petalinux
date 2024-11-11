@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -250,6 +250,7 @@ void StartUpConfig()
 		}
 	}
 }
+
 /*********************************** Main ************************************/
 int main(void)
 {
@@ -309,6 +310,8 @@ int main(void)
 		printf("Failed to initialize RFDC\n");
 		return -1;
 	}
+
+	RFInit_SignalDetector();
 	/*ret = RFInitBuildMemoryMap();
 	if (ret != SUCCESS) {
 		printf("Failed to build memory map\n");
@@ -317,13 +320,13 @@ int main(void)
 
 	InitMMCM_ADC();
 	InitMMCM_DAC();
-        // In the TRD, a memory map is performed at the beginning between the PS and a few clocks on the PL to get clock divder information
+	// In the TRD, a memory map is performed at the beginning between the PS and a few clocks on the PL to get clock divder information
         // This appears to be used to report back to the user clock speed information
         */
 	tcpServerInitialize();
 	DataServerInitialize();
 	/*
-        ret = init_mem();
+	ret = init_mem();
 	if (ret) {
 		deinit_mem();
 		printf("Unable to initialise memory\n");
@@ -337,7 +340,7 @@ int main(void)
 		deinit_mem();
 		return -1;
 	}
-        */
+	*/
 	EnableAllInterrupts();
 	//StartUpConfig();
 	DisplayIpAddress();
@@ -358,8 +361,8 @@ newConn:
 	/* mark this thread as active */
 	thread_stat = 1;
 
-//	printf("Start data processing thread\n");
-//	pthread_create(&thread_id, NULL, datapath_t, NULL);
+	//printf("Start data processing thread\n");
+	//pthread_create(&thread_id, NULL, datapath_t, NULL);
 	while (1) {
 		/* get string from io interface (Non blocking) */
 		numCharacters = getString(rcvBuf, bufLen);
@@ -384,7 +387,7 @@ newConn:
 				shutdown_sock(COMMAND);
 				shutdown_sock(DATA);
 				printf("Closed data and command sockets\n");
-				// pthread_join(thread_id, NULL);
+				//pthread_join(thread_id, NULL);
 				break;
 			}
 			/* clear rcvBuf each time anew command is received and
@@ -394,11 +397,12 @@ newConn:
 			 a response returned */
 			memset(txBuf, 0, sizeof(txBuf));
 		} else {
-		/*	printf("Kill data processing thread\n");
+			/*printf("Kill data processing thread\n");
 			if (pthread_kill(thread_id, 0))
 				printf("not able to kill data processing"
 				       " thread\n");
-                    */
+			*/
+
 			thread_stat = 0;
 			break;
 		}

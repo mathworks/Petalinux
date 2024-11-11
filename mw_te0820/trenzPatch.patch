@@ -1,0 +1,83 @@
+diff --git a/conf/layer.conf b/conf/layer.conf
+index dc8f0d6..4f1a6d7 100644
+--- a/conf/layer.conf
++++ b/conf/layer.conf
+@@ -7,7 +7,7 @@ BBFILES += "${LAYERDIR}/recipes-*/*/*.bb \
+ 
+ BBFILE_COLLECTIONS += "meta-mathworks"
+ BBFILE_PATTERN_meta-mathworks = "^${LAYERDIR}/"
+-BBFILE_PRIORITY_meta-mathworks = "6"
++BBFILE_PRIORITY_meta-mathworks = "10"
+ 
+ LAYERDEPENDS_meta-mathworks = "core"
+ LAYERDEPENDS_meta-mathworks += "xilinx"
+diff --git a/recipes-apps/mw-fs-overlay/files/common/fs-overlay/etc/init.d/sdcard_mount b/recipes-apps/mw-fs-overlay/files/common/fs-overlay/etc/init.d/sdcard_mount
+index f3f866f..f0524f8 100644
+--- a/recipes-apps/mw-fs-overlay/files/common/fs-overlay/etc/init.d/sdcard_mount
++++ b/recipes-apps/mw-fs-overlay/files/common/fs-overlay/etc/init.d/sdcard_mount
+@@ -3,7 +3,7 @@
+ # Mount SD card partition
+ #
+ 
+-_SD_ROOT=/dev/mmcblk0p1
++_SD_ROOT=/dev/mmcblk1p1
+ 
+ source /etc/init.d/start_only.sh
+ 
+diff --git a/recipes-apps/mw-fs-overlay/files/services/network.service b/recipes-apps/mw-fs-overlay/files/services/network.service
+index 273d617..806da88 100644
+--- a/recipes-apps/mw-fs-overlay/files/services/network.service
++++ b/recipes-apps/mw-fs-overlay/files/services/network.service
+@@ -4,6 +4,8 @@
+ Documentation=man:systemd-sysv-generator(8)
+ SourcePath=/usr/sbin/network
+ After=hostname.service
++After=network-online.target
++Wants=network-online.target
+ 
+ [Service]
+ Type=forking
+diff --git a/recipes-bsp/u-boot/files/bsp.cfg b/recipes-bsp/u-boot/files/bsp.cfg
+index 62b8d88..569c128 100644
+--- a/recipes-bsp/u-boot/files/bsp.cfg
++++ b/recipes-bsp/u-boot/files/bsp.cfg
+@@ -3,8 +3,8 @@ CONFIG_ENV_IS_IN_NOWHERE
+ CONFIG_ENV_FAT_INTERFACE="mmc"
+ CONFIG_ENV_FAT_DEVICE_AND_PART="0:auto"
+ CONFIG_ENV_FAT_FILE="uboot.env"
+-CONFIG_ENV_SIZE=0x8000
+-CONFIG_ENV_SECT_SIZE=0x8000
++CONFIG_ENV_SIZE=0x40000
++CONFIG_ENV_SECT_SIZE=0x40000
+ 
+ CONFIG_ENV_OVERWRITE=y
+ # CONFIG_ENV_IS_IN_NAND is not set
+diff --git a/recipes-bsp/u-boot/files/etc/fw_env.config b/recipes-bsp/u-boot/files/etc/fw_env.config
+index ba7db4a..871cd43 100644
+--- a/recipes-bsp/u-boot/files/etc/fw_env.config
++++ b/recipes-bsp/u-boot/files/etc/fw_env.config
+@@ -7,6 +7,6 @@
+ 
+ # File Example
+ # Filename             Offset     Size    Sector Size (= Size)
+-/mnt/uboot.env         0x0000   0x8000    0x8000
+-/mnt/uboot-redund.env  0x0000   0x8000    0x8000
++/mnt/uboot.env         0x0000   0x40000    0x40000
++/mnt/uboot-redund.env  0x0000   0x40000    0x40000
+ 
+diff --git a/recipes-core/base-files/base-files_%.bbappend b/recipes-core/base-files/base-files_%.bbappend
+index 43f3bf4..c008818 100644
+--- a/recipes-core/base-files/base-files_%.bbappend
++++ b/recipes-core/base-files/base-files_%.bbappend
+@@ -3,9 +3,9 @@ dirs755 += "/mnt"
+ PACKAGE_ARCH = "${MACHINE_ARCH}"
+ 
+ do_install:append() {
+-    sed -i '/mmcblk0p1/d' ${D}${sysconfdir}/fstab 
++    sed -i '/mmcblk1p1/d' ${D}${sysconfdir}/fstab 
+     cat >> ${D}${sysconfdir}/fstab <<EOF
+-/dev/mmcblk0p1       /mnt          auto      defaults,sync           0  0
++/dev/mmcblk1p1       /mnt          auto      defaults,sync           0  0
+ EOF
+ }
+ 

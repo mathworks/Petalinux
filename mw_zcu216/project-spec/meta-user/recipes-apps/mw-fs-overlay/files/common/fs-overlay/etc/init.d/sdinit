@@ -11,9 +11,9 @@ fi
 
 case "$1" in
 	start)
-		/usr/bin/rftool &
+	    /usr/bin/rftool &
                 /usr/bin/mw-rf-init &
-                if [ -f ${_SD_ROOT}/init.sh ]; then
+		if [ -f ${_SD_ROOT}/init.sh ]; then
 			echo "+++ Running sd card init.sh"
 			${_SD_ROOT}/init.sh
 		fi

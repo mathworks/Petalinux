@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -84,6 +84,24 @@ void StartUp(convData_t *cmdVals, char *txstrPtr, int *status);
 *
 ******************************************************************************/
 void Shutdown(convData_t *cmdVals, char *txstrPtr, int *status);
+
+/****************************************************************************/
+/**
+*
+* This function starts the requested tile from a provided state and runs to the
+* given end state. It can restart a single tile and alternatively can restart
+* all the tiles.
+*
+* @param	structure contains input arguments sent from client
+* @param	contains response string
+* @param	contains execution status
+*
+* @return	None.
+*
+* @note		None.
+*
+******************************************************************************/
+void CustomStartUp(convData_t *cmdVals, char *txstrPtr, int *status);
 
 /****************************************************************************/
 /**
@@ -1127,7 +1145,8 @@ void SetCalCoefficients(convData_t *cmdVals, char *txstrPtr, int *status);
 void GetCalCoefficients(convData_t *cmdVals, char *txstrPtr, int *status);
 void DisableCoefficientsOverride(convData_t *cmdVals, char *txstrPtr,
 				 int *status);
-
+void SetSignalDetector(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetSignalDetector(convData_t *cmdVals, char *txstrPtr, int *status);
 void SetClkDistribution(convData_t *cmdVals, char *txstrPtr, int *status);
 
 void GetClkDistribution(convData_t *cmdVals, char *txstrPtr, int *status);
@@ -1144,5 +1163,14 @@ void GetEnabledInterrupts(convData_t *cmdVals, char *txstrPtr, int *status);
 void CheckDigitalPathEnabled(convData_t *cmdVals, char *txstrPtr, int *status);
 void SetPwrMode(convData_t *cmdVals, char *txstrPtr, int *status);
 void GetPwrMode(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetDACDataScaler(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetDACDataScaler(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetDecimationFactorObs(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetDecimationFactorObs(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetupFIFOObs(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetFIFOStatusObs(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetFabWrVldWordsObs(convData_t *cmdVals, char *txstrPtr, int *status);
+void GetFabRdVldWordsObs(convData_t *cmdVals, char *txstrPtr, int *status);
+void SetFabRdVldWordsObs(convData_t *cmdVals, char *txstrPtr, int *status);
 
 #endif /* SRC_RFDC_FUNCTIONS_W_H_ */

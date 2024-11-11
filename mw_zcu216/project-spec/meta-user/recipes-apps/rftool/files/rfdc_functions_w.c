@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@
 #include "data_interface.h"
 #include "cmd_interface.h"
 #include "tcp_interface.h"
-#include "xrfdc_mts.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -42,10 +41,14 @@
 #define CONFIG_REG_FILE "/sys/firmware/zynqmp/config_reg"
 #define IDCODE_REG 0xFFCA0040
 #define PRODUCTION_BIT_POS 28
+#define XRFDC_TILE_ID0 0x0U
+#define LMEM_WIDTH 0x50
 /************************** Variable Definitions *****************************/
 extern int enTermMode; /* Enable printing in terminal mode */
 extern XRFdc RFdcInst;
 extern struct MMCMReg_struct MMCMReg_config[8];
+XRFdc_MultiConverter_Sync_Config DAC_Sync_Config;
+XRFdc_MultiConverter_Sync_Config ADC_Sync_Config;
 /*****************************   Functions  **********************************/
 
 /*
@@ -644,6 +647,25 @@ void GetDecimationFactor(convData_t *cmdVals, char *txstrPtr, int *status)
 	}
 }
 
+void GetDecimationFactorObs(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	int Tile_Id;
+	u32 Block_Id;
+	char Response[BUF_MAX_LEN] = { 0 };
+	Tile_Id = cmdVals[0].i;
+	Block_Id = cmdVals[1].u;
+	u32 DecimationFactor;
+
+	*status = XRFdc_GetDecimationFactorObs(&RFdcInst, Tile_Id, Block_Id,
+					       &DecimationFactor);
+
+	if (*status == SUCCESS) {
+		sprintf(Response, " %d %zu %zu", Tile_Id, (size_t)Block_Id,
+			(size_t)DecimationFactor);
+		strncat(txstrPtr, Response, BUF_MAX_LEN);
+	}
+}
+
 /*
  * Set ADC Decimation Factor
  */
@@ -674,6 +696,18 @@ void SetDecimationFactor(convData_t *cmdVals, char *txstrPtr, int *status)
 			printf("    *********************************\r\n");
 		}
 	}
+
+	return;
+}
+
+void SetDecimationFactorObs(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	int Tile_Id = cmdVals[0].i;
+	u32 Block_Id = cmdVals[1].u;
+	u32 DecimationFactor = cmdVals[2].u;
+
+	*status = XRFdc_SetDecimationFactorObs(&RFdcInst, Tile_Id, Block_Id,
+					       DecimationFactor);
 
 	return;
 }
@@ -1074,6 +1108,19 @@ void SetupFIFO(convData_t *cmdVals, char *txstrPtr, int *status)
 	return;
 }
 
+void SetupFIFOObs(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Type;
+	int Tile_Id;
+	Type = cmdVals[0].u;
+	Tile_Id = cmdVals[1].i;
+	u8 enable = cmdVals[2].u;
+
+	*status = XRFdc_SetupFIFOObs(&RFdcInst, Type, Tile_Id, enable);
+
+	return;
+}
+
 /*
  * Get FIFO Status
  */
@@ -1103,6 +1150,24 @@ void GetFIFOStatus(convData_t *cmdVals, char *txstrPtr, int *status)
 		sprintf(Response, " %d %d %d ", Type, Tile_Id, enable);
 		strncat(txstrPtr, Response, BUF_MAX_LEN);
 	}
+}
+
+void GetFIFOStatusObs(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Type;
+	int Tile_Id;
+	char Response[BUF_MAX_LEN] = { 0 };
+	Type = cmdVals[0].u;
+	Tile_Id = cmdVals[1].i;
+	u8 enable;
+
+	*status = XRFdc_GetFIFOStatus(&RFdcInst, Type, Tile_Id, &enable);
+
+	if (*status == SUCCESS) {
+		sprintf(Response, " %zu %d %u ", (size_t)Type, Tile_Id, enable);
+		strncat(txstrPtr, Response, BUF_MAX_LEN);
+	}
+	return;
 }
 
 /*
@@ -1171,6 +1236,26 @@ void GetFabWrVldWords(convData_t *cmdVals, char *txstrPtr, int *status)
 	}
 }
 
+void GetFabWrVldWordsObs(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Type;
+	int Tile_Id;
+	u32 Block_Id;
+	char Response[BUF_MAX_LEN] = { 0 };
+	Type = cmdVals[0].u;
+	Tile_Id = cmdVals[1].i;
+	Block_Id = cmdVals[2].u;
+	u32 FabricDataRate;
+
+	*status = XRFdc_GetFabWrVldWordsObs(&RFdcInst, Type, Tile_Id, Block_Id,
+					    &FabricDataRate);
+	if (*status == SUCCESS) {
+		sprintf(Response, " %zu %d %zu %zu ", (size_t)Type, Tile_Id,
+			(size_t)Block_Id, (size_t)FabricDataRate);
+		strncat(txstrPtr, Response, BUF_MAX_LEN);
+	}
+}
+
 /*
  * SetFabRdVldWords
  */
@@ -1197,6 +1282,30 @@ void SetFabRdVldWords(convData_t *cmdVals, char *txstrPtr, int *status)
 			printf("    FabricDataRate:            %d\r\n",
 			       FabricDataRate);
 		}
+	}
+	return;
+}
+
+void SetFabRdVldWordsObs(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	int Tile_Id;
+	u32 Block_Id;
+	Tile_Id = cmdVals[0].i;
+	Block_Id = cmdVals[1].u;
+	u32 FabricDataRate = cmdVals[2].u;
+	u32 numblockpertile = (!XRFdc_IsADC4GSPS(&RFdcInst) << 1) + 2;
+	u32 memwidth;
+
+	memwidth = lmem_rd32(
+		info.vaddr_adc + LMEM_WIDTH +
+		(AdcMap[Tile_Id * numblockpertile + Block_Id].Channel_I * 4));
+	if (FabricDataRate <= memwidth) {
+		*status = XRFdc_SetFabRdVldWordsObs(&RFdcInst, Tile_Id,
+						    Block_Id, FabricDataRate);
+	} else {
+		metal_log(METAL_LOG_ERROR, "\nMaximum Fabric Width is %lu\r\n",
+			  memwidth);
+		*status = FAIL;
 	}
 	return;
 }
@@ -1233,6 +1342,26 @@ void GetFabRdVldWords(convData_t *cmdVals, char *txstrPtr, int *status)
 	if (*status == SUCCESS) {
 		sprintf(Response, " %d %d %d %d ", Type, Tile_Id, Block_Id,
 			FabricDataRate);
+		strncat(txstrPtr, Response, BUF_MAX_LEN);
+	}
+}
+
+void GetFabRdVldWordsObs(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Type;
+	int Tile_Id;
+	u32 Block_Id;
+	char Response[BUF_MAX_LEN] = { 0 };
+	Type = cmdVals[0].u;
+	Tile_Id = cmdVals[1].i;
+	Block_Id = cmdVals[2].u;
+	u32 FabricDataRate;
+
+	*status = XRFdc_GetFabRdVldWordsObs(&RFdcInst, Type, Tile_Id, Block_Id,
+					    &FabricDataRate);
+	if (*status == SUCCESS) {
+		sprintf(Response, " %zu %d %zu %zu ", (size_t)Type, Tile_Id,
+			(size_t)Block_Id, (size_t)FabricDataRate);
 		strncat(txstrPtr, Response, BUF_MAX_LEN);
 	}
 }
@@ -2200,35 +2329,201 @@ void SetClkDistribution(convData_t *cmdVals, char *txstrPtr, int *status)
 	char Response[BUF_MAX_LEN] = { 0 };
 	XRFdc_Distribution_Settings Distribution_Settings;
 	memset(&Distribution_Settings, 0, sizeof(Distribution_Settings));
+	Distribution_Settings.SourceType = cmdVals[0].u;
+	Distribution_Settings.SourceTileId = cmdVals[1].u;
+	Distribution_Settings.EdgeTypes[0] = cmdVals[2].u;
+	Distribution_Settings.EdgeTypes[1] = cmdVals[3].u;
+	Distribution_Settings.EdgeTileIds[0] = cmdVals[4].u;
+	Distribution_Settings.EdgeTileIds[1] = cmdVals[5].u;
+	Distribution_Settings.DistRefClkFreq = cmdVals[6].d;
+	Distribution_Settings.DistributedClock = cmdVals[7].u;
 
-	for (int i = 0; i < 4; i++) {
-		Distribution_Settings.DAC[i].SourceTile = cmdVals[0 + 12 * i].u;
-		Distribution_Settings.DAC[i].PLLEnable = cmdVals[1 + 12 * i].u;
-		Distribution_Settings.DAC[i].PLLSettings.RefClkFreq =
-			cmdVals[2 + 12 * i].d;
-		Distribution_Settings.DAC[i].PLLSettings.SampleRate =
-			cmdVals[3 + 12 * i].d;
-		Distribution_Settings.DAC[i].DivisionFactor =
-			cmdVals[4 + 12 * i].u;
-		Distribution_Settings.DAC[i].DistributedClock =
-			cmdVals[5 + 12 * i].u;
-		Distribution_Settings.ADC[i].SourceTile = cmdVals[6 + 12 * i].u;
-		Distribution_Settings.ADC[i].PLLEnable = cmdVals[7 + 12 * i].u;
-		Distribution_Settings.ADC[i].PLLSettings.RefClkFreq =
-			cmdVals[8 + 12 * i].d;
-		Distribution_Settings.ADC[i].PLLSettings.SampleRate =
-			cmdVals[9 + 12 * i].d;
-		Distribution_Settings.ADC[i].DivisionFactor =
-			cmdVals[10 + 12 * i].u;
-		Distribution_Settings.ADC[i].DistributedClock =
-			cmdVals[11 + 12 * i].u;
-	}
+	Distribution_Settings.SampleRates[0][0] = cmdVals[8].d;
+	Distribution_Settings.SampleRates[0][1] = cmdVals[9].d;
+	Distribution_Settings.SampleRates[0][2] = cmdVals[10].d;
+	Distribution_Settings.SampleRates[0][3] = cmdVals[11].d;
+	Distribution_Settings.SampleRates[1][0] = cmdVals[12].d;
+	Distribution_Settings.SampleRates[1][1] = cmdVals[13].d;
+	Distribution_Settings.SampleRates[1][2] = cmdVals[14].d;
+	Distribution_Settings.SampleRates[1][3] = cmdVals[15].d;
+	Distribution_Settings.ShutdownMode = cmdVals[16].u;
 
-	printf("calling clock distrubition \n");
 	*status = XRFdc_SetClkDistribution(&RFdcInst, &Distribution_Settings);
 
-	printf("cameout of clock distrubition \n");
 	if (*status == SUCCESS) {
+		sprintf(Response,
+			" %zu %zu %zu %zu %zu %zu %f %zu %f %f %f %f %f %f %f %f %zu"
+			" %u %u %u %u %u %u"
+			" %u %u %zu %f %f %u %u %u"
+			" %u %u %zu %f %f %u %u %u"
+			" %u %u %zu %f %f %u %u %u"
+			" %u %u %zu %f %f %u %u %u"
+			" %u %u %zu %f %f %u %u %u"
+			" %u %u %zu %f %f %u %u %u"
+			" %u %u %zu %f %f %u %u %u"
+			" %u %u %zu %f %f %u %u %u",
+			(size_t)Distribution_Settings.SourceType,
+			(size_t)Distribution_Settings.SourceTileId,
+			(size_t)Distribution_Settings.EdgeTypes[0],
+			(size_t)Distribution_Settings.EdgeTypes[1],
+			(size_t)Distribution_Settings.EdgeTileIds[0],
+			(size_t)Distribution_Settings.EdgeTileIds[1],
+			Distribution_Settings.DistRefClkFreq,
+			(size_t)Distribution_Settings.DistributedClock,
+			Distribution_Settings.SampleRates[0][0],
+			Distribution_Settings.SampleRates[0][1],
+			Distribution_Settings.SampleRates[0][2],
+			Distribution_Settings.SampleRates[0][3],
+			Distribution_Settings.SampleRates[1][0],
+			Distribution_Settings.SampleRates[1][1],
+			Distribution_Settings.SampleRates[1][2],
+			Distribution_Settings.SampleRates[1][3],
+			(size_t)Distribution_Settings.ShutdownMode,
+			Distribution_Settings.Info.MaxDelay,
+			Distribution_Settings.Info.MinDelay,
+			Distribution_Settings.Info.IsDelayBalanced,
+			Distribution_Settings.Info.Source,
+			Distribution_Settings.Info.UpperBound,
+			Distribution_Settings.Info.LowerBound,
+			Distribution_Settings.Info.ClkSettings[0][0].SourceType,
+			Distribution_Settings.Info.ClkSettings[0][0].SourceTile,
+			(size_t)Distribution_Settings.Info.ClkSettings[0][0]
+				.PLLEnable,
+			Distribution_Settings.Info.ClkSettings[0][0].RefClkFreq,
+			Distribution_Settings.Info.ClkSettings[0][0].SampleRate,
+			Distribution_Settings.Info.ClkSettings[0][0]
+				.DivisionFactor,
+			Distribution_Settings.Info.ClkSettings[0][0]
+				.DistributedClock,
+			Distribution_Settings.Info.ClkSettings[0][0].Delay,
+			Distribution_Settings.Info.ClkSettings[0][1].SourceType,
+			Distribution_Settings.Info.ClkSettings[0][1].SourceTile,
+			(size_t)Distribution_Settings.Info.ClkSettings[0][1]
+				.PLLEnable,
+			Distribution_Settings.Info.ClkSettings[0][1].RefClkFreq,
+			Distribution_Settings.Info.ClkSettings[0][1].SampleRate,
+			Distribution_Settings.Info.ClkSettings[0][1]
+				.DivisionFactor,
+			Distribution_Settings.Info.ClkSettings[0][1]
+				.DistributedClock,
+			Distribution_Settings.Info.ClkSettings[0][1].Delay,
+			Distribution_Settings.Info.ClkSettings[0][2].SourceType,
+			Distribution_Settings.Info.ClkSettings[0][2].SourceTile,
+			(size_t)Distribution_Settings.Info.ClkSettings[0][2]
+				.PLLEnable,
+			Distribution_Settings.Info.ClkSettings[0][2].RefClkFreq,
+			Distribution_Settings.Info.ClkSettings[0][2].SampleRate,
+			Distribution_Settings.Info.ClkSettings[0][2]
+				.DivisionFactor,
+			Distribution_Settings.Info.ClkSettings[0][2]
+				.DistributedClock,
+			Distribution_Settings.Info.ClkSettings[0][2].Delay,
+			Distribution_Settings.Info.ClkSettings[0][3].SourceType,
+			Distribution_Settings.Info.ClkSettings[0][3].SourceTile,
+			(size_t)Distribution_Settings.Info.ClkSettings[0][3]
+				.PLLEnable,
+			Distribution_Settings.Info.ClkSettings[0][3].RefClkFreq,
+			Distribution_Settings.Info.ClkSettings[0][3].SampleRate,
+			Distribution_Settings.Info.ClkSettings[0][3]
+				.DivisionFactor,
+			Distribution_Settings.Info.ClkSettings[0][3]
+				.DistributedClock,
+			Distribution_Settings.Info.ClkSettings[0][3].Delay,
+			Distribution_Settings.Info.ClkSettings[1][0].SourceType,
+			Distribution_Settings.Info.ClkSettings[1][0].SourceTile,
+			(size_t)Distribution_Settings.Info.ClkSettings[1][0]
+				.PLLEnable,
+			Distribution_Settings.Info.ClkSettings[1][0].RefClkFreq,
+			Distribution_Settings.Info.ClkSettings[1][0].SampleRate,
+			Distribution_Settings.Info.ClkSettings[1][0]
+				.DivisionFactor,
+			Distribution_Settings.Info.ClkSettings[1][0]
+				.DistributedClock,
+			Distribution_Settings.Info.ClkSettings[1][0].Delay,
+			Distribution_Settings.Info.ClkSettings[1][1].SourceType,
+			Distribution_Settings.Info.ClkSettings[1][1].SourceTile,
+			(size_t)Distribution_Settings.Info.ClkSettings[1][1]
+				.PLLEnable,
+			Distribution_Settings.Info.ClkSettings[1][1].RefClkFreq,
+			Distribution_Settings.Info.ClkSettings[1][1].SampleRate,
+			Distribution_Settings.Info.ClkSettings[1][1]
+				.DivisionFactor,
+			Distribution_Settings.Info.ClkSettings[1][1]
+				.DistributedClock,
+			Distribution_Settings.Info.ClkSettings[1][1].Delay,
+			Distribution_Settings.Info.ClkSettings[1][2].SourceType,
+			Distribution_Settings.Info.ClkSettings[1][2].SourceTile,
+			(size_t)Distribution_Settings.Info.ClkSettings[1][2]
+				.PLLEnable,
+			Distribution_Settings.Info.ClkSettings[1][2].RefClkFreq,
+			Distribution_Settings.Info.ClkSettings[1][2].SampleRate,
+			Distribution_Settings.Info.ClkSettings[1][2]
+				.DivisionFactor,
+			Distribution_Settings.Info.ClkSettings[1][2]
+				.DistributedClock,
+			Distribution_Settings.Info.ClkSettings[1][2].Delay,
+			Distribution_Settings.Info.ClkSettings[1][3].SourceType,
+			Distribution_Settings.Info.ClkSettings[1][3].SourceTile,
+			(size_t)Distribution_Settings.Info.ClkSettings[1][3]
+				.PLLEnable,
+			Distribution_Settings.Info.ClkSettings[1][3].RefClkFreq,
+			Distribution_Settings.Info.ClkSettings[1][3].SampleRate,
+			Distribution_Settings.Info.ClkSettings[1][3]
+				.DivisionFactor,
+			Distribution_Settings.Info.ClkSettings[1][3]
+				.DistributedClock,
+			Distribution_Settings.Info.ClkSettings[1][3].Delay);
+		strncat(txstrPtr, Response, BUF_MAX_LEN);
+	}
+	return;
+}
+
+void SetSignalDetector(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	int Tile_Id = cmdVals[0].u;
+	u32 Block_Id = cmdVals[1].u;
+	XRFdc_Signal_Detector_Settings Signal_Detector_Settings;
+
+	memset(&Signal_Detector_Settings, 0, sizeof(Signal_Detector_Settings));
+	Signal_Detector_Settings.Mode = cmdVals[2].u;
+	Signal_Detector_Settings.TimeConstant = cmdVals[3].u;
+	Signal_Detector_Settings.Flush = cmdVals[4].u;
+	Signal_Detector_Settings.EnableIntegrator = cmdVals[5].u;
+	Signal_Detector_Settings.Threshold = cmdVals[6].u;
+	Signal_Detector_Settings.ThreshOnTriggerCnt = cmdVals[7].u;
+	Signal_Detector_Settings.ThreshOffTriggerCnt = cmdVals[8].u;
+	Signal_Detector_Settings.HysteresisEnable = cmdVals[9].u;
+
+	*status = XRFdc_SetSignalDetector(&RFdcInst, Tile_Id, Block_Id,
+					  &Signal_Detector_Settings);
+
+	if (*status == SUCCESS) {
+		sprintf(Response, " %u %u ", Tile_Id, Block_Id);
+		strncat(txstrPtr, Response, BUF_MAX_LEN);
+	}
+	return;
+}
+
+void GetSignalDetector(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	int Tile_Id = cmdVals[0].i;
+	u32 Block_Id = cmdVals[1].u;
+	XRFdc_Signal_Detector_Settings Signal_Detector_Settings;
+
+	*status = XRFdc_GetSignalDetector(&RFdcInst, Tile_Id, Block_Id,
+					  &Signal_Detector_Settings);
+	if (*status == SUCCESS) {
+		sprintf(Response, " %u %u %u %u %u %u %u %u %u %u ", Tile_Id,
+			Block_Id, Signal_Detector_Settings.Mode,
+			Signal_Detector_Settings.TimeConstant,
+			Signal_Detector_Settings.Flush,
+			Signal_Detector_Settings.EnableIntegrator,
+			Signal_Detector_Settings.Threshold,
+			Signal_Detector_Settings.ThreshOnTriggerCnt,
+			Signal_Detector_Settings.ThreshOffTriggerCnt,
+			Signal_Detector_Settings.HysteresisEnable);
 		strncat(txstrPtr, Response, BUF_MAX_LEN);
 	}
 	return;
@@ -2236,31 +2531,92 @@ void SetClkDistribution(convData_t *cmdVals, char *txstrPtr, int *status)
 
 void GetClkDistribution(convData_t *cmdVals, char *txstrPtr, int *status)
 {
-	u32 Type = cmdVals[0].u;
-	u32 Tile_Id = cmdVals[1].u;
-	XRFdc_Distribution_Settings DistributionSettings;
-	XRFdc_Distribution *DistStatusPtr;
-	XRFdc_Tile_Clock_Settings *SettingsPtr;
-	u32 StatusIndex;
+	XRFdc_Distribution_System_Settings DistributionSettings;
+	int i;
 	char Response[BUF_MAX_LEN] = { 0 };
 	memset(&DistributionSettings, 0, sizeof(DistributionSettings));
 	*status = XRFdc_GetClkDistribution(&RFdcInst, &DistributionSettings);
 
-	SettingsPtr = (Type == XRFDC_ADC_TILE) ?
-			      &(DistributionSettings.ADC[Tile_Id]) :
-			      &(DistributionSettings.DAC[Tile_Id]);
-	StatusIndex = (Type == XRFDC_ADC_TILE) ? Tile_Id + 4 : Tile_Id;
-	DistStatusPtr = &(DistributionSettings.DistributionStatus[StatusIndex]);
 	if (SUCCESS == *status) {
-		sprintf(Response, " %u %u %u %u %u %u %u %u %u %u %u %u %u",
-			Type, Tile_Id, SettingsPtr->SourceTile,
-			SettingsPtr->PLLEnable, SettingsPtr->DivisionFactor,
-			SettingsPtr->DistributedClock, DistStatusPtr->Enabled,
-			DistStatusPtr->DistributionSource,
-			DistStatusPtr->UpperBound, DistStatusPtr->LowerBound,
-			DistStatusPtr->MaxDelay, DistStatusPtr->MinDelay,
-			DistStatusPtr->IsDelayBalanced);
-		strncat(txstrPtr, Response, BUF_MAX_LEN);
+		for (i = 0; i < 8; i++) {
+			if (DistributionSettings.Distributions[i].SourceTileId ==
+			    XRFDC_CLK_DST_INVALID) {
+				break;
+			} /*only valid if type is ADC (0) or DAC (1)*/
+			sprintf(Response,
+				" %zu %zu %zu %zu %zu %zu %f %zu %f %f %f %f %f %f %f %f %zu %u %u %u %u %u %u %zu %zu %zu %zu %zu %zu %zu %zu",
+				(size_t)DistributionSettings.Distributions[i]
+					.SourceType,
+				(size_t)DistributionSettings.Distributions[i]
+					.SourceTileId,
+				(size_t)DistributionSettings.Distributions[i]
+					.EdgeTypes[0],
+				(size_t)DistributionSettings.Distributions[i]
+					.EdgeTypes[1],
+				(size_t)DistributionSettings.Distributions[i]
+					.EdgeTileIds[0],
+				(size_t)DistributionSettings.Distributions[i]
+					.EdgeTileIds[1],
+				DistributionSettings.Distributions[i]
+					.DistRefClkFreq,
+				(size_t)DistributionSettings.Distributions[i]
+					.DistributedClock,
+				DistributionSettings.Distributions[i]
+					.SampleRates[0][0],
+				DistributionSettings.Distributions[i]
+					.SampleRates[0][1],
+				DistributionSettings.Distributions[i]
+					.SampleRates[0][2],
+				DistributionSettings.Distributions[i]
+					.SampleRates[0][3],
+				DistributionSettings.Distributions[i]
+					.SampleRates[1][0],
+				DistributionSettings.Distributions[i]
+					.SampleRates[1][1],
+				DistributionSettings.Distributions[i]
+					.SampleRates[1][2],
+				DistributionSettings.Distributions[i]
+					.SampleRates[1][3],
+				(size_t)DistributionSettings.Distributions[i]
+					.ShutdownMode,
+				DistributionSettings.Distributions[i]
+					.Info.MaxDelay,
+				DistributionSettings.Distributions[i]
+					.Info.MinDelay,
+				DistributionSettings.Distributions[i]
+					.Info.IsDelayBalanced,
+				DistributionSettings.Distributions[i]
+					.Info.Source,
+				DistributionSettings.Distributions[i]
+					.Info.UpperBound,
+				DistributionSettings.Distributions[i]
+					.Info.LowerBound,
+				(size_t)DistributionSettings.Distributions[i]
+					.Info.ClkSettings[0][0]
+					.PLLEnable,
+				(size_t)DistributionSettings.Distributions[i]
+					.Info.ClkSettings[0][1]
+					.PLLEnable,
+				(size_t)DistributionSettings.Distributions[i]
+					.Info.ClkSettings[0][2]
+					.PLLEnable,
+				(size_t)DistributionSettings.Distributions[i]
+					.Info.ClkSettings[0][3]
+					.PLLEnable,
+				(size_t)DistributionSettings.Distributions[i]
+					.Info.ClkSettings[1][0]
+					.PLLEnable,
+				(size_t)DistributionSettings.Distributions[i]
+					.Info.ClkSettings[1][1]
+					.PLLEnable,
+				(size_t)DistributionSettings.Distributions[i]
+					.Info.ClkSettings[1][2]
+					.PLLEnable,
+				(size_t)DistributionSettings.Distributions[i]
+					.Info.ClkSettings[1][3]
+					.PLLEnable);
+			strncat(txstrPtr, Response, BUF_MAX_LEN);
+		}
 	}
 	return;
 }
@@ -2460,19 +2816,18 @@ void SetInvSincFIR(convData_t *cmdVals, char *txstrPtr, int *status)
 
 	int Tile_Id;
 	u32 Block_Id;
+	u32 NyquistZone;
+
 	Tile_Id = cmdVals[0].i;
 	Block_Id = cmdVals[1].u;
 	u32 enable = cmdVals[2].u;
 
-	*status = XRFdc_SetInvSincFIR(&RFdcInst, Tile_Id, Block_Id, enable);
-
-	if (enTermMode) {
-		if (*status != SUCCESS) {
-			printf("XRFdc_SetInvSincFIR() failed\n\r");
-		} else {
-			printf("    **********XRFdc_GetInvSincFIR"
-			       "***********\r\n");
-			printf("    enable:            %d\r\n", enable);
+	*status |= XRFdc_SetInvSincFIR(&RFdcInst, Tile_Id, Block_Id, enable);
+	if (*status == SUCCESS) {
+		*status = XRFdc_GetNyquistZone(&RFdcInst, XRFDC_DAC_TILE,
+					       Tile_Id, Block_Id, &NyquistZone);
+		if ((enable != 0) && (enable != NyquistZone)) {
+			*status |= WARN_EXECUTE;
 		}
 	}
 	return;
@@ -2712,48 +3067,31 @@ void GetPLLConfig(convData_t *cmdVals, char *txstrPtr, int *status)
 
 void MultiConverter_Init(convData_t *cmdVals, char *txstrPtr, int *status)
 {
-	(void)status;
-	(void)txstrPtr;
-	u32 Type;
-	int PLL_Code = 0;
-	int T1_Codes = 0;
+	u32 Type = cmdVals[0].u;
+	u32 Tile_Ref = cmdVals[1].u;
 
-	XRFdc_MultiConverter_Sync_Config DAC_Sync_Config;
-	XRFdc_MultiConverter_Sync_Config ADC_Sync_Config;
-
-	Type = cmdVals[0].u;
-	if (Type == 0) {
-		XRFdc_MultiConverter_Init(&ADC_Sync_Config, &PLL_Code,
-					  &T1_Codes);
+	if (Type == ADC) {
+		XRFdc_MultiConverter_Init(&ADC_Sync_Config, 0, 0, Tile_Ref);
 	} else {
-		XRFdc_MultiConverter_Init(&DAC_Sync_Config, &PLL_Code,
-					  &T1_Codes);
+		XRFdc_MultiConverter_Init(&DAC_Sync_Config, 0, 0, Tile_Ref);
 	}
 	return;
 }
 
 void MultiConverter_Sync(convData_t *cmdVals, char *txstrPtr, int *status)
 {
-	u32 Type;
-	char Response[BUF_MAX_LEN] = { 0 };
+	u32 Type = cmdVals[0].u;
 	u32 Tiles = cmdVals[2].u;
-	XRFdc_MultiConverter_Sync_Config DAC_Sync_Config;
-	XRFdc_MultiConverter_Sync_Config ADC_Sync_Config;
+	char Response[BUF_MAX_LEN] = { 0 };
 	XRFdc_MultiConverter_Sync_Config sync_config;
 
-	Type = cmdVals[0].u;
 	metal_set_log_level(METAL_LOG_INFO);
-	if (Type == 0) {
-		XRFdc_MultiConverter_Init(&ADC_Sync_Config, 0, 0);
-	} else {
-		XRFdc_MultiConverter_Init(&DAC_Sync_Config, 0, 0);
-	}
-
-	if (Type == 0) {
+	if (Type == ADC) {
 		ADC_Sync_Config.Tiles = Tiles;
 		ADC_Sync_Config.Target_Latency = cmdVals[1].i;
 		*status = XRFdc_MultiConverter_Sync(&RFdcInst, Type,
 						    &ADC_Sync_Config);
+
 		sync_config = ADC_Sync_Config;
 		sprintf(Response, " %d %d %d %d %d %d %d %d %d %d %d %d ",
 			*status, sync_config.Target_Latency,
@@ -2762,11 +3100,13 @@ void MultiConverter_Sync(convData_t *cmdVals, char *txstrPtr, int *status)
 			sync_config.Latency[0], sync_config.Latency[1],
 			sync_config.Latency[2], sync_config.Latency[3],
 			sync_config.Marker_Delay, sync_config.SysRef_Enable);
+
 	} else {
 		DAC_Sync_Config.Tiles = Tiles;
 		DAC_Sync_Config.Target_Latency = cmdVals[1].i;
 		*status = XRFdc_MultiConverter_Sync(&RFdcInst, Type,
 						    &DAC_Sync_Config);
+
 		sync_config = DAC_Sync_Config;
 		sprintf(Response, " %d %d %d %d %d %d %d %d %d %d %d %d ",
 			*status, sync_config.Target_Latency,
@@ -2776,10 +3116,9 @@ void MultiConverter_Sync(convData_t *cmdVals, char *txstrPtr, int *status)
 			sync_config.Latency[2], sync_config.Latency[3],
 			sync_config.Marker_Delay, sync_config.SysRef_Enable);
 	}
-
+	*status = SUCCESS;
 	strncat(txstrPtr, Response, BUF_MAX_LEN);
 	metal_set_log_level(METAL_LOG_WARNING);
-
 	return;
 }
 
@@ -2968,6 +3307,23 @@ void GetMTSEnable(convData_t *cmdVals, char *txstrPtr, int *status)
 	}
 }
 
+void CustomStartUp(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Type;
+	int Tile_Id;
+	u32 StartState;
+	u32 EndState;
+
+	Type = cmdVals[0].u;
+	Tile_Id = cmdVals[1].i;
+	StartState = cmdVals[2].u;
+	EndState = cmdVals[3].u;
+	*status = XRFdc_CustomStartUp(&RFdcInst, Type, Tile_Id, StartState,
+				      EndState);
+
+	return;
+}
+
 void CheckDigitalPathEnabled(convData_t *cmdVals, char *txstrPtr, int *status)
 {
 	u32 Type = cmdVals[0].u;
@@ -3100,6 +3456,37 @@ void GetPwrMode(convData_t *cmdVals, char *txstrPtr, int *status)
 	if (*status == SUCCESS) {
 		sprintf(Response, " %u %u %u %u %u ", Type, Tile_Id, Block_Id,
 			SettingsPtr.DisableIPControl, SettingsPtr.PwrMode);
+		strncat(txstrPtr, Response, BUF_MAX_LEN);
+	}
+	return;
+}
+void SetDACDataScaler(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	u32 Tile_Id = cmdVals[0].u;
+	u32 Block_Id = cmdVals[1].u;
+	u32 Enable = cmdVals[2].u;
+
+	*status = XRFdc_SetDACDataScaler(&RFdcInst, Tile_Id, Block_Id, Enable);
+	if (*status == SUCCESS) {
+		sprintf(Response, " %zu %zu %zu ", (size_t)Tile_Id,
+			(size_t)Block_Id, (size_t)Enable);
+		strncat(txstrPtr, Response, BUF_MAX_LEN);
+	}
+	return;
+}
+
+void GetDACDataScaler(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	u32 Tile_Id = cmdVals[0].u;
+	u32 Block_Id = cmdVals[1].u;
+	u32 Enable;
+
+	*status = XRFdc_GetDACDataScaler(&RFdcInst, Tile_Id, Block_Id, &Enable);
+	if (*status == SUCCESS) {
+		sprintf(Response, " %zu %zu %zu ", (size_t)Tile_Id,
+			(size_t)Block_Id, (size_t)Enable);
 		strncat(txstrPtr, Response, BUF_MAX_LEN);
 	}
 	return;

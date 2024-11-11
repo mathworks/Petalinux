@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@
 #include "rfdc_interface.h"
 #include "gpio.h"
 #include "gpio_interface.h"
+#include "design.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -221,23 +222,13 @@ void GetMemInfoHw(u32 type, void *mem, u32 *num_tiles, u32 *num_mem,
 	*mem_clksel = 0;
 }
 
-void LocalMemTrigger_bram(u32 type, u32 tile_id, u32 block_id, u32 clksel,
-			  u32 numsamples, u32 rfdc_ch, int *status)
+static int GetInterruptStatus(u32 type, u32 tile_id, u32 block_id)
 {
-	void *memBaseAddr; /* AXI Base address */
-	u32 interrupt[16];
-	int i = 0;
+	int ret = SUCCESS;
+	u32 interrupt;
 
-	if (type == ADC) {
-		memBaseAddr = info.vaddr_adc;
-	} else {
-		memBaseAddr = info.vaddr_dac;
-	}
-
-	XRFdc_IntrClr(&RFdcInst, type, tile_id, block_id, 0xffffffff);
-	usleep(1);
-	XRFdc_GetIntrStatus(&RFdcInst, type, tile_id, block_id, &interrupt[i]);
-	if ((0x80000003 & interrupt[i]) != 0x00000000) {
+	XRFdc_GetIntrStatus(&RFdcInst, type, tile_id, block_id, &interrupt);
+	if ((0x80000003 & interrupt) != 0x00000000) {
 		if (type == ADC) {
 			metal_log(METAL_LOG_WARNING,
 				  "FIFO under/overflow on ADC Tile"
@@ -253,15 +244,32 @@ void LocalMemTrigger_bram(u32 type, u32 tile_id, u32 block_id, u32 clksel,
 				  "interpolation and Fabric width\r\n",
 				  tile_id, block_id);
 		}
-		*status |= WARN_EXECUTE;
+		ret = WARN_EXECUTE;
 		/* removing marginal FIFO over/underflow */
-	} else if ((0xfffffff2 & interrupt[i]) != 0x00000000) {
+	} else if ((0xfffffff2 & interrupt) != 0x00000000) {
 		metal_log(METAL_LOG_WARNING,
-			  "interrupt 0x%x on Tile %d Block %d, please check "
-			  "interrupt screen for details\r\n",
-			  interrupt[i], tile_id, block_id);
-		*status |= WARN_EXECUTE;
+			  "Interrupt 0x%x on %s Tile %d Block %d. "
+			  "Please try to clear the interrupt from the "
+			  "interrupt screen\r\n",
+			  interrupt, (type == XRFDC_ADC_TILE) ? "ADC" : "DAC",
+			  tile_id, block_id);
+		ret = WARN_EXECUTE;
 	}
+	return ret;
+}
+
+void LocalMemTrigger_bram(u32 type, u32 tile_id, u32 block_id, u32 clksel,
+			  u32 numsamples, u32 rfdc_ch, int *status)
+{
+	void *memBaseAddr; /* AXI Base address */
+
+	if (type == ADC) {
+		memBaseAddr = info.vaddr_adc;
+	} else {
+		memBaseAddr = info.vaddr_dac;
+	}
+
+	*status |= GetInterruptStatus(type, tile_id, block_id);
 	*status |= LocalMemTriggerHw(type, memBaseAddr, clksel, numsamples,
 				     rfdc_ch);
 }
@@ -283,20 +291,11 @@ void LocalMemTrigger(convData_t *cmdVals, char *txstrPtr, int *status)
 	int gpio_index;
 	unsigned int mem_type;
 	u32 start_dma = 1;
+	void *memBaseAddr;
 
 	*status = SUCCESS;
 
 	if (type == DAC) {
-		/*
-		 * channel mask is 0, so it is stop command.
-		 * Reset the pipies and clean-up DAC/ADC.
-		 */
-		if (rfdc_ch == 0 && (info.mem_type_dac != 0xF)) {
-			/* Reset DMA */
-			fsync((info.fd_dac[0]));
-			*status = SUCCESS;
-			return;
-		}
 		start_dma = 1;
 		/* Enable dac select gpio */
 		for (i = 0; i < MAX_DAC; i++) {
@@ -348,6 +347,8 @@ void LocalMemTrigger(convData_t *cmdVals, char *txstrPtr, int *status)
 						}
 						start_dma = 0;
 					}
+					*status |= GetInterruptStatus(
+						type, tile_id, block_id);
 				} else {
 					LocalMemTrigger_bram(type, tile_id,
 							     block_id, clksel,
@@ -355,6 +356,14 @@ void LocalMemTrigger(convData_t *cmdVals, char *txstrPtr, int *status)
 							     rfdc_ch, status);
 				}
 			}
+		}
+		/*
+		 * channel mask is 0, so it is stop command.
+		 * Reset the pipies and clean-up DAC/ADC.
+		 */
+		if (rfdc_ch == 0 && (info.mem_type_dac != 0xF)) {
+			/* Reset DMA */
+			fsync((info.fd_dac[0]));
 		}
 	} else {
 		for (i = 0; i < MAX_ADC; i++) {
@@ -364,6 +373,8 @@ void LocalMemTrigger(convData_t *cmdVals, char *txstrPtr, int *status)
 				mem_type = ((info.mem_type_adc &
 					     (1 << tile_id)) != 0);
 				if (mem_type == DDR) {
+					*status |= GetInterruptStatus(
+						type, tile_id, block_id);
 					continue;
 				} else {
 					LocalMemTrigger_bram(type, tile_id,
@@ -374,7 +385,16 @@ void LocalMemTrigger(convData_t *cmdVals, char *txstrPtr, int *status)
 			}
 		}
 	}
-
+	if (rfdc_ch == 0 &&
+	    ((info.mem_type_dac != 0) || (info.mem_type_adc != 0))) {
+		if (type == ADC) {
+			memBaseAddr = info.vaddr_adc;
+		} else {
+			memBaseAddr = info.vaddr_dac;
+		}
+		*status |= LocalMemTriggerHw(type, memBaseAddr, clksel,
+					     numsamples, rfdc_ch);
+	}
 	if (enTermMode) {
 		if (*status != SUCCESS) {
 			printf("localMemTrigger() failed\n\r");
@@ -392,7 +412,7 @@ void LocalMemTrigger(convData_t *cmdVals, char *txstrPtr, int *status)
 	}
 	return;
 err:
-	*status = FAIL;
+	*status |= FAIL;
 }
 
 /*
@@ -412,6 +432,15 @@ int LocalMemTriggerHw(u32 type, void *memBaseAddr, u8 clk_sel, u32 numsamples,
 	u8 Tile_Id = 0;
 	u8 num_block;
 	void *reg_addr;
+	u32 RTSTDDEnables, Offset;
+
+	/* HW_Trigger_en */
+	Offset = 0xC;
+	status |= Read32TDDRTSCtrlOffset(Offset, &RTSTDDEnables);
+	/* Trigger */
+	Offset = 0x18;
+	status |= Write32TDDRTSCtrlOffset(Offset, 0x1);
+	usleep(1000);
 
 	if (type == XRFDC_ADC_TILE) {
 		chMap = AdcMap;
@@ -443,6 +472,12 @@ int LocalMemTriggerHw(u32 type, void *memBaseAddr, u8 clk_sel, u32 numsamples,
 			}
 			mem_ids |= lmem_rd32(memBaseAddr + LMEM_ENABLE) |
 				   (0x01 << (chMap[i].Channel_I));
+
+			if ((type == XRFDC_ADC_TILE) &&
+			    ((RTSTDDEnables >> Tile_Id) & 0x1)) {
+				Offset = 0x18;
+				status |= Write32TDDRTSCtrlOffset(Offset, 0x0);
+			}
 		}
 		j++;
 	}
@@ -551,24 +586,35 @@ void SetLocalMemSample(convData_t *cmdVals, char *txstrPtr, int *status)
 			*status |= FAIL;
 		}
 		SampleRate = 1000 * PLLSettings.SampleRate;
-		Effective_FS = SampleRate / (double)InterDecim;
-		*status |= XRFdc_GetMixerSettings(&RFdcInst, type, tile_id,
-						  block_id, &Mixer_Settings);
+		if (InterDecim != 0) {
+			Effective_FS = SampleRate / (double)InterDecim;
+		} else {
+			Effective_FS = 0;
+		}
 		if (type == XRFDC_DAC_TILE) {
-			if ((4 == DataPathMode) ||
-			    (Mixer_Settings.MixerMode ==
-			     XRFDC_MIXER_MODE_R2R) ||
-			    (Mixer_Settings.MixerMode ==
-			     XRFDC_MIXER_MODE_R2C) ||
-			    (Mixer_Settings.MixerType ==
-				     XRFDC_MIXER_TYPE_COARSE &&
-			     Mixer_Settings.CoarseMixFreq ==
-				     XRFDC_COARSE_MIX_BYPASS)) {
+			if (4 == DataPathMode) {
 				DataIQ = 1.0;
 			} else {
-				DataIQ = 2.0;
+				*status |= XRFdc_GetMixerSettings(
+					&RFdcInst, type, tile_id, block_id,
+					&Mixer_Settings);
+				if ((Mixer_Settings.MixerMode ==
+				     XRFDC_MIXER_MODE_R2R) ||
+				    (Mixer_Settings.MixerMode ==
+				     XRFDC_MIXER_MODE_R2C) ||
+				    (Mixer_Settings.MixerType ==
+					     XRFDC_MIXER_TYPE_COARSE &&
+				     Mixer_Settings.CoarseMixFreq ==
+					     XRFDC_COARSE_MIX_BYPASS)) {
+					DataIQ = 1.0;
+				} else {
+					DataIQ = 2.0;
+				}
 			}
 		} else {
+			*status |= XRFdc_GetMixerSettings(&RFdcInst, type,
+							  tile_id, block_id,
+							  &Mixer_Settings);
 			if (!XRFdc_IsHighSpeedADC(&RFdcInst, tile_id) &&
 			    ((Mixer_Settings.MixerMode ==
 			      XRFDC_MIXER_MODE_R2R) ||
@@ -581,7 +627,11 @@ void SetLocalMemSample(convData_t *cmdVals, char *txstrPtr, int *status)
 				DataIQ = 2.0;
 			}
 		}
-		Effective_FS = SampleRate / (double)InterDecim;
+		if (InterDecim != 0) {
+			Effective_FS = SampleRate / (double)InterDecim;
+		} else {
+			Effective_FS = 0;
+		}
 		Max_Effective_Fs_Limit /= DataIQ;
 		if (Effective_FS > Max_Effective_Fs_Limit) {
 			metal_log(METAL_LOG_ERROR,
@@ -619,8 +669,9 @@ void SetLocalMemSample(convData_t *cmdVals, char *txstrPtr, int *status)
 	if (type == ADC && !XRFdc_IsHighSpeedADC(&RFdcInst, tile_id)) {
 		XRFdc_GetMixerSettings(&RFdcInst, type, tile_id, block_id,
 				       &Mixer_Settings);
-		if (!(Mixer_Settings.CoarseMixFreq == XRFDC_COARSE_MIX_BYPASS &&
-		      Mixer_Settings.MixerType == XRFDC_MIXER_TYPE_COARSE)) {
+		if ((Mixer_Settings.MixerMode != XRFDC_MIXER_MODE_R2R) ||
+		    (!(Mixer_Settings.CoarseMixFreq == XRFDC_COARSE_MIX_BYPASS &&
+		       Mixer_Settings.MixerType == XRFDC_MIXER_TYPE_COARSE))) {
 			numsamples_channel = numsamples * 2;
 		}
 	}
@@ -640,15 +691,6 @@ void SetLocalMemSample(convData_t *cmdVals, char *txstrPtr, int *status)
 			  " Block Id %d\r\n",
 			  tile_id, block_id);
 		*status |= FAIL;
-	}
-
-	if (numsamples_channel !=
-	    ((u32)(numsamples_channel / FifoWidth)) * FifoWidth) {
-		metal_log(METAL_LOG_WARNING,
-			  "Sample size must be a multiple of the fifo width %d"
-			  " for Tile Id %d Block Id %d\r\n",
-			  FifoWidth, tile_id, block_id);
-		*status |= WARN_EXECUTE;
 	}
 
 	/* Write the registers */

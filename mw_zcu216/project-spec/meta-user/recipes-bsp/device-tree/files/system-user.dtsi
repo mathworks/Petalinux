@@ -3,7 +3,6 @@
 
 /delete-node/ &axi_dmac_mm2s;
 /delete-node/ &axi_dmac_s2mm;
-/delete-node/ &mw_ip_tes_ip_0;
 
 /* MathWorks AXI-DMA & AXI-lite nodes */
 #include "axistream.dtsi"

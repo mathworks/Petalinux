@@ -1,34 +1,36 @@
 /******************************************************************************
-*
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in
-* all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-* THE SOFTWARE.
-*
-******************************************************************************/
-#include "common.h"
+ *
+ * Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ ******************************************************************************/
 #include "design.h"
+#include "cmd_interface.h"
+#include "common.h"
 #include "data_interface.h"
 #include "rfdc_interface.h"
-#include "cmd_interface.h"
 #include "tcp_interface.h"
 #include <stdio.h>
 #include <string.h>
+
+#define XPAR_EXDES_TDDRTSCTRL_0_BASEADDR 0xB0200000
 
 extern XRFdc RFdcInst;
 extern int enTermMode;
@@ -134,25 +136,25 @@ void SetMMCMReg(convData_t *cmdVals, char *txstrPtr, int *status)
 
 	*status = SUCCESS;
 	/* Check we are not trying to program the MMCM with invalid values */
-	if (Mult_frac > 875 || Mult_frac % 125 != 0) {
+	if (Mult_frac < 0 || Mult_frac > 875 || Mult_frac % 125 != 0) {
 		metal_log(
 			METAL_LOG_ERROR,
 			"\n Invalid Fractional multiplier %d, must be multiple"
 			" of 125 \r\n",
 			Mult_frac);
-		*status = FAIL;
+		*status |= FAIL;
 	}
-	if (clkout0_frac > 750 || clkout0_frac % 125 != 0) {
+	if (clkout0_frac < 0 || clkout0_frac > 875 || clkout0_frac % 125 != 0) {
 		metal_log(METAL_LOG_ERROR,
 			  "\n Invalid Fractional divider %d, must be multiple"
 			  " of 125 \r\n",
 			  clkout0_frac);
-		*status = FAIL;
+		*status |= FAIL;
 	}
 	if (Div == 0) {
 		metal_log(METAL_LOG_ERROR,
 			  "\n Invalid Divider D %d, cannot be 0 \r\n", Div);
-		*status = FAIL;
+		*status |= FAIL;
 	}
 	if (*status == SUCCESS) {
 		MMCM_Lock = MMCM_Reprog_HW(Type, Tile_Id, Mult, Mult_frac, Div,
@@ -178,7 +180,6 @@ u32 MMCM_Reprog_HW(u32 Type, int Tile_Id, u32 Mult, u32 Mult_frac, u32 Div,
 	void *BaseAddr;
 	u32 MMCM_Lock = 0;
 	/* XRFdc_GetMTSEnable(&RFdcInst, Type, Tile_Id, &MTSEnable); */
-
 	if (Type == ADC) {
 		if (info.mts_enable_adc_mask & (0x1 << Tile_Id)) {
 			Tile_Id = 0;
@@ -206,6 +207,8 @@ u32 MMCM_Reprog_HW(u32 Type, int Tile_Id, u32 Mult, u32 Mult_frac, u32 Div,
 			return ERROR_EXECUTE;
 		}
 	} else {
+		printf("info.mts_enable_dac_mask = %d Tile_Id = %d\n",
+		       info.mts_enable_dac_mask, Tile_Id);
 		switch (Tile_Id) {
 		case 0:
 			BaseAddr = info.clk_wiz_dac0;
@@ -379,6 +382,11 @@ void SetMMCM(convData_t *cmdVals, char *txstrPtr, int *status)
 	u32 Div;
 	u8 found_ratio = 0;
 
+	while (XRFdc_CheckDigitalPathEnabled(&RFdcInst, Type, Tile_Id,
+					     Block_Id) == 1 &&
+	       Block_Id < 4) {
+		Block_Id++;
+	}
 	/* TODO: Look at reducing the equation by negating. */
 	u32 ConstDivider = ((Type == XRFDC_ADC_TILE &&
 			     RFdcInst.RFdc_Config.IPType < XRFDC_GEN3 &&
@@ -393,7 +401,7 @@ void SetMMCM(convData_t *cmdVals, char *txstrPtr, int *status)
 	u32 clkout0_div = 1;
 	u16 MMCM_Lock = 0;
 	int Fpdmax = 450; /* This covers MMCM (-1=450, -2=500)
-		             and PLL (667.5) cf. datasheet */
+                       and PLL (667.5) cf. datasheet */
 	int Fpdmin = 70;
 	int FvcoMax = 1500; /* MMCM = 1600, PLL = 1500 */
 	int FvcoMin = 800;
@@ -456,8 +464,8 @@ void SetMMCM(convData_t *cmdVals, char *txstrPtr, int *status)
 	Fplin = FDCout;
 	MMCMFin[4 * Type + Tile_Id] = (u32)(1000 * FDCout);
 	/* Must respect FdcIn_Expected * D*clkdiv=M*Fplin, that is
-	   Fratio_N = FdcIn_Expected and Fratio_D=Fplin
-	   or Fratio_N = Fabclkdic*Cst and Fratio_D=interdecim*Wpl */
+     Fratio_N = FdcIn_Expected and Fratio_D=Fplin
+     or Fratio_N = Fabclkdic*Cst and Fratio_D=interdecim*Wpl */
 	Div_Min = (Fplin > Fpdmax) ?
 			  2 :
 			  1; /* Div min can only be 1 or 2 in our case. */
@@ -499,10 +507,11 @@ void SetMMCM(convData_t *cmdVals, char *txstrPtr, int *status)
 					found_ratio = 1;
 					goto end;
 				} /* that is when we find
-				     Fratio_N/Fratio_D == Mult/D/Clkout0_Div */
+             Fratio_N/Fratio_D == Mult/D/Clkout0_Div */
 			}
 		}
 	}
+
 end:
 	if (Mult < 2 || Mult > 128) {
 		metal_log(METAL_LOG_ERROR,
@@ -512,6 +521,15 @@ end:
 			  Mult);
 		*status |= FAIL;
 	}
+	if (FRatio * Fplin < 6.25) {
+		metal_log(
+			METAL_LOG_ERROR,
+			"\nMMCM spec violation %s Tile %d: Output frequency %f < 6.25MHz is too low, may be due to interpolation/decimation too high\r\n",
+			(Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
+			FRatio * Fplin);
+		*status |= FAIL;
+	}
+
 	if (found_ratio == 0) {
 		metal_log(METAL_LOG_ERROR,
 			  "\nCould not find MMCM/PLL ratio for %s Tile %d "
@@ -521,7 +539,7 @@ end:
 		*status |= FAIL;
 	}
 	/* Check the VCO frequency and MMCM input freq is ok
-	   before ruining the MMCM */
+     before ruining the MMCM */
 	if (Fplin < 10) {
 		metal_log(METAL_LOG_ERROR,
 			  "\nMMCM %s Tile %d specification violation: Fin=%f"
@@ -589,6 +607,11 @@ void GetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 	char Response[BUF_MAX_LEN] = { 0 };
 	u32 Type = cmdVals[0].u;
 	u32 Tile_Id = cmdVals[1].i;
+	if (Type == ADC) {
+		if (info.mts_enable_adc_mask & (0x1 << Tile_Id)) {
+			Tile_Id = 0;
+		}
+	}
 	*status = SUCCESS;
 	sprintf(Response, " %u  ", MMCMFin[(4 * Type) + Tile_Id]);
 	strncat(txstrPtr, Response, BUF_MAX_LEN);
@@ -600,7 +623,7 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 	u32 Type = cmdVals[0].u;
 	u32 Tile_Id = cmdVals[1].i;
 	u32 Fplin = cmdVals[2].u;
-	MMCMFin[4 * Type + Tile_Id] = cmdVals[2].u;
+
 	XRFdc_PLL_Settings PLLSettings;
 	XRFdc_Mixer_Settings Mixer_Settings;
 	u32 DataIQ = 1; /* 1 is real, 2 is IQ */
@@ -628,12 +651,18 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 	u32 clkout0_div = 1;
 	u16 MMCM_Lock = 0;
 	u32 Fpdmax = 450000; /* This covers MMCM (-1=450, -2=500) and
-		             PLL (667.5) cf. datasheet */
+                       PLL (667.5) cf. datasheet */
 	u32 Fpdmin = 70000;
 	u32 FvcoMax = 1500000; /* MMCM = 1600, PLL = 1500 */
 	u32 FvcoMin = 800000;
 	u32 FoutMin = 6250; /* Minimum MMMCM output frequency in kHz. */
+	u32 FoutMax;
 
+	while (XRFdc_CheckDigitalPathEnabled(&RFdcInst, Type, Tile_Id,
+					     Block_Id) == 1 &&
+	       Block_Id < 4) {
+		Block_Id++;
+	}
 	/* get the Tile and block settings */
 	*status = XRFdc_GetPLLConfig(&RFdcInst, Type, Tile_Id, &PLLSettings);
 
@@ -648,6 +677,9 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 			*status |= XRFdc_GetDataPathMode(
 				&RFdcInst, Tile_Id, Block_Id, &DataPathMode);
 		}
+		FoutMax = RFdcInst.RFdc_Config.IPType < XRFDC_GEN3 ?
+				  500000 :
+				  ((DataPathMode == 4) ? 625000 : 614000);
 		if (DataPathMode != 4) {
 			*status |= XRFdc_GetMixerSettings(&RFdcInst, Type,
 							  Tile_Id, Block_Id,
@@ -669,6 +701,8 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 			DataIQ = 2;
 		}
 	} else {
+		FoutMax = RFdcInst.RFdc_Config.IPType < XRFDC_GEN3 ? 520000 :
+								     614000;
 		Wpl = RdWidth;
 		XRFdc_GetDecimationFactor(&RFdcInst, Tile_Id, Block_Id,
 					  &InterDecim);
@@ -687,8 +721,9 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 	/* set the relevant parameters */
 	SampleRate = 1000000 * PLLSettings.SampleRate;
 	/* Must respect FdcIn_Expected * D*clkdiv=M*Fplin, that is
-	   Fratio_N = FdcIn_Expected and Fratio_D=Fplin
-	   or Fratio_N = Fabclkdic*Cst and Fratio_D=interdecim*Wpl */
+     Fratio_N = FdcIn_Expected and Fratio_D=Fplin
+     or Fratio_N = Fabclkdic*Cst and Fratio_D=interdecim*Wpl */
+	FDCout = Fplin;
 	Div_Min = (((u32)Fplin) > Fpdmax) ?
 			  2 :
 			  1; /* Div min can only be 1 or 2 in our case. */
@@ -705,7 +740,6 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 			Fplin, Fpdmin);
 	}
 
-	i = 0;
 	u32 Fratio_N;
 	u32 Fratio_D;
 
@@ -713,25 +747,27 @@ void SetmmcmFin(convData_t *cmdVals, char *txstrPtr, int *status)
 	Fratio_D = InterDecim * Wpl * Fplin;
 	FRatio = Fratio_N / (double)Fratio_D;
 	/* Try to find a clkout0_div that matches the ratio */
-	for (Div = Div_Min; Div <= Div_Max; Div++) {
-		if ((u32)(FvcoMin * Div / Fplin) == FvcoMin * Div / Fplin) {
-			Mult_Min =
-				(u32)(FvcoMin * Div / Fplin); /* Max VCO freq */
+	for (Div = Div_Min; Div <= Div_Max + 1; Div++) {
+		if ((u32)(FvcoMin * Div / (double)Fplin) ==
+		    FvcoMin * Div / (double)Fplin) {
+			Mult_Min = (u32)(FvcoMin * Div /
+					 Fplin); /* Max VCO freq */
 		} else {
 			Mult_Min = (u32)(1 + FvcoMin * Div / Fplin);
 		}
 		Mult_Max = (u32)(FvcoMax * Div / Fplin);
 		for (Mult = Mult_Max; Mult >= Mult_Min; Mult--) {
 			for (i = 1; i <= 128; i++) {
-				if ((Div * Fratio_N * i) == (Mult * Fratio_D)) {
+				if (Div * Fratio_N * i == Mult * Fratio_D) {
 					clkout0_div = i;
 					found_ratio = 1;
 					goto end;
 				} /* that is when we find
-				     Fratio_N/Fratio_D == Mult/D/Clkout0_Div */
+             Fratio_N/Fratio_D == Mult/D/Clkout0_Div */
 			}
 		}
 	}
+
 end:
 	if (Mult < 2 || Mult > 128) {
 		metal_log(METAL_LOG_ERROR,
@@ -760,7 +796,7 @@ end:
 		*status |= FAIL;
 	}
 	/* Check the VCO frequency and MMCM input freq is ok before
-	   ruining the MMCM */
+     ruining the MMCM */
 	if (Fplin < 10) {
 		metal_log(METAL_LOG_ERROR,
 			  "\nMMCM %s Tile %d specification violation: Fin=%f"
@@ -789,13 +825,22 @@ end:
 			  clkout0_div);
 		*status |= FAIL;
 	}
-	if ((1000 * Fplin * Mult / (double)(Div * clkout0_div) < FoutMin)) {
-		metal_log(METAL_LOG_ERROR,
-			  "\nMMCM %s Tile %d specification violation: "
-			  "Fout=%fkHz<%dkHz, M=%d, Div=%d, clkout0div=%d\r\n",
-			  (Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
-			  1000 * Fplin * Mult / (double)(Div * clkout0_div),
-			  FoutMin, Mult, Div, clkout0_div);
+	if ((Fplin * Mult / (double)(Div * clkout0_div) < FoutMin)) {
+		metal_log(
+			METAL_LOG_ERROR,
+			"\nMMCM %s Tile %d specification violation: Fout=%fkHz<%dkHz, M=%d, Div=%d, clkout0div=%d\r\n",
+			(Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
+			Fplin * Mult / (double)(Div * clkout0_div), FoutMin,
+			Mult, Div, clkout0_div);
+		*status |= FAIL;
+	}
+	if ((Fplin * Mult / (double)(Div * clkout0_div) > FoutMax)) {
+		metal_log(
+			METAL_LOG_ERROR,
+			"\nMMCM %s Tile %d specification violation: Fout=%fkHz>%dkHz, M=%d, Div=%d, clkout0div=%d\r\n",
+			(Type == XRFDC_ADC_TILE) ? "ADC" : "DAC", Tile_Id,
+			Fplin * Mult / (double)(Div * clkout0_div), FoutMax,
+			Mult, Div, clkout0_div);
 		*status |= FAIL;
 	}
 	/* Reprogram the MMMCM */
@@ -803,6 +848,7 @@ end:
 		usleep(200);
 		(void)MMCM_Reprog_HW(Type, Tile_Id, Mult, 0, Div, clkout0_div,
 				     Clk0DivFrac);
+		MMCMFin[4 * Type + Tile_Id] = cmdVals[2].u;
 		usleep(200);
 		MMCM_Lock = MMCM_Rst_HW(Type, Tile_Id);
 		if (!MMCM_Lock) {
@@ -842,4 +888,313 @@ end:
 			clkout0_div, Clk0DivFrac);
 		strncat(txstrPtr, Response, BUF_MAX_LEN);
 	}
+}
+
+int Write32TDDRTSCtrlOffset(u32 offset, u32 value)
+{
+	int fd;
+	int ret = SUCCESS;
+	void *base_tddrtsctrl;
+
+	fd = open("/dev/mem", O_RDWR | O_NDELAY);
+	if (fd < 0) {
+		perror("/dev/mem open failed: ");
+		printf("%s: device open error\n", __func__);
+		ret = FAIL;
+	}
+	base_tddrtsctrl =
+		mmap(NULL, (MAP_SIZE * 2), PROT_READ | PROT_WRITE, MAP_SHARED,
+		     info.fd, ((XPAR_EXDES_TDDRTSCTRL_0_BASEADDR) & ~MAP_MASK));
+	if (base_tddrtsctrl == MAP_FAILED) {
+		perror("mmap failed: ");
+		printf("%s: Error mmapping the TDDRTSCTRL\n", __func__);
+		close(fd);
+		ret = FAIL;
+	}
+	*(u32 *)(base_tddrtsctrl + (offset & MAP_MASK)) = value;
+	if (FAIL == ret) {
+		metal_log(
+			METAL_LOG_ERROR,
+			"Failed to write to XPAR_EXDES_TDDRTSCTRL register\n");
+	}
+	close(fd);
+	return ret;
+}
+
+int Read32TDDRTSCtrlOffset(u32 offset, u32 *value)
+{
+	int fd;
+	int ret = SUCCESS;
+	void *base_tddrtsctrl;
+
+	fd = open("/dev/mem", O_RDWR | O_NDELAY);
+	if (fd < 0) {
+		perror("/dev/mem open failed: ");
+		printf("%s: device open error\n", __func__);
+		ret = FAIL;
+	}
+	base_tddrtsctrl =
+		mmap(NULL, (MAP_SIZE * 2), PROT_READ | PROT_WRITE, MAP_SHARED,
+		     info.fd, ((XPAR_EXDES_TDDRTSCTRL_0_BASEADDR) & ~MAP_MASK));
+	if (base_tddrtsctrl == MAP_FAILED) {
+		perror("mmap failed: ");
+		printf("%s: Error mmapping the TDDRTSCTRL\n", __func__);
+		close(fd);
+		ret = FAIL;
+	}
+	*value = *(u32 *)(base_tddrtsctrl + (offset & MAP_MASK));
+	if (FAIL == ret) {
+		metal_log(
+			METAL_LOG_ERROR,
+			"Failed to read from XPAR_EXDES_TDDRTSCTRL register\n");
+	}
+	close(fd);
+	return ret;
+}
+
+void SetTDDRTSPinCtrl(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Type;
+	u32 TDD_ModePin;
+	u32 Offset;
+
+	Type = cmdVals[0].u;
+	TDD_ModePin = cmdVals[1].u;
+
+	/* Set TDD mode pins to assert on trigger */
+	if (Type == XRFDC_ADC_TILE) {
+		Offset = 0x4;
+	} else {
+		Offset = 0x0;
+	}
+	*status = Write32TDDRTSCtrlOffset(Offset, TDD_ModePin);
+
+	return;
+}
+
+void GetTDDRTSPinCtrl(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	u32 Type;
+	u32 Offset;
+	u32 ReadReg;
+
+	Type = cmdVals[0].u;
+	if (Type == XRFDC_ADC_TILE) {
+		Offset = 0x4;
+	} else {
+		Offset = 0x0;
+	}
+	*status = Read32TDDRTSCtrlOffset(Offset, &ReadReg);
+	sprintf(Response, " 0x%08X  ", ReadReg);
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	return;
+}
+/* Get/Set the trigger delay for ADC per tile.
+   This is the delay between the tdd trigger (from SetTDDRTSTrigSlot) to
+   the hw_trigger of the capture memory
+   In AXI control clock cycles (slow clock), then resync to tile clock.
+*/
+
+void GetTDDRTSTrigDelay(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	u32 Tile_Id;
+	u32 Trig_Delay;
+	u32 Offset;
+	Tile_Id = cmdVals[0].u;
+
+	Offset = 0x30 + 4 * Tile_Id;
+	*status = Read32TDDRTSCtrlOffset(Offset, &Trig_Delay);
+	sprintf(Response, " %zu  ", (size_t)Trig_Delay);
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	return;
+}
+
+void SetTDDRTSTrigDelay(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Tile_Id;
+	u32 Trig_Delay;
+	u32 Offset;
+
+	Tile_Id = cmdVals[0].u;
+	Trig_Delay = cmdVals[1].u;
+
+	/* Set trigger delay regs, 1 per tile */
+	Offset = 0x30 + (4 * Tile_Id);
+	*status = Write32TDDRTSCtrlOffset(Offset, Trig_Delay);
+	return;
+}
+
+/* Get/Set the trigger.
+0: we stop triggering the memory automatically via hw_trigger
+1: we enable triggering of capture memory.s
+
+*/
+void SetTDDRTSTrig(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Trig;
+	u32 Offset;
+	Trig = cmdVals[0].u;
+
+	Offset = 0x18;
+	*status = Write32TDDRTSCtrlOffset(Offset, Trig);
+	return;
+}
+void GetTDDRTSTrig(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	u32 Trig;
+	u32 Offset;
+
+	Offset = 0x18;
+	*status = Read32TDDRTSCtrlOffset(Offset, &Trig);
+	sprintf(Response, " %zu  ", (size_t)Trig);
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	return;
+}
+
+/* get/set which ofdm frame and symbol to trigger on
+ */
+void SetTDDRTSTrigSlot(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 trig_symbol;
+	u32 trig_ofdm;
+	u32 Offset;
+
+	trig_symbol = cmdVals[0].u;
+	trig_ofdm = cmdVals[1].u;
+	Offset = 0x10;
+	*status |= Write32TDDRTSCtrlOffset(Offset, trig_symbol);
+	Offset = 0x14;
+	*status |= Write32TDDRTSCtrlOffset(Offset, trig_ofdm);
+	return;
+}
+
+void GetTDDRTSTrigSlot(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	u32 trig_symbol;
+	u32 trig_ofdm;
+	u32 Offset;
+
+	Offset = 0x10;
+	*status |= Read32TDDRTSCtrlOffset(Offset, &trig_symbol);
+	Offset = 0x14;
+	*status |= Read32TDDRTSCtrlOffset(Offset, &trig_ofdm);
+	sprintf(Response, " %zu %zu  ", (size_t)trig_symbol, (size_t)trig_ofdm);
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	return;
+}
+
+/* Get/set configuration of guard band, symbol length and slot
+ * configuration (UL/DL).
+
+*/
+void GetTDDRTSSlot(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	u32 Guard_Length;
+	u32 Symbol_Length;
+	u32 Slot_Config;
+	u32 Offset;
+
+	*status = SUCCESS;
+	Offset = 0x48;
+	*status |= Read32TDDRTSCtrlOffset(Offset, &Guard_Length);
+	Offset = 0x4C;
+	*status |= Read32TDDRTSCtrlOffset(Offset, &Symbol_Length);
+	Offset = 0x50;
+	*status |= Read32TDDRTSCtrlOffset(Offset, &Slot_Config);
+	sprintf(Response, " %zu %zu 0x%08X ", (size_t)Guard_Length,
+		(size_t)Symbol_Length, Slot_Config);
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	return;
+}
+void SetTDDRTSSlot(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Guard_Length;
+	u32 Symbol_Length;
+	u32 Slot_Config;
+	u32 Offset;
+
+	Guard_Length = cmdVals[0].u;
+	Symbol_Length = cmdVals[1].u;
+	Slot_Config = cmdVals[2].u;
+
+	/* Set Guard Length of OFDM Symbol
+     Length of time in symbol before enabling UL/DL slot */
+	Offset = 0x48;
+	if (Guard_Length != 0) {
+		Guard_Length = Guard_Length - 1;
+	}
+	*status |= Write32TDDRTSCtrlOffset(Offset, Guard_Length);
+
+	/* Set Symbol Length of OFDM Symbol
+     Total length of OFDM Symbol
+     Max 2^17 */
+	Offset = 0x4C;
+	if (Symbol_Length != 0) {
+		Symbol_Length = Symbol_Length - 1;
+	}
+	*status |= Write32TDDRTSCtrlOffset(Offset, Symbol_Length);
+
+	/* Set slot configuration
+     10 symbols per slot
+     1 bit per symbol
+     DL = 0 UL = 1 */
+	Offset = 0x50;
+	*status |= Write32TDDRTSCtrlOffset(Offset, Slot_Config);
+
+	return;
+}
+
+/* enable/disable the hw_trigger_en on capture mem, per tile
+ */
+void GetTDDRTSEnables(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	u32 Enable;
+	u32 Offset;
+
+	Offset = 0xC;
+	*status = Read32TDDRTSCtrlOffset(Offset, &Enable);
+	sprintf(Response, " 0x%08X  ", Enable);
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	return;
+}
+
+void SetTDDRTSEnables(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Enable;
+	u32 Offset;
+
+	Enable = cmdVals[0].u;
+	Offset = 0xC;
+	*status = Write32TDDRTSCtrlOffset(Offset, Enable);
+	return;
+}
+/* reset
+ */
+void GetTDDRTSRst(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	char Response[BUF_MAX_LEN] = { 0 };
+	u32 Rst;
+	u32 Offset;
+	Offset = 0x8;
+	*status = Read32TDDRTSCtrlOffset(Offset, &Rst);
+
+	sprintf(Response, " %zu  ", (size_t)Rst);
+	strncat(txstrPtr, Response, BUF_MAX_LEN);
+	return;
+}
+
+void SetTDDRTSRst(convData_t *cmdVals, char *txstrPtr, int *status)
+{
+	u32 Offset;
+	u32 Rst = cmdVals[0].u;
+
+	Offset = 0x8;
+	*status = Write32TDDRTSCtrlOffset(Offset, Rst);
+	return;
 }

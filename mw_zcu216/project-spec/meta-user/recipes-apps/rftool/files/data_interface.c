@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -434,7 +434,7 @@ int WriteDataToMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 			"Requested size is bigger than available"
 			" size(%d samples), tile %d block %u\n",
 			FIFO_SIZE / 2, tile_id, block_id);
-		goto err;
+		goto flush_datapath;
 	}
 	if ((size == 0) || (size % ADC_DAC_SZ_ALIGNMENT) != 0) {
 		ret = INVAL_ARGS;
@@ -442,13 +442,13 @@ int WriteDataToMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 					 "size should be multiples of 16"
 					 " samples, tile %d block %u\n",
 					 tile_id, block_id);
-		goto err;
+		goto flush_datapath;
 	}
 	base_dac = (unsigned char *)malloc(sizeof(char) * size);
 	if (base_dac == NULL) {
 		printf("failed to allocate memory, tile %d block %u\n", tile_id,
 		       block_id);
-		goto err;
+		goto flush_datapath;
 	}
 	memset(base_dac, 0, size);
 	paddr_dac = DacMap[tile_id * 4 + block_id].addr_I;
@@ -459,12 +459,9 @@ int WriteDataToMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 		printf("%s: Error mmapping the file, tile %d block %u\n",
 		       __func__, tile_id, block_id);
 		free(base_dac);
-		goto err;
+		goto flush_datapath;
 	}
 	vaddr_dac = (signed int *)bram_base_dac;
-
-	for (i = 0; i < size / 4; i++)
-		vaddr_dac[i] = 0;
 
 	/* get data from socket */
 	ret = getSamples((base_dac), size);
@@ -500,6 +497,8 @@ int WriteDataToMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 		goto err;
 	}
 	return 0;
+flush_datapath:
+	flush_datapath_read(size);
 err:
 	return ret;
 }
@@ -519,6 +518,7 @@ int WriteDataToMemory_ddr(u32 block_id, int tile_id, u32 size, u32 il_pair)
 			" %d in tile %d block %u\n",
 			size >> 1, DAC_MAP_SZ >> 1, tile_id, block_id);
 		in_val_len = 1;
+		goto flush_datapath;
 	}
 	if ((size == 0) || ((size % ADC_DAC_SZ_ALIGNMENT) != 0)) {
 		ret = INVAL_ARGS;
@@ -528,6 +528,7 @@ int WriteDataToMemory_ddr(u32 block_id, int tile_id, u32 size, u32 il_pair)
 			" tile %d block %u\n",
 			size >> 1, tile_id, block_id);
 		in_val_len = 1;
+		goto flush_datapath;
 	}
 
 	/* extract DAC number from tile_id and block_id */
@@ -551,6 +552,8 @@ int WriteDataToMemory_ddr(u32 block_id, int tile_id, u32 size, u32 il_pair)
 	}
 	info.channel_size[dac] = size;
 	return 0;
+flush_datapath:
+	flush_datapath_read(size);
 err:
 	return ret;
 }
@@ -610,6 +613,9 @@ int ReadDataFromMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 	void *bram_base_adc_I, *bram_base_adc_Q;
 	void *buffer_qi;
 	XRFdc_Mixer_Settings Mixer_Settings;
+#ifdef XPS_BOARD_ZCU208
+	u32 IQMode;
+#endif
 
 	if (il_pair > 1) {
 		ret = INVAL_ARGS;
@@ -620,6 +626,33 @@ int ReadDataFromMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 			tile_id, block_id);
 		goto err;
 	}
+#ifdef XPS_BOARD_ZCU208
+	ret = XRFdc_GetMixerSettings(&RFdcInst, ADC, tile_id, block_id,
+				     &Mixer_Settings);
+	if (FAIL == ret) {
+		MetalLoghandler_firmware(ret,
+					 "Error from XRFdc_GetMixerSettings, "
+					 " ADC Tile_Id = %d Block_Id = %u\n",
+					 tile_id, block_id);
+		goto err;
+	}
+	if ((Mixer_Settings.MixerMode == XRFDC_MIXER_MODE_R2R) ||
+	    ((Mixer_Settings.MixerType == XRFDC_MIXER_TYPE_COARSE) &&
+	     (Mixer_Settings.CoarseMixFreq == XRFDC_COARSE_MIX_BYPASS))) {
+		IQMode = 0;
+	} else {
+		IQMode = 1;
+	}
+	if ((IQMode) ? (size > FIFO_SIZE * 2) : (size > FIFO_SIZE)) {
+		ret = INVAL_ARGS;
+		MetalLoghandler_firmware(
+			ret,
+			"Requested size is bigger than available"
+			" (%d samples), tile %d block %u\n",
+			FIFO_SIZE / 2, tile_id, block_id);
+		goto err;
+	}
+#else
 	if ((il_pair) ? (size > FIFO_SIZE * 2) : (size > FIFO_SIZE)) {
 		ret = INVAL_ARGS;
 		MetalLoghandler_firmware(
@@ -629,6 +662,7 @@ int ReadDataFromMemory_bram(u32 block_id, int tile_id, u32 size, u32 il_pair)
 			FIFO_SIZE / 2, tile_id, block_id);
 		goto err;
 	}
+#endif
 	if ((size == 0) || (size % ADC_DAC_SZ_ALIGNMENT) != 0) {
 		ret = INVAL_ARGS;
 		MetalLoghandler_firmware(
@@ -763,7 +797,6 @@ int ReadDataFromMemory_ddr(u32 block_id, int tile_id, u32 size, u32 il_pair)
 	u32 size_mod;
 	void *buffer_iq;
 #endif
-
 	if (size > ADC_MAP_SZ) {
 		ret = INVAL_ARGS;
 		MetalLoghandler_firmware(
@@ -883,7 +916,7 @@ int ReadDataFromMemory_ddr(u32 block_id, int tile_id, u32 size, u32 il_pair)
 	       map_adc + ADC_DMABUF_SKIP_AREA + size_integer, size_mod / 2);
 	memcpy(buffer_iq + size_integer + size_mod / 2,
 	       map_adc + ADC_DMABUF_SKIP_AREA + size_integer +
-		       (SAMPLE_DMA_ALIGN / 2),
+		       (SAMPLE_ALIGN / 2),
 	       size_mod / 2);
 	ret = sendSamples(buffer_iq, (size * sizeof(signed char)));
 
