@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -54,6 +54,15 @@ int enTermMode = 1;
 convData_t cmdArrgs[MAX_CMD_VALS]; /* array of typedef convData_t */
 convData_t data_cmdArrgs[MAX_CMD_VALS]; /* array of typedef convData_t */
 
+typedef struct RftoolLogStruct {
+	char metalMsgBuf[BUF_MAX_LEN];
+	int metalMsgIdx;
+	pthread_mutex_t mutex;
+	unsigned int metalMsgBuf_CurrIndex;
+	bool overflow;
+} RftoolLogStruct;
+
+RftoolLogStruct RftoolLog = { { 0 }, 0, PTHREAD_MUTEX_INITIALIZER, 0, false };
 /* Buffer message from metal_log, The handler append new message to the buffer
  */
 /* The buffer is cleared following a read log command */
@@ -152,6 +161,7 @@ CMDSTRUCT cmdtab[] = {
 	  "ui", *GetDACPower },
 	{ "StartUp", "<Type> <Tile_id> |-> StartUp", "ui", *StartUp },
 	{ "Shutdown", "<Type> <Tile_id> |-> Shutdown", "ui", *Shutdown },
+	{ "CustomStartUp", "", "uiuu", *CustomStartUp },
 	{ "RfdcVersion", "<Void> |-> RfdcVersion revision", "", *RfdcVersion },
 	{ "Version", "<Void> |-> Version revision", "", *Version },
 	{ "CheckImage", "<Void> |-> CheckImage ", "", *CheckImage },
@@ -197,9 +207,11 @@ CMDSTRUCT cmdtab[] = {
 	  "<Tile_id> <Block_id> |-> GetDecimationFactor "
 	  "<Tile_id> <Block_id> <DecimationFactor>",
 	  "iu", *GetDecimationFactor },
+	{ "GetDecimationFactorObs", "", "iu", *GetDecimationFactorObs },
 	{ "SetDecimationFactor",
 	  "<Tile_id> <Block_id> DecimationFactor |-> SetDecimationFactor",
 	  "iuu", *SetDecimationFactor },
+	{ "SetDecimationFactorObs", "", "iuu", *SetDecimationFactorObs },
 	{ "GetNyquistZone",
 	  " <Type> <Tile_id> <Block_id> |-> GetNyquistZone <Type> "
 	  "<Tile_id> <Block_id> <NyquistZone>",
@@ -227,9 +239,11 @@ CMDSTRUCT cmdtab[] = {
 	  "uiu", *SetFabClkOutDiv },
 	{ "SetupFIFO", "<Type> <Tile_id> <enable> |-> SetupFIFO", "uiu",
 	  *SetupFIFO },
+	{ "SetupFIFOObs", "", "uiu", *SetupFIFOObs },
 	{ "GetFIFOStatus",
 	  "<Type> <Tile_id>  |-> GetFIFOStatus Type <Tile_id> enable", "ui",
 	  *GetFIFOStatus },
+	{ "GetFIFOStatusObs", "", "ui", *GetFIFOStatusObs },
 	{ "SetFabWrVldWords",
 	  "<Tile_id> <Block_id> FabricDataRate |-> SetFabWrVldWords", "iuu",
 	  *SetFabWrVldWords },
@@ -237,12 +251,15 @@ CMDSTRUCT cmdtab[] = {
 	  "<Type> <Tile_id> <Block_id>  |-> GetFabWrVldWords "
 	  "ype <Tile_id> Block_id FabricDataRate ",
 	  "uiu", *GetFabWrVldWords },
+	{ "GetFabWrVldWordsObs", "", "uiu", *GetFabWrVldWordsObs },
 	{ "SetFabRdVldWords",
 	  "<Tile_id> <Block_id> <FabricDataRate> |-> SetFabRdVldWords", "iuu",
 	  *SetFabRdVldWords },
+	{ "SetFabRdVldWordsObs", "", "iuu", *SetFabRdVldWordsObs },
 	{ "GetFabRdVldWords",
 	  "<Type> <Tile_id> Block_id  |-> GetFabRdVldWords FabricDataRate ",
 	  "uiu", *GetFabRdVldWords },
+	{ "GetFabRdVldWordsObs", "", "uiu", *GetFabRdVldWordsObs },
 	{ "SetDecoderMode",
 	  "<Tile_id> <Block_id> <DecoderMode> |-> SetDecoderMode", "iuu",
 	  *SetDecoderMode },
@@ -309,7 +326,9 @@ CMDSTRUCT cmdtab[] = {
 	  "<Tile_Id> <Block_Id> |-> SetInvSincFIR <Tile_Id> <Block_Id>"
 	  " <Enable>",
 	  "iuu", *SetInvSincFIR },
-	{ "MultiConverter_Init", "<Type> |-> MultiConverter_Init ", "u",
+	{ "SetDACDataScaler", "", "uuu", *SetDACDataScaler },
+	{ "GetDACDataScaler", "", "uu", *GetDACDataScaler },
+	{ "MultiConverter_Init", "<Type> |-> MultiConverter_Init ", "uu",
 	  *MultiConverter_Init },
 	{ "MultiConverter_Sync",
 	  "<Type> <Target_Latency> <Tiles> |-> MultiConverter_Sync status"
@@ -370,6 +389,22 @@ CMDSTRUCT cmdtab[] = {
 	  *GetMemtype },
 	{ "LocalMemAddr", "", "uiu", *LocalMemAddr },
 	{ "SetLocalMemSample", "", "uiuu", *SetLocalMemSample },
+	{ "SetSignalDetector", "", "uuuuuuuuuu", *SetSignalDetector },
+	{ "GetSignalDetector", "", "iu", *GetSignalDetector },
+	{ "SetTDDRTSPinCtrl", "", "uu", *SetTDDRTSPinCtrl },
+	{ "GetTDDRTSPinCtrl", "", "u", *GetTDDRTSPinCtrl },
+	{ "GetTDDRTSTrigDelay", "", "u", *GetTDDRTSTrigDelay },
+	{ "SetTDDRTSTrigDelay", "", "uu", *SetTDDRTSTrigDelay },
+	{ "SetTDDRTSTrigSlot", "", "uu", *SetTDDRTSTrigSlot },
+	{ "GetTDDRTSTrigSlot", "", "", *GetTDDRTSTrigSlot },
+	{ "GetTDDRTSSlot", "", "", *GetTDDRTSSlot },
+	{ "SetTDDRTSSlot", "", "uuu", *SetTDDRTSSlot },
+	{ "GetTDDRTSEnables", "", "", *GetTDDRTSEnables },
+	{ "SetTDDRTSEnables", "", "u", *SetTDDRTSEnables },
+	{ "GetTDDRTSRst", "", "", *GetTDDRTSRst },
+	{ "SetTDDRTSRst", "", "u", *SetTDDRTSRst },
+	{ "SetTDDRTSTrig", "", "u", *SetTDDRTSTrig },
+	{ "GetTDDRTSTrig", "", "", *GetTDDRTSTrig },
 	{ "GetDither", "<Tile_id> <Block_id> |-> GetDither Tile_id Block_id",
 	  "iu", *GetDither },
 	{ "SetDither",
@@ -389,10 +424,8 @@ CMDSTRUCT cmdtab[] = {
 	{ "GetDataPathMode", "", "iu", *GetDataPathMode },
 	{ "SetIMRPassMode", "", "iuu", *SetIMRPassMode },
 	{ "GetIMRPassMode", "", "iu", *GetIMRPassMode },
-	{ "SetClkDistribution", "",
-	  "uudduuuudduuuudduuuudduuuudduuuudduuuudduuuudduu",
-	  *SetClkDistribution },
-	{ "GetClkDistribution", "", "uu", *GetClkDistribution },
+	{ "SetClkDistribution", "", "uuuuuududdddddddu", *SetClkDistribution },
+	{ "GetClkDistribution", "", "", *GetClkDistribution },
 	{ "SetDACVOP", "", "uuu", *SetDACVOP },
 	{ "SetCalCoefficients", "", "uuuuuuuuuu", *SetCalCoefficients },
 	{ "GetCalCoefficients", "", "uuu", *GetCalCoefficients },
@@ -467,7 +500,11 @@ int data_cmdParse(char *strPtr, char *txstrPtr)
 				/* execute command */
 				(*func)(data_cmdArrgs, txstrPtr, &exeStatus);
 				/* return status of command execution */
-				if (exeStatus != SUCCESS) {
+				if (exeStatus == WARN_EXECUTE) {
+					printf("exeStatus = %d \n", exeStatus);
+					return WARN_EXECUTE;
+				} else if (exeStatus != SUCCESS) {
+					printf("exeStatus = %d \n", exeStatus);
 					return ERROR_EXECUTE;
 				} else {
 					return SUCCESS;
@@ -612,12 +649,11 @@ int cmdParse(char *strPtr, char *txstrPtr)
 				/* execute command */
 				(*func)(cmdArrgs, txstrPtr, &exeStatus);
 				/* return status of command execution */
-				if ((0x01 & exeStatus) !=
-				    SUCCESS) { /* Masked exeStatus with 0x01
-				     because we could have an Error and
-				     a Warning. */
-					printf("exeStatus = %d SUCCESS =%d \n",
-					       exeStatus, SUCCESS);
+				if (exeStatus == WARN_EXECUTE) {
+					printf("exeStatus = %d \n", exeStatus);
+					return WARN_EXECUTE;
+				} else if (exeStatus != SUCCESS) {
+					printf("exeStatus = %d \n", exeStatus);
 					return ERROR_EXECUTE;
 				} else {
 					return SUCCESS;
@@ -758,8 +794,8 @@ void GUI_Title(convData_t *cmdVals, char *txstrPtr, int *status)
 
 void MetalLoghandler(enum metal_log_level level, const char *format, ...)
 {
-	char msgLocal[BUF_MAX_LEN / 56];
-
+	char msgLocal[500];
+	unsigned int Difference, Remaining, NewBufLen;
 	va_list args;
 	static const char *level_strs[] = {
 		"metal: emergency: ", "metal: alert:     ",
@@ -767,7 +803,10 @@ void MetalLoghandler(enum metal_log_level level, const char *format, ...)
 		"metal: warning:   ", "metal: notice:    ",
 		"metal: info:      ", "metal: debug:     ",
 	};
-	pthread_mutex_lock(&mutex);
+	const char *srcBuf;
+	int loop = 2;
+
+	pthread_mutex_lock(&RftoolLog.mutex);
 	va_start(args, format);
 	vsnprintf(msgLocal, sizeof(msgLocal), format, args);
 	va_end(args);
@@ -775,12 +814,38 @@ void MetalLoghandler(enum metal_log_level level, const char *format, ...)
 	if (level <= METAL_LOG_EMERGENCY || level > METAL_LOG_DEBUG)
 		level = METAL_LOG_EMERGENCY;
 
-	/* buffer msgLocal into metalMsgBuf */
-	strncat(metalMsgBuf, level_strs[level], (BUF_MAX_LEN - 1));
-	strncat(metalMsgBuf, msgLocal, (BUF_MAX_LEN - 1));
+	/* buffer msgLocal into RftoolLog.metalMsgBuf */
+	srcBuf = level_strs[level];
+	NewBufLen = RftoolLog.metalMsgBuf_CurrIndex + strlen(srcBuf);
+	do {
+		if (NewBufLen > (BUF_MAX_LEN - 1)) {
+			/* Copy possible data to the available area at the end of the log buffer */
+			Difference = BUF_MAX_LEN - 1 -
+				     RftoolLog.metalMsgBuf_CurrIndex;
+			memcpy(RftoolLog.metalMsgBuf +
+				       RftoolLog.metalMsgBuf_CurrIndex,
+			       srcBuf, Difference);
+			/* Copy remaining data at the begining of the log buffer */
+			Remaining = strlen(srcBuf) - Difference;
+			RftoolLog.metalMsgBuf_CurrIndex = 0;
+			memcpy(RftoolLog.metalMsgBuf +
+				       RftoolLog.metalMsgBuf_CurrIndex,
+			       srcBuf + Difference, Remaining);
+			RftoolLog.metalMsgBuf_CurrIndex += Remaining;
+			RftoolLog.overflow = true;
+		} else {
+			memcpy(RftoolLog.metalMsgBuf +
+				       RftoolLog.metalMsgBuf_CurrIndex,
+			       srcBuf, strlen(srcBuf));
+			RftoolLog.metalMsgBuf_CurrIndex += strlen(srcBuf);
+		}
+		srcBuf = msgLocal;
+		NewBufLen = RftoolLog.metalMsgBuf_CurrIndex + strlen(srcBuf);
+	} while (--loop);
+
 	/* Increment idx by 1 */
-	metalMsgIdx++;
-	pthread_mutex_unlock(&mutex);
+	RftoolLog.metalMsgIdx++;
+	pthread_mutex_unlock(&RftoolLog.mutex);
 }
 
 /*
@@ -790,11 +855,10 @@ void MetalLoghandler(enum metal_log_level level, const char *format, ...)
  * log command
  */
 
-void MetalLoghandler_firmware(int log_level, const char *format, ...)
+void MetalLoghandler_firmware(int level, const char *format, ...)
 {
-	char msgLocal[BUF_MAX_LEN / 56];
-	int level = (log_level < 0) ? -(log_level) : (log_level);
-
+	char msgLocal[500];
+	unsigned int Difference, Remaining, NewBufLen;
 	va_list args;
 	static const char *level_strs[] = {
 		"success ",
@@ -816,35 +880,88 @@ void MetalLoghandler_firmware(int log_level, const char *format, ...)
 		"fail: MTS setting ",
 	};
 
-	pthread_mutex_lock(&mutex);
+	const char *srcBuf;
+	int loop = 2;
+
+	pthread_mutex_lock(&RftoolLog.mutex);
 	va_start(args, format);
 	vsnprintf(msgLocal, sizeof(msgLocal), format, args);
 	va_end(args);
 
-	/* buffer msgLocal into metalMsgBuf */
-	strncat(metalMsgBuf, level_strs[level], (BUF_MAX_LEN - 1));
-	strncat(metalMsgBuf, msgLocal, (BUF_MAX_LEN - 1));
+	if (level <= METAL_LOG_EMERGENCY || level > METAL_LOG_DEBUG)
+		level = METAL_LOG_EMERGENCY;
+
+	/* buffer msgLocal into RftoolLog.metalMsgBuf */
+	srcBuf = level_strs[level];
+	NewBufLen = RftoolLog.metalMsgBuf_CurrIndex + strlen(srcBuf);
+	do {
+		if (NewBufLen > (BUF_MAX_LEN - 1)) {
+			/* Copy possible data to the available area
+			 * at the end of the log buffer */
+			Difference = BUF_MAX_LEN - 1 -
+				     RftoolLog.metalMsgBuf_CurrIndex;
+			memcpy(RftoolLog.metalMsgBuf +
+				       RftoolLog.metalMsgBuf_CurrIndex,
+			       srcBuf, Difference);
+			/* Copy remaining data at the begining of
+			 * the log buffer */
+			Remaining = strlen(srcBuf) - Difference;
+			RftoolLog.metalMsgBuf_CurrIndex = 0;
+			memcpy(RftoolLog.metalMsgBuf +
+				       RftoolLog.metalMsgBuf_CurrIndex,
+			       srcBuf + Difference, Remaining);
+			RftoolLog.metalMsgBuf_CurrIndex += Remaining;
+			RftoolLog.overflow = true;
+		} else {
+			memcpy(RftoolLog.metalMsgBuf +
+				       RftoolLog.metalMsgBuf_CurrIndex,
+			       srcBuf, strlen(srcBuf));
+			RftoolLog.metalMsgBuf_CurrIndex += strlen(srcBuf);
+		}
+		srcBuf = msgLocal;
+		NewBufLen = RftoolLog.metalMsgBuf_CurrIndex + strlen(srcBuf);
+	} while (--loop);
+
 	/* Increment idx by 1 */
-	metalMsgIdx++;
-	pthread_mutex_unlock(&mutex);
+	RftoolLog.metalMsgIdx++;
+	pthread_mutex_unlock(&RftoolLog.mutex);
 }
 
 /*
  * The function returns the metal log global buffer (metalMsgBuf) to the host
  * once a copy of the log message is returned the function clears the
+ *
  * metalMsgBuf
  * and reset metalMsgIdx to 0
  */
 void GetLog(convData_t *cmdVals, char *txstrPtr, int *status)
 {
-	(void)cmdVals;
-	/* append metalMsgBuf to txstrPtr */
-	strncat(txstrPtr, " ", (BUF_MAX_LEN - 1));
-	strncat(txstrPtr, metalMsgBuf, (BUF_MAX_LEN));
+	unsigned int beginLen;
 
-	/* clear metalMsgBuf and metalMsgIdx */
-	memset(metalMsgBuf, 0, sizeof(metalMsgBuf));
-	metalMsgIdx = 0;
+	beginLen = strlen(__func__);
+	memcpy(txstrPtr + beginLen, " ", 1);
+	beginLen++;
 
+	/* append RftoolLog.metalMsgBuf to txstrPtr */
+	pthread_mutex_lock(&RftoolLog.mutex);
+	if (RftoolLog.overflow == false) {
+		memcpy(txstrPtr + beginLen, RftoolLog.metalMsgBuf,
+		       (BUF_MAX_LEN - 1 - beginLen));
+	} else {
+		memcpy(txstrPtr + beginLen,
+		       RftoolLog.metalMsgBuf + RftoolLog.metalMsgBuf_CurrIndex,
+		       (BUF_MAX_LEN - 1 - RftoolLog.metalMsgBuf_CurrIndex -
+			beginLen));
+		memcpy(txstrPtr + (BUF_MAX_LEN - 1 -
+				   RftoolLog.metalMsgBuf_CurrIndex),
+		       RftoolLog.metalMsgBuf + 0,
+		       (RftoolLog.metalMsgBuf_CurrIndex));
+	}
+	/* clear RftoolLog.metalMsgBuf and RftoolLog.metalMsgIdx */
+	memset(RftoolLog.metalMsgBuf, 0, sizeof(RftoolLog.metalMsgBuf));
+	RftoolLog.metalMsgIdx = 0;
+	RftoolLog.metalMsgBuf_CurrIndex = 0;
+	RftoolLog.overflow = false;
+	pthread_mutex_unlock(&RftoolLog.mutex);
 	*status = SUCCESS;
 }

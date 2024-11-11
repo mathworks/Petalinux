@@ -8,7 +8,11 @@
 # Files not already located at the root of the SD card will be copied there
 
 source /etc/bootvars.conf
-
+if [ $# != 4 ]; then
+	echo "ERROR: Not enough input arguments!"
+	echo "Usage: mw_setboot fpga_image fdt_image folder_name refdes_name"
+	exit 1;
+fi
 BITSTREAM=$1
 DEVICETREE=$2
 RDINITDIR=$3

@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -316,6 +316,27 @@ unsigned int getSamples(unsigned char *buf, unsigned int len)
 
 	(void)fcntl(new_data_socket, F_SETFL, flags | O_NONBLOCK);
 	return valread;
+}
+
+void flush_datapath_read(unsigned int len)
+{
+	unsigned int ret;
+	char buf[1000];
+
+	int flags = fcntl(new_data_socket, F_GETFL, 0);
+	flags = flags & (~O_NONBLOCK);
+	(void)fcntl(new_data_socket, F_SETFL, flags);
+
+	do {
+		ret = read(new_data_socket, buf, 1000);
+		if (ret <= 0) {
+			break;
+		}
+		len -= ret;
+	} while (len);
+
+	(void)fcntl(new_data_socket, F_SETFL, flags | O_NONBLOCK);
+	return;
 }
 
 /*

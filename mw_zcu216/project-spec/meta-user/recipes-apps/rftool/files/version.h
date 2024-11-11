@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
 #ifndef SRC_VERSION_
 #define SRC_VERSION_
 
-#define RFTOOL_VERSION "2020.2"
-#define RFTOOL_INTERNAL_VERSION "2.4"
+#define RFTOOL_VERSION "2022.2"
+#define RFTOOL_INTERNAL_VERSION "2.7"
 
 #ifdef XPS_BOARD_ZCU208
 #ifdef XPS_BOARD_ES1

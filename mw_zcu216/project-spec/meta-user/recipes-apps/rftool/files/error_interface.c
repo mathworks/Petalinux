@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,11 @@ void errorIf(char *cmdPtr, int errId)
 {
 	char errMsg[BUF_MAX_LEN + 1]; /* error message buffer */
 
-	strcpy(errMsg, "ERROR: "); /* set ERROR as first string */
+	if (errId == WARN_EXECUTE) {
+		strcpy(errMsg, "WARNING: "); /* set WARNING as first string */
+	} else {
+		strcpy(errMsg, "ERROR: "); /* set ERROR as first string */
+	}
 	strncat(errMsg, cmdPtr, BUF_MAX_LEN); /* append command name */
 
 	/* based on errId append the selected error message */
@@ -53,6 +57,7 @@ void errorIf(char *cmdPtr, int errId)
 	case ERROR_NUM_ARGS:
 		strcat(errMsg, " NUM_ARGS");
 		break;
+	case WARN_EXECUTE:
 	case ERROR_EXECUTE:
 		strcat(errMsg, " EXECUTE");
 		break;

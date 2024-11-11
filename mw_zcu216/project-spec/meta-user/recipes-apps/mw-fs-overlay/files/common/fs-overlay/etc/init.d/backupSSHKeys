@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# Backup SSH keys to the SD card
+#
+
+source /etc/bootvars.conf
+
+source /etc/init.d/start_only.sh
+
+SD_KEYDIR=${_SD_ROOT}/sshkeys
+ETC_KEYDIRS="/etc/ssh /etc/dropbear"
+
+if [ "${_SYS_PERSISTENT_FILESYSTEM}" == "false" ]; then
+	echo -n "### Backing up SSH keys from to the SD card: "
+        for d in $ETC_KEYDIRS ; do
+                KEYFOLDER=$SD_KEYDIR/$(basename $d)
+                if [ ! -d $KEYFOLDER ]; then
+                        mkdir -p $KEYFOLDER
+                fi
+                if [ -f $d/*host_*key* ]; then
+                        echo "### Backup keys from $d to the SD card: "
+                        cp $d/*host_*key* $KEYFOLDER
+                fi
+        done
+	sync
+        echo "OK"
+fi
+
+exit 0

@@ -12,4 +12,3 @@ $(APP): $(APP_OBJS)
 clean:
 	-rm -f $(APP) *.elf *.gdb *.o
 
-

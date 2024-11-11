@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-* Copyright (C) 2017-2020 Xilinx, Inc.  All rights reserved.
+* Copyright (C) 2017-2022 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@
 #include "rfdc_interface.h"
 #include "local_mem.h"
 #include "data_interface.h"
-#include "xrfdc_mts.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -385,6 +384,37 @@ err_clk_adc0:
 	close(info.fd);
 err:
 	return FAIL;
+}
+
+void RFInit_SignalDetector(void)
+{
+	int Tile_Id = 0;
+	u32 Block_Id = 0;
+	XRFdc_Signal_Detector_Settings Signal_Detector_Settings;
+
+	memset(&Signal_Detector_Settings, 0, sizeof(Signal_Detector_Settings));
+	Signal_Detector_Settings.Mode = XRFDC_SIGDET_MODE_AVG;
+	Signal_Detector_Settings.TimeConstant = XRFDC_SIGDET_TC_2_8;
+	Signal_Detector_Settings.Flush = XRFDC_DISABLED;
+	Signal_Detector_Settings.EnableIntegrator = XRFDC_ENABLED;
+	Signal_Detector_Settings.Threshold = 0;
+	Signal_Detector_Settings.ThreshOnTriggerCnt = 200;
+	Signal_Detector_Settings.ThreshOffTriggerCnt = 200;
+	Signal_Detector_Settings.HysteresisEnable = XRFDC_ENABLED;
+
+	metal_set_log_level(METAL_LOG_EMERGENCY);
+	for (Tile_Id = 0; Tile_Id < 4; Tile_Id++) {
+		for (Block_Id = 0;
+		     Block_Id < (4 >> XRFdc_IsHighSpeedADC(&RFdcInst, Tile_Id));
+		     Block_Id++) {
+			/* Initialize signal detector */
+			XRFdc_SetSignalDetector(&RFdcInst, Tile_Id, Block_Id,
+						&Signal_Detector_Settings);
+		}
+	}
+	metal_set_log_level(METAL_LOG_WARNING);
+
+	return;
 }
 
 int InitMMCM_ADC()
