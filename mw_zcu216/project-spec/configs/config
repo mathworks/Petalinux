@@ -262,8 +262,8 @@ CONFIG_SUBSYSTEM_TFTPBOOT_DIR="/tftpboot"
 #
 # Firmware Version Configuration
 #
-CONFIG_SUBSYSTEM_HOSTNAME="xilinx-zcu216-2022_2"
-CONFIG_SUBSYSTEM_PRODUCT="xilinx-zcu216-2022.2"
+CONFIG_SUBSYSTEM_HOSTNAME="zcu216-2022_2"
+CONFIG_SUBSYSTEM_PRODUCT="zcu216-2022.2"
 CONFIG_SUBSYSTEM_FW_VERSION="1.00"
 
 #
@@ -308,5 +308,6 @@ CONFIG_YOCTO_NETWORK_SSTATE_FEEDS_URL="http://petalinux.xilinx.com/sswreleases/r
 #
 # User Layers
 #
-CONFIG_USER_LAYER_0=""
+CONFIG_USER_LAYER_0="${PROOT}/project-spec/meta-mathworks"
+CONFIG_USER_LAYER_1=""
 CONFIG_SUBSYSTEM_BOOTARGS_GENERATED=" earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/ram0 rw"

@@ -10,4 +10,3 @@ CONFIG_lttng-ust
 CONFIG_rftool
 CONFIG_mw-fs-overlay
 CONFIG_mw-rf-init
-
