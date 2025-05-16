@@ -5,7 +5,6 @@ rootfs_config.old
 build/
 pre-built/linux
 */images
-*/.petalinux/*
 !.petalinux/metadata
 *.o
 *.jou

@@ -1,0 +1,46 @@
+menu "user packages " 
+config libiio  
+	 bool "libiio"
+	 help
+	
+config libserialport  
+	 bool "libserialport"
+	 help
+	
+config boost  
+	 bool "boost"
+	 help
+	
+config gpio-demo  
+	 bool "gpio-demo"
+	 help
+	
+config lttng-ust  
+	 bool "lttng-ust"
+	 help
+	
+config mw-fs-overlay  
+	 bool "mw-fs-overlay"
+	 help
+	
+config packagegroup-petalinux-kria  
+	 bool "packagegroup-petalinux-kria"
+	 help
+	
+config peekpoke  
+	 bool "peekpoke"
+	 help
+	
+config rfdc  
+	 bool "rfdc"
+	 help
+	
+config rfdc-read-write  
+	 bool "rfdc-read-write"
+	 help
+	
+config rfdc-selftest  
+	 bool "rfdc-selftest"
+	 help
+	
+endmenu

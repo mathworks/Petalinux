@@ -1,0 +1,6 @@
+[submodule "mw_kria_kr260/project-spec/meta-mathworks"]
+	path = mw_kria_kr260/project-spec/meta-mathworks
+	url = https://github.com/mathworks/meta-mathworks
+[submodule "mw_kria_kv260/project-spec/meta-mathworks"]
+	path = mw_kria_kv260/project-spec/meta-mathworks
+	url = https://github.com/mathworks/meta-mathworks

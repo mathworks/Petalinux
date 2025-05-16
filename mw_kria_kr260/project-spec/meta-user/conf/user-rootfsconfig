@@ -1,0 +1,15 @@
+#Note: Mention Each package in individual line
+#These packages will get added into rootfs menu entry
+
+CONFIG_gpio-demo
+CONFIG_peekpoke
+CONFIG_packagegroup-petalinux-kria
+
+CONFIG_libserialport
+CONFIG_libiio
+CONFIG_boost
+CONFIG_lttng-ust
+CONFIG_mw-fs-overlay
+CONFIG_rfdc
+CONFIG_rfdc-read-write
+CONFIG_rfdc-selftest
