@@ -1,3 +1,6 @@
+# you can delete this line if you're not using Docker
+image: busybox:latest
+
 workflow:
   rules:
     - changes:
