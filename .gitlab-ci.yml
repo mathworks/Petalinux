@@ -1,13 +1,13 @@
 workflow:
-    rules:
-      - changes:
-        - mw_kria_kr260/**/*
-        - mw_kria_kv260/**/*
-        - mw_te0820/**/*
-        - mw_ultra96v2/**/*
-        - mw_zcu104/**/*
-        - mw_zcu111/**/*
-        - mw_zcu216/**/*
+  rules:
+    - changes:
+      - mw_kria_kr260/**/*
+      - mw_kria_kv260/**/*
+      - mw_te0820/**/*
+      - mw_ultra96v2/**/*
+      - mw_zcu104/**/*
+      - mw_zcu111/**/*
+      - mw_zcu216/**/*
 
 .rules_kr260: &rules_kr260
   rules:
