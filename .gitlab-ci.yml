@@ -1,0 +1,97 @@
+build kr260:
+  stage: build
+  rules:
+      - changes:
+            - mw_kria_kr260/**/*
+  script:
+    - echo "Starting Petalinux Build for Kria KR260"
+
+test kr260:
+  stage: test
+  needs: ["build kr260"]
+  script:
+    - echo "Running test to validate behaviour of Kria KR260 Image"
+
+build kv260:
+  stage: build
+  rules:
+      - changes:
+            - mw_kria_kv260/**/*
+  script:
+    - echo "Starting Petalinux Build for Kria KV260"
+
+test kv260:
+  stage: test
+  needs: ["build kv260"]
+  script:
+    - echo "Running test to validate behaviour of Kria KV260 Image"
+
+build te0820:
+  stage: build
+  rules:
+      - changes:
+            - mw_te0820/**/*
+  script:
+    - echo "Starting Petalinux Build for Trenz TE0820"
+
+test te0820:
+  stage: test
+  needs: ["build te0820"]
+  script:
+    - echo "Running test to validate behaviour of Trenz TE0820 Image"
+
+build ultra96v2:
+  stage: build
+  rules:
+      - changes:
+            - mw_ultra96v2/**/*
+  script:
+    - echo "Starting Petalinux Build for Avnet Ultra96-v2"
+
+test ultra96v2:
+  stage: test
+  needs: ["build ultra96v2"]
+  script:
+    - echo "Running test to validate behaviour of Avnet Ultra96-v2 Image"
+
+build zcu104:
+  stage: build
+  rules:
+      - changes:
+            - mw_zcu104/**/*
+  script:
+    - echo "Starting Petalinux Build for Zynq ZCU104"
+
+test zcu104:
+  stage: test
+  needs: ["build zcu104"]
+  script:
+    - echo "Running test to validate behaviour of Zynq ZCU104 Image"
+
+build zcu111:
+  stage: build
+  rules:
+      - changes:
+            - mw_zcu111/**/*
+  script:
+    - echo "Starting Petalinux Build for Zynq ZCU111"
+
+test zcu111:
+  stage: test
+  needs: ["build zcu111"]
+  script:
+    - echo "Running test to validate behaviour of Zynq ZCU111 Image"
+
+build zcu216:
+  stage: build
+  rules:
+      - changes:
+            - mw_zcu216/**/*
+  script:
+    - echo "Starting Petalinux Build for Zynq ZCU216"
+
+test zcu216:
+  stage: test
+  needs: ["build zcu216"]
+  script:
+    - echo "Running test to validate behaviour of Zynq ZCU216 Image"
