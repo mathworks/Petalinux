@@ -9555,7 +9555,7 @@ config Init-manager-sysvinit
 endchoice
 endmenu
 
-source /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/rootfsconfigs/Kconfig.user
+source /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/rootfsconfigs/Kconfig.user
 
 menu "PetaLinux RootFS Settings"
 config ADD_EXTRA_USERS

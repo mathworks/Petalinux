@@ -1,280 +1,15 @@
 [DEBUG] Using xsct from : /home/sgannava/petalinux_2023_1/tools/xsct/bin/xsct
 [DEBUG] Using conf/mconf from : /home/sgannava/petalinux_2023_1/components/yocto/buildtools/sysroots/x86_64-petalinux-linux/usr/bin/mconf
-[INFO] Silentconfig project
-[DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/sgannava/gitPushInside_kria/Petalinux/mw_kria_kv260/project-spec/configs/config conf /home/sgannava/gitPushInside_kria/Petalinux/mw_kria_kv260/project-spec/configs/configs/Kconfig
-[DEBUG] *
-* PetaLinux System Configuration
-*
-ZYNQMP Configuration (SYSTEM_ZYNQMP) [Y/?] y
-*
-* Linux Components Selection
-*
-Image Selector (SUBSYSTEM_COMPONENT_IMG_SEL) [N/y/?] 
-First Stage Bootloader (SUBSYSTEM_COMPONENT_BOOTLOADER_AUTO_FSBL) [Y/n/?] 
-  Auto update ps_init (SUBSYSTEM_COMPONENT_BOOTLOADER_AUTO_PS_INIT) [Y/n/?] 
-PMU Firmware (SUBSYSTEM_COMPONENT_PMU_FIRMWARE) [Y/n/?] 
-u-boot
-> 1. u-boot-xlnx (SUBSYSTEM_COMPONENT_U__BOOT_NAME_U__BOOT__XLNX)
-  2. remote (SUBSYSTEM_COMPONENT_U__BOOT_NAME_REMOTE)
-  3. ext-local-src (SUBSYSTEM_COMPONENT_U__BOOT_NAME_EXT__LOCAL__SRC)
-choice[1-3]: trusted-firmware-arm
-> 1. trusted-firmware-arm (SUBSYSTEM_COMPONENT_TRUSTED__FIRMWARE__ARM_NAME_TRUSTED__FIRMWARE__ARM)
-  2. remote (SUBSYSTEM_COMPONENT_TRUSTED__FIRMWARE__ARM_NAME_REMOTE)
-  3. ext-local-src (SUBSYSTEM_COMPONENT_TRUSTED__FIRMWARE__ARM_NAME_EXT__LOCAL__SRC)
-choice[1-3]: linux-kernel
-> 1. linux-xlnx (SUBSYSTEM_COMPONENT_LINUX__KERNEL_NAME_LINUX__XLNX)
-  2. remote (SUBSYSTEM_COMPONENT_LINUX__KERNEL_NAME_REMOTE)
-  3. ext-local-src (SUBSYSTEM_COMPONENT_LINUX__KERNEL_NAME_EXT__LOCAL__SRC)
-choice[1-3]: *
-* Auto Config Settings
-*
-Device tree autoconfig (SUBSYSTEM_AUTOCONFIG_DEVICE__TREE) [Y/n/?] 
-Specify a manual device tree include directory (SUBSYSTEM_DEVICE_TREE_MANUAL_INCLUDE) [N/y/?] 
-*
-* Subsystem AUTO Hardware Settings
-*
-Subsystem AUTO Hardware Settings (SUBSYSTEM_HARDWARE_AUTO) [Y/?] y
-  System Processor
-  > 1. psu_cortexa53_0 (SUBSYSTEM_PROCESSOR_psu_cortexa53_0_SELECT)
-  choice[1]: 1
-  *
-  * Memory Settings
-  *
-  Primary Memory
-  > 1. psu_ddr_0 (SUBSYSTEM_MEMORY_PSU_DDR_0_BANKLESS_SELECT)
-    2. psu_ddr_1 (SUBSYSTEM_MEMORY_PSU_DDR_1_BANKLESS_SELECT)
-    3. manual (SUBSYSTEM_MEMORY_MANUAL_SELECT)
-  choice[1-3?]:   System memory base address (SUBSYSTEM_MEMORY_PSU_DDR_0_BANKLESS_BASEADDR) [0x0] 
-  System memory size (SUBSYSTEM_MEMORY_PSU_DDR_0_BANKLESS_SIZE) [0x80000000] 
-  kernel base address (SUBSYSTEM_MEMORY_PSU_DDR_0_BANKLESS_KERNEL_BASEADDR) [0x0] 
-  u-boot text base address offset to memory base address (SUBSYSTEM_MEMORY_PSU_DDR_0_BANKLESS_U__BOOT_TEXTBASE_OFFSET) [0x100000] 
-  *
-  * Serial Settings
-  *
-  PMUFW Serial stdin/stdout
-  > 1. psu_uart_1 (SUBSYSTEM_PMUFW_SERIAL_PSU_UART_1_SELECT)
-    2. manual (SUBSYSTEM_PMUFW_SERIAL_MANUAL_SELECT)
-  choice[1-2?]:   FSBL Serial stdin/stdout
-  > 1. psu_uart_1 (SUBSYSTEM_FSBL_SERIAL_PSU_UART_1_SELECT)
-    2. manual (SUBSYSTEM_FSBL_SERIAL_MANUAL_SELECT)
-  choice[1-2?]:   TF-A Serial stdin/stdout
-  > 1. psu_uart_1 (SUBSYSTEM_TF-A_SERIAL_PSU_UART_1_SELECT)
-    2. manual (SUBSYSTEM_TF-A_SERIAL_MANUAL_SELECT)
-  choice[1-2?]:   DTG Serial stdin/stdout
-  > 1. psu_uart_1 (SUBSYSTEM_SERIAL_PSU_UART_1_SELECT)
-    2. manual (SUBSYSTEM_SERIAL_MANUAL_SELECT)
-  choice[1-2?]:   System stdin/stdout baudrate for psu_uart_1
-    1. 600 (SUBSYSTEM_SERIAL_PSU_UART_1_BAUDRATE_600)
-    2. 9600 (SUBSYSTEM_SERIAL_PSU_UART_1_BAUDRATE_9600)
-    3. 28800 (SUBSYSTEM_SERIAL_PSU_UART_1_BAUDRATE_28800)
-  > 4. 115200 (SUBSYSTEM_SERIAL_PSU_UART_1_BAUDRATE_115200)
-    5. 230400 (SUBSYSTEM_SERIAL_PSU_UART_1_BAUDRATE_230400)
-    6. 460800 (SUBSYSTEM_SERIAL_PSU_UART_1_BAUDRATE_460800)
-    7. 921600 (SUBSYSTEM_SERIAL_PSU_UART_1_BAUDRATE_921600)
-  choice[1-7]:   *
-  * Ethernet Settings
-  *
-  Primary Ethernet
-  > 1. psu_ethernet_3 (SUBSYSTEM_ETHERNET_PSU_ETHERNET_3_SELECT)
-    2. manual (SUBSYSTEM_ETHERNET_MANUAL_SELECT)
-  choice[1-2?]:   Randomise MAC address (SUBSYSTEM_ETHERNET_PSU_ETHERNET_3_MAC_AUTO) [N/y/?] 
-    Ethernet MAC address (SUBSYSTEM_ETHERNET_PSU_ETHERNET_3_MAC) [00:0a:35:00:62:18] 
-  Obtain IP address automatically (SUBSYSTEM_ETHERNET_PSU_ETHERNET_3_USE_DHCP) [N/y/?] 
-    Static IP address (SUBSYSTEM_ETHERNET_PSU_ETHERNET_3_IP_ADDRESS) [192.168.1.101] 
-    Static IP netmask (SUBSYSTEM_ETHERNET_PSU_ETHERNET_3_IP_NETMASK) [255.255.255.0] 
-    Static IP gateway (SUBSYSTEM_ETHERNET_PSU_ETHERNET_3_IP_GATEWAY) [192.168.1.100] 
-  *
-  * Flash Settings
-  *
-  Primary Flash
-  > 1. psu_qspi_0 (SUBSYSTEM_FLASH_PSU_QSPI_0_BANKLESS_SELECT)
-    2. manual (SUBSYSTEM_FLASH_MANUAL_SELECT)
-  choice[1-2?]:   Advanced Flash Auto Configuration (SUBSYSTEM_FLASH__ADVANCED_AUTOCONFIG) [N/y/?] 
-  *
-  * partition 0
-  *
-  name (SUBSYSTEM_FLASH_PSU_QSPI_0_BANKLESS_PART0_NAME) [qspi-boot] 
-  size (SUBSYSTEM_FLASH_PSU_QSPI_0_BANKLESS_PART0_SIZE) [0x100000] 
-  *
-  * partition 1
-  *
-  name (SUBSYSTEM_FLASH_PSU_QSPI_0_BANKLESS_PART1_NAME) [qspi-kernel] 
-  size (SUBSYSTEM_FLASH_PSU_QSPI_0_BANKLESS_PART1_SIZE) [0x1600000] 
-  *
-  * partition 2
-  *
-  name (SUBSYSTEM_FLASH_PSU_QSPI_0_BANKLESS_PART2_NAME) [qspi-bootenv] 
-  size (SUBSYSTEM_FLASH_PSU_QSPI_0_BANKLESS_PART2_SIZE) [0x40000] 
-  *
-  * partition 3
-  *
-  name (SUBSYSTEM_FLASH_PSU_QSPI_0_BANKLESS_PART3_NAME) [] 
-  *
-  * SD/SDIO Settings
-  *
-  Primary SD/SDIO
-  > 1. psu_sd_1 (SUBSYSTEM_PRIMARY_SD_PSU_SD_1_SELECT)
-    2. manual (SUBSYSTEM_PRIMARY_SD_MANUAL_SELECT)
-  choice[1-2?]:   *
-  * RTC Settings
-  *
-  Primary RTC
-  > 1. psu_rtc (SUBSYSTEM_RTC_PSU_RTC_SELECT)
-    2. manual (SUBSYSTEM_RTC_MANUAL_SELECT)
-  choice[1-2?]: System Architecture
-> 1. aarch64 (SUBSYSTEM_ARCH_AARCH64)
-  2. arm (SUBSYSTEM_ARCH_ARM)
-  3. microblaze (SUBSYSTEM_ARCH_MICROBLAZE)
-choice[1-3]: *
-* DTG Settings
-*
-MACHINE_NAME (SUBSYSTEM_MACHINE_NAME) [zynqmp-smk-k26-reva] 
-Device-tree XSCT workspace (SUBSYSTEM_DT_XSCT_WORKSPACE) [${PROOT}/components/plnx_workspace/device-tree] 
-Extra dts/dtsi files (SUBSYSTEM_EXTRA_DT_FILES) [${PROOT}/project-spec/dts_dir/zynqmp-sck-kv-g-revB.dts] 
-*
-* Kernel Bootargs
-*
-generate boot args automatically (SUBSYSTEM_BOOTARGS_AUTO) [Y/n/?] 
-enable kernel earlyprintk (SUBSYSTEM_BOOTARGS_EARLYPRINTK) [Y/n/?] 
-Auto generated bootargs (NO EDIT!) (SUBSYSTEM_BOOTARGS_GENERATED) [earlycon console=ttyPS1,115200 clk_ignore_unused root=/dev/ram0 rw init_fatal_sh=1 cma=900M] 
-Add extra boot args (SUBSYSTEM_EXTRA_BOOTARGS) [cma=900M ] 
-Devicetree compiler flags (SUBSYSTEM_DEVICETREE_COMPILER_FLAGS) [-@] 
-Devicetree overlay (SUBSYSTEM_DTB_OVERLAY) [Y/n/?] 
-Remove PL from devicetree (SUBSYSTEM_REMOVE_PL_DTB) [N/y/?] 
-Enable openamp dtsi (SUBSYSTEM_ENABLE_OPENAMP_DTSI) [N/y/?] 
-Enable xen hardware dtsi (SUBSYSTEM_ENABLE_XEN_HW_DTSI) [N/y/?] 
-Enable xen QEMU dtsi (SUBSYSTEM_ENABLE_XEN_QEMU_DTSI) [N/y/?] 
-Disable alias generated by DTG (SUBSYSTEM_ENABLE_NO_ALIAS) [Y/n/?] 
-Enable dt verbose (SUBSYSTEM_ENABLE_DT_VERBOSE) [N/y/?] 
-*
-* PMUFW Configuration
-*
-PMUFW BSP extra compiler flags (SUBSYSTEM_PMUFW_BSPCOMPILER_FLAGS) [] 
-PMUFW compiler flags (SUBSYSTEM_PMUFW_COMPILER_EXTRA_FLAGS) [] 
-*
-* FSBL Configuration
-*
-FSBL BSP extra compiler flags (SUBSYSTEM_FSBL_BSPCOMPILER_FLAGS) [] 
-FSBL compiler flags (SUBSYSTEM_FSBL_COMPILER_EXTRA_FLAGS) [-DFSBL_DEBUG] 
-*
-* Trusted Firmware ARM (TF-A) Configuration
-*
-TF-A memory settings (SUBSYSTEM_TF-A_MEMORY_SETTINGS) [N/y/?] 
-TF-A extra compiler flags (SUBSYSTEM_TF-A_EXTRA_COMPILER_FLAGS) [] 
-PRELOADED BL33 BASE (SUBSYSTEM_PRELOADED_BL33_BASE) [0x8000000] 
-TF-A debug (SUBSYSTEM_TF-A_DEBUG) [N/y/?] 
-*
-* FPGA Manager
-*
-Fpga Manager (SUBSYSTEM_FPGA_MANAGER) [N/y/?] 
-*
-* u-boot Configuration
-*
-u-boot config target (SUBSYSTEM_UBOOT_CONFIG_TARGET) [AUTO] 
-*
-* u-boot script configuration
-*
-Append base address to image offsets (SUBSYSTEM_UBOOT_APPEND_BASEADDR) [Y/n/?] 
-Pre bootenv (SUBSYSTEM_UBOOT_PRE_BOOTENV) [] 
-*
-* JTAG/DDR image offsets
-*
-Devicetree offset (SUBSYSTEM_UBOOT_DEVICETREE_OFFSET) [0x100000] 
-Kernel offset (SUBSYSTEM_UBOOT_KERNEL_OFFSET) [0x200000] 
-Ramdisk image offset (SUBSYSTEM_UBOOT_RAMDISK_IMAGE_OFFSET) [0x4000000] 
-Fit image offset (SUBSYSTEM_UBOOT_FIT_IMAGE_OFFSET) [0x10000000] 
-*
-* QSPI/OSPI image offsets
-*
-QSPI/OSPI Kernel offset (SUBSYSTEM_UBOOT_QSPI_KERNEL_OFFSET) [0xF00000] 
-QSPI/OSPI Kernel size (SUBSYSTEM_UBOOT_QSPI_KERNEL_SIZE) [0x1D00000] 
-QSPI/OSPI Ramdisk offset (SUBSYSTEM_UBOOT_QSPI_RAMDISK_OFFSET) [0x4000000] 
-QSPI/OSPI Ramdisk size (SUBSYSTEM_UBOOT_QSPI_RAMDISK_SIZE) [0x4000000] 
-QSPI/OSPI fit image offset (SUBSYSTEM_UBOOT_QSPI_FIT_IMAGE_OFFSET) [0xF40000] 
-QSPI/OSPI fit image size (SUBSYSTEM_UBOOT_QSPI_FIT_IMAGE_SIZE) [0x6400000] 
-*
-* NAND image offsets
-*
-NAND Kernel offset (SUBSYSTEM_UBOOT_NAND_KERNEL_OFFSET) [0x4100000] 
-NAND Kernel size (SUBSYSTEM_UBOOT_NAND_KERNEL_SIZE) [0x3200000] 
-NAND Ramdisk offset (SUBSYSTEM_UBOOT_NAND_RAMDISK_OFFSET) [0x7800000] 
-NAND Ramdisk size (SUBSYSTEM_UBOOT_NAND_RAMDISK_SIZE) [0x3200000] 
-NAND fit image offset (SUBSYSTEM_UBOOT_NAND_FIT_IMAGE_OFFSET) [0x4180000] 
-NAND fit image size (SUBSYSTEM_UBOOT_NAND_FIT_IMAGE_SIZE) [0x6400000] 
-Kernel image name (SUBSYSTEM_UBOOT_KERNEL_IMAGE) [Image] 
-Fit image name (SUBSYSTEM_UBOOT_FIT_IMAGE) [image.ub] 
-u-boot-ext-dtb (SUBSYSTEM_UBOOT_EXT_DTB) [N/y/?] 
-*
-* Linux Configuration
-*
-linux config target (SUBSYSTEM_LINUX_CONFIG_TARGET) [AUTO] 
-*
-* Image Packaging Configuration
-*
-Root filesystem type
-  1. INITRAMFS (SUBSYSTEM_ROOTFS_INITRAMFS)
-> 2. INITRD (SUBSYSTEM_ROOTFS_INITRD)
-  3. JFFS2 (SUBSYSTEM_ROOTFS_JFFS2)
-  4. UBI/UBIFS (SUBSYSTEM_ROOTFS_UBIFS)
-  5. NFS (SUBSYSTEM_ROOTFS_NFS)
-  6. EXT4 (SD/eMMC/SATA/USB) (SUBSYSTEM_ROOTFS_EXT4)
-  7. other (SUBSYSTEM_ROOTFS_OTHER)
-choice[1-7]: RAMDISK loadaddr (SUBSYSTEM_INITRD_RAMDISK_LOADADDR) [0x0] 
-INITRAMFS/INITRD Image name (SUBSYSTEM_INITRAMFS_IMAGE_NAME) [petalinux-initramfs-image] 
-name for bootable kernel image (SUBSYSTEM_UIMAGE_NAME) [image.ub] 
-Root filesystem formats (SUBSYSTEM_RFS_FORMATS) [cpio cpio.gz cpio.gz.u-boot ext4 tar.gz jffs2] 
-DTB padding size (SUBSYSTEM_DTB_PADDING_SIZE) [0x1000] 
-Copy final images to tftpboot (SUBSYSTEM_COPY_TO_TFTPBOOT) [N/y/?] 
-*
-* Firmware Version Configuration
-*
-Host name (SUBSYSTEM_HOSTNAME) [mw-kv260] 
-Product name (SUBSYSTEM_PRODUCT) [mw-kv260] 
-Firmware Version (SUBSYSTEM_FW_VERSION) [1.00] 
-*
-* Yocto Settings
-*
-YOCTO_MACHINE_NAME (YOCTO_MACHINE_NAME) [xilinx-k26-kv] 
-*
-* TMPDIR Location
-*
-TMPDIR Location (TMP_DIR_LOCATION) [${PROOT}/build/tmp] 
-*
-* Devtool Workspace Location
-*
-Devtool Workspace Location (DEVTOOL_WORKSPACE_LOCATION) [${PROOT}/components/yocto/workspace] 
-PetaLinux Deploy Directory (PLNX_IMAGES_LOCATION) [${PROOT}/images/linux] 
-PetaLinux Multiconfig Deploy Directory (MC_PLNX_IMAGES_LOCATION) [${PROOT}/images/${BB_CURRENT_MC}] 
-*
-* Parallel thread execution
-*
-sets number of bb threads (BB_NUMBER_THREADS) (YOCTO_BB_NUMBER_THREADS) [] 
-sets number of parallel make -j (PARALLEL_MAKE) (YOCTO_PARALLEL_MAKE) [] 
-*
-* Add pre-mirror url 
-*
-pre-mirror url path (PRE_MIRROR_URL) [http://petalinux.xilinx.com/sswreleases/rel-v${PETALINUX_MAJOR_VER}/downloads] 
-*
-* Local sstate feeds settings
-*
-local sstate feeds url (YOCTO_LOCAL_SSTATE_FEEDS_URL) [] 
-Enable Network sstate feeds (YOCTO_NETWORK_SSTATE_FEEDS) [Y/n/?] 
-  *
-  * Network sstate feeds URL
-  *
-  network sstate feeds url (YOCTO_NETWORK_SSTATE_FEEDS_URL) [http://petalinux.xilinx.com/sswreleases/rel-v${PETALINUX_MAJOR_VER}/aarch64/sstate-cache] 
-Enable BB NO NETWORK (YOCTO_BB_NO_NETWORK) [N/y/?] 
-Enable Buildtools Extended (YOCTO_BUILDTOOLS_EXTENDED) [N/y/?] 
-*
-* User Layers
-*
-user layer 0 (USER_LAYER_0) [${PROOT}/project-spec/meta-mathworks] 
-  user layer 1 (USER_LAYER_1) [] 
-#
-# configuration written to /home/sgannava/gitPushInside_kria/Petalinux/mw_kria_kv260/project-spec/configs/config
-#
+[INFO] Menuconfig project
+[DEBUG] Running CMD: env KCONFIG_CONFIG=/home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/configs/config mconf -s /home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/configs/configs/Kconfig
+[DEBUG] Running CMD: xsct -sdx -nodisp /home/sgannava/Git/Petalinux/mw_kria_kv260/components/yocto/layers/meta-xilinx/meta-xilinx-core/gen-machine-conf/gen-machine-scripts/petalinux_hsm.tcl get_flash_width_parts /home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/configs/config /home/sgannava/Git/Petalinux/mw_kria_kv260/components/yocto/layers/meta-xilinx/meta-xilinx-core/gen-machine-conf/gen-machine-scripts/data/ipinfo.yaml /home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/hw-description/system.xsa /home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/configs/flash_parts.txt
+[DEBUG] WARNING: sdtgen package cannot be loaded. System Device tree commands will not 
+ be available
+INFO: [Hsi 55-2053] elapsed time for repository (/home/sgannava/petalinux_2023_1/tools/xsct/data/embeddedsw) loading 0 seconds
+hsi::open_hw_design: Time (s): cpu = 00:00:07 ; elapsed = 00:00:07 . Memory (MB): peak = 691.375 ; gain = 157.434 ; free physical = 940 ; free virtual = 7691
+
 [INFO] Silentconfig rootfs
-[DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/sgannava/gitPushInside_kria/Petalinux/mw_kria_kv260/project-spec/configs/rootfs_config conf /home/sgannava/gitPushInside_kria/Petalinux/mw_kria_kv260/project-spec/configs/rootfsconfigs/Kconfig
+[DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/configs/rootfs_config conf /home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/configs/rootfsconfigs/Kconfig
 [DEBUG] *
 * Configuration
 *
@@ -3842,5 +3577,17 @@ Create new Groups (CREATE_NEW_GROUPS) [aie;]
 Add Users to Groups (ADD_USERS_TO_GROUPS) [petalinux:audio,video,aie,input;] 
 Add Users to Sudo users (ADD_USERS_TO_SUDOERS) [petalinux] 
 #
-# configuration written to /home/sgannava/gitPushInside_kria/Petalinux/mw_kria_kv260/project-spec/configs/rootfs_config
+# configuration written to /home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/configs/rootfs_config
 #
+[INFO] Adding user layers
+[DEBUG] Adding layer: /home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/meta-user
+[DEBUG] Running CMD: bitbake-layers -F add-layer /home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/meta-user
+[DEBUG] NOTE: Starting bitbake server...
+NOTE: Started PRServer with DBfile: /home/sgannava/Git/Petalinux/mw_kria_kv260/build/cache/prserv.sqlite3, Address: 127.0.0.1:41969, PID: 4025
+
+[INFO] Generating machine conf file
+[INFO] Generating plnxtool conf file
+[DEBUG] Running CMD: nslookup -timeout=10 gitenterprise.xilinx.com | grep "Address" |                 awk '{print $2}' | sed -n 2p
+[DEBUG] 
+[DEBUG] Running CMD: python3 /home/sgannava/Git/Petalinux/mw_kria_kv260/components/yocto/layers/meta-xilinx/meta-xilinx-core/gen-machine-conf/gen-machine-scripts/rootfsconfigs/rootfs_config.py --update_cfg /home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/configs/rootfs_config /home/sgannava/Git/Petalinux/mw_kria_kv260/project-spec/configs/plnxtool.conf zynqmp
+[DEBUG] 

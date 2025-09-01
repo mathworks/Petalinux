@@ -295,6 +295,5 @@ CONFIG_YOCTO_NETWORK_SSTATE_FEEDS_URL="http://petalinux.xilinx.com/sswreleases/r
 #
 # User Layers
 #
-CONFIG_USER_LAYER_0="${PROOT}/project-spec/meta-mathworks"
-CONFIG_USER_LAYER_1=""
+CONFIG_USER_LAYER_0=""
 CONFIG_SUBSYSTEM_BOOTARGS_GENERATED="earlycon console=ttyPS1,115200 clk_ignore_unused root=/dev/ram0 rw init_fatal_sh=1 cma=900M"

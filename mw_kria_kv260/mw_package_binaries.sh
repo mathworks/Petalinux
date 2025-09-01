@@ -8,11 +8,11 @@ timestamp_sdcard() {
     date +"%Y-%m-%d"
 }
 
+###Generate BOOT.BIN file
 
 petalinux-package --boot --u-boot --force
 
-
-#src_dir="$(dirname "$(pwd)")"
+echo "Starting Linux image packaging into a zip file"
 src_dir="$(pwd)"
 get_timestamp=$(timestamp)
 dir_prefix="kria_kv260_linux_binaries_"
@@ -36,5 +36,11 @@ cp $src_dir/mw_utils/interfaces $dst_dir
 cp $src_dir/mw_utils/shell.json $dst_dir
 
 get_timestamp_sd=$(timestamp_sdcard)
-zip kria_kv260_sdcard_$get_timestamp_sd.zip -j $dst_dir/*
+
+if zip kria_kv260_sdcard_$get_timestamp_sd.zip -j $dst_dir/*; then
+	echo "Linux image packaging is successful"
+else
+	echo "Linux image packaging failed"
+fi
+
 rm -rf $dst_dir

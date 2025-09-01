@@ -9,7 +9,7 @@ config SYSTEM_ZYNQMP
         bool "ZYNQMP Configuration"
         help
           ZYNQMP Configuration for petalinux project.
-          All these config options will be in /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/config
+          All these config options will be in /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/config
 
 
 config SUBSYSTEM_VARIANT_ZYNQMPEV
@@ -439,7 +439,7 @@ config SUBSYSTEM_AUTOCONFIG_U__BOOT
 endif
 endmenu
 
-source /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/configs/Kconfig.syshw
+source /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/configs/Kconfig.syshw
 
 choice
 	prompt "System Architecture"

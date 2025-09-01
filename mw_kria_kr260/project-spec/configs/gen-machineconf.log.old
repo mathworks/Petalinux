@@ -1,15 +1,15 @@
 [DEBUG] Using xsct from : /home/sgannava/petalinux_2023_1/tools/xsct/bin/xsct
 [DEBUG] Using conf/mconf from : /home/sgannava/petalinux_2023_1/components/yocto/buildtools/sysroots/x86_64-petalinux-linux/usr/bin/mconf
 [INFO] Menuconfig project
-[DEBUG] Running CMD: env KCONFIG_CONFIG=/home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/config mconf -s /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/configs/Kconfig
-[DEBUG] Running CMD: xsct -sdx -nodisp /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/components/yocto/layers/meta-xilinx/meta-xilinx-core/gen-machine-conf/gen-machine-scripts/petalinux_hsm.tcl get_flash_width_parts /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/config /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/components/yocto/layers/meta-xilinx/meta-xilinx-core/gen-machine-conf/gen-machine-scripts/data/ipinfo.yaml /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/hw-description/system.xsa /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/flash_parts.txt
+[DEBUG] Running CMD: env KCONFIG_CONFIG=/home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/config mconf -s /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/configs/Kconfig
+[DEBUG] Running CMD: xsct -sdx -nodisp /home/sgannava/Git/Petalinux/mw_kria_kr260/components/yocto/layers/meta-xilinx/meta-xilinx-core/gen-machine-conf/gen-machine-scripts/petalinux_hsm.tcl get_flash_width_parts /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/config /home/sgannava/Git/Petalinux/mw_kria_kr260/components/yocto/layers/meta-xilinx/meta-xilinx-core/gen-machine-conf/gen-machine-scripts/data/ipinfo.yaml /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/hw-description/system.xsa /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/flash_parts.txt
 [DEBUG] WARNING: sdtgen package cannot be loaded. System Device tree commands will not 
  be available
 INFO: [Hsi 55-2053] elapsed time for repository (/home/sgannava/petalinux_2023_1/tools/xsct/data/embeddedsw) loading 0 seconds
-hsi::open_hw_design: Time (s): cpu = 00:00:08 ; elapsed = 00:00:08 . Memory (MB): peak = 627.395 ; gain = 109.914 ; free physical = 1745 ; free virtual = 9512
+hsi::open_hw_design: Time (s): cpu = 00:00:08 ; elapsed = 00:00:08 . Memory (MB): peak = 691.379 ; gain = 109.898 ; free physical = 736 ; free virtual = 7631
 
 [INFO] Silentconfig rootfs
-[DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/rootfs_config conf /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/rootfsconfigs/Kconfig
+[DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/rootfs_config conf /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/rootfsconfigs/Kconfig
 [DEBUG] *
 * Configuration
 *
@@ -3577,11 +3577,17 @@ Create new Groups (CREATE_NEW_GROUPS) [aie;]
 Add Users to Groups (ADD_USERS_TO_GROUPS) [petalinux:audio,video,aie,input;] 
 Add Users to Sudo users (ADD_USERS_TO_SUDOERS) [petalinux] 
 #
-# configuration written to /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/rootfs_config
+# configuration written to /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/rootfs_config
 #
+[INFO] Adding user layers
+[DEBUG] Adding layer: /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/meta-user
+[DEBUG] Running CMD: bitbake-layers -F add-layer /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/meta-user
+[DEBUG] NOTE: Starting bitbake server...
+NOTE: Started PRServer with DBfile: /home/sgannava/Git/Petalinux/mw_kria_kr260/build/cache/prserv.sqlite3, Address: 127.0.0.1:33691, PID: 5188
+
 [INFO] Generating machine conf file
 [INFO] Generating plnxtool conf file
 [DEBUG] Running CMD: nslookup -timeout=10 gitenterprise.xilinx.com | grep "Address" |                 awk '{print $2}' | sed -n 2p
 [DEBUG] 
-[DEBUG] Running CMD: python3 /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/components/yocto/layers/meta-xilinx/meta-xilinx-core/gen-machine-conf/gen-machine-scripts/rootfsconfigs/rootfs_config.py --update_cfg /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/rootfs_config /home/sgannava/gitPush_kr260/Petalinux/mw_kria_kr260/project-spec/configs/plnxtool.conf zynqmp
+[DEBUG] Running CMD: python3 /home/sgannava/Git/Petalinux/mw_kria_kr260/components/yocto/layers/meta-xilinx/meta-xilinx-core/gen-machine-conf/gen-machine-scripts/rootfsconfigs/rootfs_config.py --update_cfg /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/rootfs_config /home/sgannava/Git/Petalinux/mw_kria_kr260/project-spec/configs/plnxtool.conf zynqmp
 [DEBUG] 
