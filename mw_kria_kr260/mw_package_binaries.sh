@@ -38,7 +38,7 @@ cp $src_dir/mw_utils/shell.json $dst_dir
 get_timestamp_sd=$(timestamp_sdcard)
 
 if zip kria_kr260_sdcard_$get_timestamp_sd.zip -j $dst_dir/*; then
-	echo "Linux image packaging is successful"
+	echo "Linux image zip file is ready"
 else
 	echo "Linux image packaging failed"
 fi
