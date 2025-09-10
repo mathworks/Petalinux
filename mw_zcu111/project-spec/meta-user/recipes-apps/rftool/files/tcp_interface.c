@@ -169,58 +169,63 @@ void acceptConnection(void)
  * helper function to get "\n" terminates string from
  * TCP socket
  */
-int getdataString(char *buf,int len)
+int getdataString(char *buf, int len)
 {
-	int valread = 0;
+	int valread;
 	char val;
-	unsigned int rbytes = 0;
-	struct   timeval tv;
-	fd_set   fdread; 
+	int rbytes = 0;
+	struct timeval tv;
+	fd_set fdread;
 	int selectStatus = 0;
 
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
 
 	FD_ZERO(&fdread);
-	FD_SET( new_data_socket, &fdread );
+	FD_SET(new_data_socket, &fdread);
 
 	do {
-		selectStatus = select(new_data_socket + 1, &fdread, NULL, NULL, &tv);
-		if(selectStatus == 0)
-			return valread;
+		selectStatus =
+			select(new_data_socket + 1, &fdread, NULL, NULL, &tv);
+		if (selectStatus == 0)
+			return rbytes;
 
-		if(FD_ISSET(new_data_socket, &fdread)) {
-
-			valread += read( new_data_socket, &val, 1);
-			buf[rbytes++] = val;
-			if(valread == 0){
+		if (FD_ISSET(new_data_socket, &fdread)) {
+			valread = read(new_data_socket, &val, 1);
+			if (valread <= 0) {
+				if (valread < 0)
+					perror("info -> getdataString char read < 0");
 				break;
 			}
+			else
+				buf[rbytes++] = val;
 		}
-	} while((val != '\n') && (valread < len) &&  (rbytes < len));
+	} while ((val != '\n') && (rbytes < len));
 
-	return valread;
+	return rbytes;
 }
-
 /*
  * helper function to get "\n" terminates string from
  * TCP socket
  */
-int getString(char *buf,int len)
+int getString(char *buf, int len)
 {
-	int valread = 0;
+	int valread;
 	char val;
-	unsigned int rbytes = 0;
+	int rbytes = 0;
 
 	do {
-		valread += read(new_socket , &val, 1);
-		buf[rbytes++] = val;
-		if (valread == 0){
+		valread = read(new_socket, &val, 1);
+		if (valread <= 0) {
+			if (valread < 0)
+				perror("info -> getString char read < 0");
 			break;
 		}
-	} while((val != '\n') && (valread < len));
+		else
+			buf[rbytes++] = val;
+	} while ((val != '\n') && (rbytes < len));
 
-	return valread;
+	return rbytes;
 }
 
 /*
