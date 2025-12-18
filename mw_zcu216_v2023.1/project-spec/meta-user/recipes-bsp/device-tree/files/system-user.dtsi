@@ -1,0 +1,6 @@
+/include/ "system-conf.dtsi"
+/ {
+    amba_pl: amba_pl@0 {
+        /delete-node/ usp_rf_data_converter@a3c00000;
+    };
+};

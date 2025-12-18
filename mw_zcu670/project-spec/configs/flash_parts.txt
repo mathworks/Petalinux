@@ -1,0 +1,3 @@
+flash_type=spi
+boot=0 0x02400000
+kernel=0x2440000 0x2400000

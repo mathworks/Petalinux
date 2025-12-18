@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "linux-aarch64-11.2.0",
+            "includePath": [
+                "${default}",
+                "D:\\share\\apps\\RTT\\Zynq\\firmware\\R24_2_1\\sysrootaarch64_plnx_2022.1\\usr\\include",
+                "D:\\share\\apps\\RTT\\Zynq\\firmware\\R24_2_1\\sysrootaarch64_plnx_2022.1\\usr\\include\\c++\\11.2.0",
+                "L:\\petalinux\\rfsoc-2022-1\\rftool\\modified\\libconfig\\libconfig\\usr\\include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.22000.0",
+            "compilerPath": "L:\\toolchains\\gcc-arm-11.2-2022.02-mingw-w64-i686-aarch64-none-linux-gnu\\bin\\aarch64-linux-gnu-gcc.exe",
+            "intelliSenseMode": "linux-gcc-arm64",
+            "compilerArgs": [
+                "--sysroot=D:\\share\\apps\\RTT\\Zynq\\firmware\\R24_2_1\\sysrootaarch64_plnx_2022.1\\"
+            ],
+            "cStandard": "c11",
+            "compileCommands": ""
+        }
+    ],
+    "version": 4
+}

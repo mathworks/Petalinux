@@ -1,0 +1,19 @@
+[Unit]
+SourcePath=pkill
+Before=sdinit.service
+After=usb_network.service
+
+[Service]
+Type=forking
+Restart=no
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+RemainAfterExit=yes
+ExecStart=echo "Installed stopsociod"
+ExecStop=pkill -9 sociod
+StandardOutput=journal+console
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,38 @@
+From 2dab8928b6fc94d83e1a0f0e720357e066e5069b Mon Sep 17 00:00:00 2001
+From: psharma <psharma@mathworks.com>
+Date: Sun, 10 Aug 2025 16:25:45 +0530
+Subject: [PATCH] zcu111 fixes
+
+---
+ recipes-apps/libiio/libiio.bb               | 1 +
+ recipes-apps/mw-fs-overlay/mw-fs-overlay.bb | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/recipes-apps/libiio/libiio.bb b/recipes-apps/libiio/libiio.bb
+index 9b1d5a3..35ba528 100644
+--- a/recipes-apps/libiio/libiio.bb
++++ b/recipes-apps/libiio/libiio.bb
+@@ -44,6 +44,7 @@ PACKAGES =+ "${PN}-iiod ${PN}-tests ${PN}-python"
+ RDEPENDS_${PN}-python = "${PN} python3-ctypes python3-stringold"
+ 
+ #FILES_${PN}-tests = "${bindir}"
++FILES_${PN}-iiod = "${sbindir}/iiod ${systemd_system_unitdir}/iiod.service"
+ FILES_${PN}-python = "${PYTHON_SITEPACKAGES_DIR}"
+ 
+ SYSTEMD_PACKAGES = "${PN}-iiod"
+diff --git a/recipes-apps/mw-fs-overlay/mw-fs-overlay.bb b/recipes-apps/mw-fs-overlay/mw-fs-overlay.bb
+index 48515f2..155d775 100644
+--- a/recipes-apps/mw-fs-overlay/mw-fs-overlay.bb
++++ b/recipes-apps/mw-fs-overlay/mw-fs-overlay.bb
+@@ -39,7 +39,7 @@ SERVICEUNITS = "sdcard_mount.service usb_network.service \
+  inetd.service user_app.service nfs-common.service hostname.service \
+  backupSSHKeys.service restoreSSHKeys.service udc.service "
+ 
+-SYSTEMD_SERVICE_${PN} = "${@bb.utils.contains('INIT_MANAGER','systemd','${SERVICEUNITS}','" "',d)}"
++SYSTEMD_SERVICE_${PN} = "${@bb.utils.contains('INIT_MANAGER','systemd','${SERVICEUNITS}','',d)}"
+ 
+ do_install() {
+ 	chmod -R 0755 ${WORKDIR}/common/fs-overlay/usr/sbin/
+-- 
+2.25.1
+
