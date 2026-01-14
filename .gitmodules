@@ -1,0 +1,11 @@
+[submodule "mw-zcu216/project-spec/meta-mathworks"]
+	path = mw-zcu216/project-spec/meta-mathworks
+	url = https://github.com/mathworks/meta-mathworks
+[submodule "project-spec/meta-mathworks"]
+	path = project-spec/meta-mathworks
+	url = https://github.com/mathworks/meta-mathworks
+	branch = petalinux-v2022.1
+[submodule "mw_zcu216/project-spec/meta-mathworks"]
+	path = mw_zcu216/project-spec/meta-mathworks
+	url = https://github.com/mathworks/meta-mathworks
+	branch = petalinux-v2022.1
