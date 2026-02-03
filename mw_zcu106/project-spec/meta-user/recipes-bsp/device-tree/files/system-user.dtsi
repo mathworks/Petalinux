@@ -1,0 +1,4 @@
+/include/ "system-conf.dtsi"
+/ {
+    /delete-node/ amba_pl@0;
+};
