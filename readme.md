@@ -14,6 +14,7 @@ MathWorks PetaLinux projects and helper scripts for building SD-card images targ
 | ZC702 Zynq-7000 | [mw_zc702/README.md](mw_zc702/README.md) | 2023.1 | [mw_zc702/mw_build_zc702.sh](mw_zc702/mw_build_zc702.sh) |
 | ZC706 Zynq-7000 | [mw_zc706/README.md](mw_zc706/README.md) | 2023.1 | [mw_zc706/mw_build_zc706.sh](mw_zc706/mw_build_zc706.sh) |
 | ZCU102 MPSoC | [mw_zcu102/README.md](mw_zcu102/README.md) | 2023.1 | [mw_zcu102/mw_build_zcu102.sh](mw_zcu102/mw_build_zcu102.sh) |
+| ZCU106 MPSoC | [mw_zcu106/README.md](mw_zcu106/README.md) | 2023.1 | [mw_zcu106/mw_build_zcu106.sh](mw_zcu106/mw_build_zcu106.sh) |
 | ZCU104 MPSoC | [mw_zcu104/README.md](mw_zcu104/README.md) | 2023.1 | (manual steps) |
 | ZCU111 RFSoC | [mw_zcu111/README.md](mw_zcu111/README.md) | 2021.2 | [mw_zcu111/mw_build_zcu111.sh](mw_zcu111/mw_build_zcu111.sh) |
 | ZCU208 RFSoC | [mw_zcu208/README.md](mw_zcu208/README.md) | 2023.1 | [mw_zcu208/mw_build_zcu208.sh](mw_zcu208/mw_build_zcu208.sh) |
