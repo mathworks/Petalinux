@@ -1,17 +1,17 @@
-# Petalinux Project Creation and Linux Image Build for AMD Zynq™ 7000 SoC ZC706 Evaluation Kit 
+# Petalinux Project Creation and Linux Image Build for Zynq UltraScale+ RFSoC ZCU111 Evaluation Board 
 
-This Petalinux repo is the starting point to build the Linux image for AMD Zynq™ 7000 SoC ZC706 Evaluation Kit compatible to MathWorks applications. The Linux image build process also includes the use of meta-mathworks layer for the Linux image to work for MathWorks applications. The meta-mathworks layer is compatible to Petalinux version 2023.1.
+This Petalinux repo is the starting point to build the Linux image for Zynq UltraScale+ RFSoC ZCU111 Evaluation Board compatible to MathWorks applications. The Linux image build process also includes the use of meta-mathworks layer for the Linux image to work for MathWorks applications. The meta-mathworks layer is compatible to Petalinux version 2021.2.
 
 # Dependencies
 
 1. A Linux based host computer with minimum of 8GB RAM and 100GB of free workspace. 
 2. An Ubuntu 20.04 LTS or Ubuntu 22.04 LTS Operating System.
-2. Petalinux Installer v2023.1.
+2. Petalinux Installer v2021.2.
 
 # Pre-requisites
 Install all the required packages mentioned in [package_list](https://adaptivesupport.amd.com/s/article/000035006?language=en_US) that are used during image build.
 
-Make sure you are working on the host machine in bash mode other than the dash mode. If you are in dash mode you can change your host system to bash mode by running the below command. For this, you need to have administrative privileges. For more information, see [Setting up your environment](https://docs.amd.com/r/2023.1-English/ug1144-petalinux-tools-reference-guide/Setting-Up-Your-Environment).
+Make sure you are working on the host machine in bash mode other than the dash mode. If you are in dash mode you can change your host system to bash mode by running the below command. For this, you need to have administrative privileges. For more information, see [Setting up your environment](https://docs.amd.com/r/2021.2-English/ug1144-petalinux-tools-reference-guide/Setting-Up-Your-Environment).
 
 ```
 sudo dpkg-reconfigure dash
@@ -21,12 +21,12 @@ sudo dpkg-reconfigure dash
 
 Follow the below steps to install the Petalinux tool in your host machine using command line interface.
 
-1. Download the [Petalinux installer v2023.1](https://www.xilinx.com/member/forms/download/xef.html?filename=petalinux-v2023.1-05012318-installer.run)
+1. Download the [Petalinux installer v2021.2](https://www.xilinx.com/member/forms/download/xef.html?filename=petalinux-v2021.2-final-installer.run)
 2. Run the below commands to install the Petalinux tool from the path where you downloaded the petalinux installer.
 
 	```
-	chmod 755 ./petalinux-v2023.1-05012318-installer.run
-	./petalinux-v2023.1-05012318-installer.run
+	chmod 755 ./petalinux-v2021.2-05012318-installer.run
+	./petalinux-v2021.2-05012318-installer.run
 	```
 
 3. Run the below command to source the installed Petalinux tool to use the petalinux tool commands for image build.
@@ -52,22 +52,28 @@ This section explains how you can setup the MathWorks Petalinux repository and a
 	```
 	git checkout mathworks_R2026a
 	```
-Navigate to *mw_zc706* directory. You can use `mw_build_zc706.sh` script present in this folder to add the meta-mathworks layer to the Petalinux project and get the Linux image in a zip file directly in your working directory. Note that the script is run from its path only using below command.
+Navigate to *mw_zcu111* directory. You can use `mw_build_zcu111.sh` script present in this folder to add the meta-mathworks layer to the Petalinux project and get the Linux image in a zip file directly in your working directory. Note that the script is run from its path only using below command.
 
-	chmod +x mw_zc706
-	cd mw_zc706
+	chmod +x mw_zcu111
+	cd mw_zcu111
 	chmod 777 *.sh
-	./mw_build_zc706.sh <petalinux_installed_directory> <mw_zc706_directory>
+	./mw_build_zcu111.sh <petalinux_installed_directory> <mw_zcu111_directory>
 
  If you wish to build the Linux image manually, follow the steps mentioned in this section.
 
-3. Add the `meta-mathworks` layer to the ZC706 Petalinux project using below command. Run this command from the *mw_zc706* directory.			
+3. Add the `meta-mathworks` layer to the zcu111 Petalinux project using below command. Run this command from the *mw_zcu111* directory.			
 
 	```
-	git clone -b petalinux-v2023.1 https://github.com/mathworks/meta-mathworks.git project-spec/meta-mathworks
+	git clone -b petalinux-v2021.2 https://github.com/mathworks/meta-mathworks.git project-spec/meta-mathworks
 	```
 
-4. Point the Petalinux project to the `mata-mathworks` layer. You can do this by using Petalinux config GUI. Run the below command to launch the Petalinux config GUI.
+4. Now copy the patch `0001-zcu111-fixes.patch` available in MathWorks provided repo to the same path where meta-mathworks layer is located. Now apply the patch using below command after navigating to the project-spec/meta-mathworks. 
+
+	```
+	git apply 0001-zcu111-fixes.patch
+	```
+
+5. Point the Petalinux project to the `mata-mathworks` layer. You can do this by using Petalinux config GUI. Run the below command to launch the Petalinux config GUI.
 
 	```
 	petalinux-config
@@ -79,38 +85,38 @@ After running the above command, menuconfig opens up. Navigate to *Yocto Setting
  ${PROOT}/project-spec/meta-mathworks
  ```
  
-With this you are pointing the Petalinux project to use meta-mathworks layer in Linux image build process and this completes the Petalinux project setup. You can now navigate to the path *Petalinux/mw_zc706*
+With this you are pointing the Petalinux project to use meta-mathworks layer in Linux image build process and this completes the Petalinux project setup. You can now navigate to the path *Petalinux/mw_zcu111*
 
-Note: This repo is already setup with necessary configurations settings to build the bootable Linux image for ZC706. If you want to include any specific kernel drivers in your Linux image, you can refer to the **Configure the kernel** section in this file on different ways to configure the kernel.
+Note: This repo is already setup with necessary configurations settings to build the bootable Linux image for zcu111. If you want to include any specific kernel drivers in your Linux image, you can refer to the **Configure the kernel** section in this file on different ways to configure the kernel.
 
 Now, you can directly go to Linux Image Build section and continue the process to get the Linux image zip file.
 
 If you want to build the Linux image starting from the BSP, you can follow the below mentioned steps and build the image.
 
 # Build the Linux Image Using BSP
-This section explains how to build the MathWorks compatible Linux image for ZC706 using from the bsp 
+This section explains how to build the MathWorks compatible Linux image for ZCU111 using from the bsp 
 
 ### Complete the Petalinux project setup with BSP
 
-1. Download the [AMD Zynq™ 7000 SoC ZC706 Evaluation Kit ](https://www.xilinx.com/member/forms/download/xef.html?filename=xilinx-zc706-v2023.1-05080224.bsp).
+1. Download the [Zynq UltraScale+ RFSoC ZCU111 Evaluation Board](https://www.xilinx.com/member/forms/download/xef.html?filename=xilinx-zcu111-v2021.2-final.bsp).
 
-2. Create the Petalinux project using the ZC706 BSP by running the below command.
+2. Create the Petalinux project using the ZCU111 BSP by running the below command.
 
 	```
 	petalinux-create -t project -s <path_to_downloaded_bsp>
 	```
-	After this a new project with default name *xilinx-ZC706-v2023.1* is created. You can also create the project with specific name in specific directory by providing extra arguments to the above command. For more information, see [Creating a Project from a BSP](https://docs.amd.com/r/2023.1-English/ug1144-petalinux-tools-reference-guide/Creating-a-Project-from-a-BSP).	
+	After this a new project with default name *xilinx-ZCU111-v2021.2* is created. You can also create the project with specific name in specific directory by providing extra arguments to the above command. For more information, see [Creating a Project from a BSP](https://docs.amd.com/r/2021.2-English/ug1144-petalinux-tools-reference-guide/Create-a-Project-from-a-BSP).	
 
-3. Add the `meta-mathworks` layer to the ZC706 Petalinux project using below command. Run this command from the *mw_zc706* directory.
+3. Add the `meta-mathworks` layer to the zcu111 Petalinux project using below command. Run this command from the *mw_zcu111* directory.
 
 	```
-	git clone -b petalinux-v2023.1 https://github.com/mathworks/meta-mathworks.git project-spec/meta-mathworks
+	git clone -b petalinux-v2021.2 https://github.com/mathworks/meta-mathworks.git project-spec/meta-mathworks
 	```
 
 4. Get the Xilinx Source Archive (xsa) to Petalinux project directory. You can generate xsa for your hardware design (bitstream included) using Export Hardware option in Xilinx Vivado.
 ### Add the meta-mathworks layer to the petalinux configuration settings
 
-1.  Change directory to the Petalinux project(*xilinx-zc706-v2023.1*)
+1.  Change directory to the Petalinux project(*xilinx-ZCU111-v2021.2*)
 
 2. 	Configure the petalinux project by pointing to your xsa file using below command.
 
@@ -128,7 +134,7 @@ With this you are pointing your Petalinux project to use meta-mathworks layer.
 
 ### Configure the Root File System (ROOTFS)
 
-1. Open the `user-rootfsconfig` file present in the path *xilinx-zc706-v2023.1/project-spec/meta-user/conf/*.
+1. Open the `user-rootfsconfig` file present in the path *xilinx-zcu111-v2021.2/project-spec/meta-user/conf/*.
 2. Copy the below packages to include in the Linux image and save the file.
 
 	```
@@ -140,8 +146,15 @@ With this you are pointing your Petalinux project to use meta-mathworks layer.
 	CONFIG_boost-dev
 	CONFIG_lttng-ust-bin
 	CONFIG_mw-refdesign-dtb
+	CONFIG_rfdc
+	CONFIG_rfdc-read-write
+	CONFIG_rfdc-selftest
+	CONFIG_libsdfecusrintf
+	CONFIG_rfdc-selftest
+	CONFIG_mw-rf-init
+	CONFIG_rftool-zcu111
 	```
-3. Open the `rootfs_config` file present in the path *xilinx-zc706-v2023.1/project-spec/configs/rootfs_config*.
+3. Open the `rootfs_config` file present in the path *xilinx-zcu111-v2021.2/project-spec/configs/rootfs_config*.
 4. Copy the below packages to include in the Linux image and save the file.
 
 	```
@@ -151,19 +164,15 @@ With this you are pointing your Petalinux project to use meta-mathworks layer.
 	CONFIG_lttng-ust=y
 	CONFIG_lttng-ust-bin=y
 	CONFIG_mw-fs-overlay=y
-	CONFIG_i2c-tools=y
-	CONFIG_i2c-tools-dev=y
-	CONFIG_i2c-tools-misc=y
-	CONFIG_alsa-lib=y
-	CONFIG_libasound=y
-	CONFIG_alsa-utils=y
-	CONFIG_libv4l=y
-	CONFIG_packagegroup-petalinux-v4lutils=y
-	CONFIG_mw-refdesign-dtb=y
+	CONFIG_rfdc=y
+	CONFIG_rfdc-read-write=y
+	ONFIG_rfdc-selftest=y
+	CONFIG_mw-rf-init=y
+	CONFIG_rftool-zcu111=y
 	```	
 	
 5. Similarly, you can include your custom packages into the root file system.
-6. Navigate to Petalinux project path (*xilinx-zc706-v2023.1*).
+6. Navigate to Petalinux project path (*xilinx-zcu111-v2021.2*).
 7. Open the rootfs menuconfig by running the below command.
 
 	```
@@ -178,7 +187,7 @@ This is the place where you can also include other packages in your rootfs by ch
 
 **Kernel Configuration**
 
-Default kernel settings are used to build the Linux image for ZC706. If you wish to configure the kernel, you can follow below steps.
+Default kernel settings are used to build the Linux image for zcu111. If you wish to configure the kernel, you can follow below steps.
 
 ### Adding kernel drivers to the Linux image
 This section explains how you can include the kernel drivers in your Linux image. There are different ways as mentioned below.
@@ -220,7 +229,7 @@ Once all the above settings are done, you can run the below command to build the
 	petalinux-build -x mrproper (Run this command before you run the actual build command)
 	``` 
 
-This completes the Linux image build for zc706.Once the build is successful, you can see the Linux binaries present under the path *images/Linux*. 
+This completes the Linux image build for zcu111.Once the build is successful, you can see the Linux binaries present under the path *images/Linux*. 
 
 You can package the boot image into a `BOOT.BIN` file by runnin the below command.
 
@@ -230,21 +239,23 @@ You can package the boot image into a `BOOT.BIN` file by runnin the below comman
 
 # Image Packaging
 
-copy the below files from /images/linux/ into the SD card
+Copy files from /images/linux/ to the SD card 
 
 	BOOT.BIN 
 	boot.scr
-	uImage
+	Image
 	rootfs.cpio.gz.u-boot
 	system.bit
 	system.dtb  
-	mw_zc706/mw_utils/fw_env.config
-	mw_zc706/mw_utils/init.sh
-	mw_zc706/mw_utils/interfaces
-	mw_zc706/mw_utils/sshd_config
 
-NOTE: If we use the script mw_build_zc706.sh then Image Packaging step will be automatically handled and it will generate a xilinx-zc706-2023.1_sdcard_zynq7000ec_YYYY-MM-DD.zip in <proj-dir/images> directory
-	
-The `init.sh` script is executed immediately after the board is booted up. You can also customize this script as per your requirement by including the commands which you want to be run immediately after succeful booting up of the board.
 
-The interface file contains the board IP address and correspondig gateway details. You need to change these details in the interfaces file as per your domain network.
+Copy files from /mw_utils/ to the SD card
+
+	dhcp.script
+	init.sh
+	rf-init
+	rftool_zcu111
+	stopsociod.service
+	interfaces
+
+NOTE: If we use the script mw_build_zcu111.sh then Image Packaging step will be automatically handled and it will generate a xilinx-zcu111-2021.2_sdcard_zynq_mpsoc_ec_YYYY-MM-DD.zip in <proj-dir/images> directory

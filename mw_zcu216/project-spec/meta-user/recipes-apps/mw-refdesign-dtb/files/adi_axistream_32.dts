@@ -1,2 +1,0 @@
-#include "base.dtsi"
-#include "zynqmp-adi-mw-axistream-iio-common.dtsi"

@@ -903,8 +903,6 @@
 #define IOU_SLCR_SDIO_CLK_CTRL_OFFSET                                              0XFF18030C
 #undef CRL_APB_UART0_REF_CTRL_OFFSET 
 #define CRL_APB_UART0_REF_CTRL_OFFSET                                              0XFF5E0074
-#undef CRL_APB_UART1_REF_CTRL_OFFSET 
-#define CRL_APB_UART1_REF_CTRL_OFFSET                                              0XFF5E0078
 #undef CRL_APB_I2C0_REF_CTRL_OFFSET 
 #define CRL_APB_I2C0_REF_CTRL_OFFSET                                               0XFF5E0120
 #undef CRL_APB_I2C1_REF_CTRL_OFFSET 
@@ -1278,48 +1276,6 @@
 #define CRL_APB_UART0_REF_CTRL_SRCSEL_DEFVAL                   0x01001800
 #define CRL_APB_UART0_REF_CTRL_SRCSEL_SHIFT                    0
 #define CRL_APB_UART0_REF_CTRL_SRCSEL_MASK                     0x00000007U
-
-/*
-* Clock active signal. Switch to 0 to disable the clock
-*/
-#undef CRL_APB_UART1_REF_CTRL_CLKACT_DEFVAL 
-#undef CRL_APB_UART1_REF_CTRL_CLKACT_SHIFT 
-#undef CRL_APB_UART1_REF_CTRL_CLKACT_MASK 
-#define CRL_APB_UART1_REF_CTRL_CLKACT_DEFVAL                   0x01001800
-#define CRL_APB_UART1_REF_CTRL_CLKACT_SHIFT                    24
-#define CRL_APB_UART1_REF_CTRL_CLKACT_MASK                     0x01000000U
-
-/*
-* 6 bit divider
-*/
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR1_DEFVAL 
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR1_SHIFT 
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR1_MASK 
-#define CRL_APB_UART1_REF_CTRL_DIVISOR1_DEFVAL                 0x01001800
-#define CRL_APB_UART1_REF_CTRL_DIVISOR1_SHIFT                  16
-#define CRL_APB_UART1_REF_CTRL_DIVISOR1_MASK                   0x003F0000U
-
-/*
-* 6 bit divider
-*/
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR0_DEFVAL 
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR0_SHIFT 
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR0_MASK 
-#define CRL_APB_UART1_REF_CTRL_DIVISOR0_DEFVAL                 0x01001800
-#define CRL_APB_UART1_REF_CTRL_DIVISOR0_SHIFT                  8
-#define CRL_APB_UART1_REF_CTRL_DIVISOR0_MASK                   0x00003F00U
-
-/*
-* 000 = IOPLL; 010 = RPLL; 011 = DPLL; (This signal may only be toggled af
-    * ter 4 cycles of the old clock and 4 cycles of the new clock. This is not
-    *  usually an issue, but designers must be aware.)
-*/
-#undef CRL_APB_UART1_REF_CTRL_SRCSEL_DEFVAL 
-#undef CRL_APB_UART1_REF_CTRL_SRCSEL_SHIFT 
-#undef CRL_APB_UART1_REF_CTRL_SRCSEL_MASK 
-#define CRL_APB_UART1_REF_CTRL_SRCSEL_DEFVAL                   0x01001800
-#define CRL_APB_UART1_REF_CTRL_SRCSEL_SHIFT                    0
-#define CRL_APB_UART1_REF_CTRL_SRCSEL_MASK                     0x00000007U
 
 /*
 * Clock active signal. Switch to 0 to disable the clock
@@ -32943,14 +32899,6 @@
 #define UART0_CONTROL_REG0_OFFSET                                                  0XFF000000
 #undef UART0_MODE_REG0_OFFSET 
 #define UART0_MODE_REG0_OFFSET                                                     0XFF000004
-#undef UART1_BAUD_RATE_DIVIDER_REG0_OFFSET 
-#define UART1_BAUD_RATE_DIVIDER_REG0_OFFSET                                        0XFF010034
-#undef UART1_BAUD_RATE_GEN_REG0_OFFSET 
-#define UART1_BAUD_RATE_GEN_REG0_OFFSET                                            0XFF010018
-#undef UART1_CONTROL_REG0_OFFSET 
-#define UART1_CONTROL_REG0_OFFSET                                                  0XFF010000
-#undef UART1_MODE_REG0_OFFSET 
-#define UART1_MODE_REG0_OFFSET                                                     0XFF010004
 #undef CRL_APB_RST_LPD_IOU2_OFFSET 
 #define CRL_APB_RST_LPD_IOU2_OFFSET                                                0XFF5E0238
 #undef LPD_SLCR_SECURE_SLCR_ADMA_OFFSET 
@@ -33370,16 +33318,6 @@
 #define CRL_APB_RST_LPD_IOU2_UART0_RESET_MASK                  0x00000002U
 
 /*
-* Block level reset
-*/
-#undef CRL_APB_RST_LPD_IOU2_UART1_RESET_DEFVAL 
-#undef CRL_APB_RST_LPD_IOU2_UART1_RESET_SHIFT 
-#undef CRL_APB_RST_LPD_IOU2_UART1_RESET_MASK 
-#define CRL_APB_RST_LPD_IOU2_UART1_RESET_DEFVAL                0x0017FFFF
-#define CRL_APB_RST_LPD_IOU2_UART1_RESET_SHIFT                 2
-#define CRL_APB_RST_LPD_IOU2_UART1_RESET_MASK                  0x00000004U
-
-/*
 * Baud rate divider value: 0 - 3: ignored 4 - 255: Baud rate
 */
 #undef UART0_BAUD_RATE_DIVIDER_REG0_BDIV_DEFVAL 
@@ -33560,188 +33498,6 @@
 #define UART0_MODE_REG0_CLKS_DEFVAL                            0x00000000
 #define UART0_MODE_REG0_CLKS_SHIFT                             0
 #define UART0_MODE_REG0_CLKS_MASK                              0x00000001U
-
-/*
-* Baud rate divider value: 0 - 3: ignored 4 - 255: Baud rate
-*/
-#undef UART1_BAUD_RATE_DIVIDER_REG0_BDIV_DEFVAL 
-#undef UART1_BAUD_RATE_DIVIDER_REG0_BDIV_SHIFT 
-#undef UART1_BAUD_RATE_DIVIDER_REG0_BDIV_MASK 
-#define UART1_BAUD_RATE_DIVIDER_REG0_BDIV_DEFVAL               0x0000000F
-#define UART1_BAUD_RATE_DIVIDER_REG0_BDIV_SHIFT                0
-#define UART1_BAUD_RATE_DIVIDER_REG0_BDIV_MASK                 0x000000FFU
-
-/*
-* Baud Rate Clock Divisor Value: 0: Disables baud_sample 1: Clock divisor
-    * bypass (baud_sample = sel_clk) 2 - 65535: baud_sample
-*/
-#undef UART1_BAUD_RATE_GEN_REG0_CD_DEFVAL 
-#undef UART1_BAUD_RATE_GEN_REG0_CD_SHIFT 
-#undef UART1_BAUD_RATE_GEN_REG0_CD_MASK 
-#define UART1_BAUD_RATE_GEN_REG0_CD_DEFVAL                     0x0000028B
-#define UART1_BAUD_RATE_GEN_REG0_CD_SHIFT                      0
-#define UART1_BAUD_RATE_GEN_REG0_CD_MASK                       0x0000FFFFU
-
-/*
-* Stop transmitter break: 0: no affect 1: stop transmission of the break a
-    * fter a minimum of one character length and transmit a high level during
-    * 12 bit periods. It can be set regardless of the value of STTBRK.
-*/
-#undef UART1_CONTROL_REG0_STPBRK_DEFVAL 
-#undef UART1_CONTROL_REG0_STPBRK_SHIFT 
-#undef UART1_CONTROL_REG0_STPBRK_MASK 
-#define UART1_CONTROL_REG0_STPBRK_DEFVAL                       0x00000128
-#define UART1_CONTROL_REG0_STPBRK_SHIFT                        8
-#define UART1_CONTROL_REG0_STPBRK_MASK                         0x00000100U
-
-/*
-* Start transmitter break: 0: no affect 1: start to transmit a break after
-    *  the characters currently present in the FIFO and the transmit shift reg
-    * ister have been transmitted. It can only be set if STPBRK (Stop transmit
-    * ter break) is not high.
-*/
-#undef UART1_CONTROL_REG0_STTBRK_DEFVAL 
-#undef UART1_CONTROL_REG0_STTBRK_SHIFT 
-#undef UART1_CONTROL_REG0_STTBRK_MASK 
-#define UART1_CONTROL_REG0_STTBRK_DEFVAL                       0x00000128
-#define UART1_CONTROL_REG0_STTBRK_SHIFT                        7
-#define UART1_CONTROL_REG0_STTBRK_MASK                         0x00000080U
-
-/*
-* Restart receiver timeout counter: 1: receiver timeout counter is restart
-    * ed. This bit is self clearing once the restart has completed.
-*/
-#undef UART1_CONTROL_REG0_RSTTO_DEFVAL 
-#undef UART1_CONTROL_REG0_RSTTO_SHIFT 
-#undef UART1_CONTROL_REG0_RSTTO_MASK 
-#define UART1_CONTROL_REG0_RSTTO_DEFVAL                        0x00000128
-#define UART1_CONTROL_REG0_RSTTO_SHIFT                         6
-#define UART1_CONTROL_REG0_RSTTO_MASK                          0x00000040U
-
-/*
-* Transmit disable: 0: enable transmitter 1: disable transmitter
-*/
-#undef UART1_CONTROL_REG0_TXDIS_DEFVAL 
-#undef UART1_CONTROL_REG0_TXDIS_SHIFT 
-#undef UART1_CONTROL_REG0_TXDIS_MASK 
-#define UART1_CONTROL_REG0_TXDIS_DEFVAL                        0x00000128
-#define UART1_CONTROL_REG0_TXDIS_SHIFT                         5
-#define UART1_CONTROL_REG0_TXDIS_MASK                          0x00000020U
-
-/*
-* Transmit enable: 0: disable transmitter 1: enable transmitter, provided
-    * the TXDIS field is set to 0.
-*/
-#undef UART1_CONTROL_REG0_TXEN_DEFVAL 
-#undef UART1_CONTROL_REG0_TXEN_SHIFT 
-#undef UART1_CONTROL_REG0_TXEN_MASK 
-#define UART1_CONTROL_REG0_TXEN_DEFVAL                         0x00000128
-#define UART1_CONTROL_REG0_TXEN_SHIFT                          4
-#define UART1_CONTROL_REG0_TXEN_MASK                           0x00000010U
-
-/*
-* Receive disable: 0: enable 1: disable, regardless of the value of RXEN
-*/
-#undef UART1_CONTROL_REG0_RXDIS_DEFVAL 
-#undef UART1_CONTROL_REG0_RXDIS_SHIFT 
-#undef UART1_CONTROL_REG0_RXDIS_MASK 
-#define UART1_CONTROL_REG0_RXDIS_DEFVAL                        0x00000128
-#define UART1_CONTROL_REG0_RXDIS_SHIFT                         3
-#define UART1_CONTROL_REG0_RXDIS_MASK                          0x00000008U
-
-/*
-* Receive enable: 0: disable 1: enable When set to one, the receiver logic
-    *  is enabled, provided the RXDIS field is set to zero.
-*/
-#undef UART1_CONTROL_REG0_RXEN_DEFVAL 
-#undef UART1_CONTROL_REG0_RXEN_SHIFT 
-#undef UART1_CONTROL_REG0_RXEN_MASK 
-#define UART1_CONTROL_REG0_RXEN_DEFVAL                         0x00000128
-#define UART1_CONTROL_REG0_RXEN_SHIFT                          2
-#define UART1_CONTROL_REG0_RXEN_MASK                           0x00000004U
-
-/*
-* Software reset for Tx data path: 0: no affect 1: transmitter logic is re
-    * set and all pending transmitter data is discarded This bit is self clear
-    * ing once the reset has completed.
-*/
-#undef UART1_CONTROL_REG0_TXRES_DEFVAL 
-#undef UART1_CONTROL_REG0_TXRES_SHIFT 
-#undef UART1_CONTROL_REG0_TXRES_MASK 
-#define UART1_CONTROL_REG0_TXRES_DEFVAL                        0x00000128
-#define UART1_CONTROL_REG0_TXRES_SHIFT                         1
-#define UART1_CONTROL_REG0_TXRES_MASK                          0x00000002U
-
-/*
-* Software reset for Rx data path: 0: no affect 1: receiver logic is reset
-    *  and all pending receiver data is discarded. This bit is self clearing o
-    * nce the reset has completed.
-*/
-#undef UART1_CONTROL_REG0_RXRES_DEFVAL 
-#undef UART1_CONTROL_REG0_RXRES_SHIFT 
-#undef UART1_CONTROL_REG0_RXRES_MASK 
-#define UART1_CONTROL_REG0_RXRES_DEFVAL                        0x00000128
-#define UART1_CONTROL_REG0_RXRES_SHIFT                         0
-#define UART1_CONTROL_REG0_RXRES_MASK                          0x00000001U
-
-/*
-* Channel mode: Defines the mode of operation of the UART. 00: normal 01:
-    * automatic echo 10: local loopback 11: remote loopback
-*/
-#undef UART1_MODE_REG0_CHMODE_DEFVAL 
-#undef UART1_MODE_REG0_CHMODE_SHIFT 
-#undef UART1_MODE_REG0_CHMODE_MASK 
-#define UART1_MODE_REG0_CHMODE_DEFVAL                          0x00000000
-#define UART1_MODE_REG0_CHMODE_SHIFT                           8
-#define UART1_MODE_REG0_CHMODE_MASK                            0x00000300U
-
-/*
-* Number of stop bits: Defines the number of stop bits to detect on receiv
-    * e and to generate on transmit. 00: 1 stop bit 01: 1.5 stop bits 10: 2 st
-    * op bits 11: reserved
-*/
-#undef UART1_MODE_REG0_NBSTOP_DEFVAL 
-#undef UART1_MODE_REG0_NBSTOP_SHIFT 
-#undef UART1_MODE_REG0_NBSTOP_MASK 
-#define UART1_MODE_REG0_NBSTOP_DEFVAL                          0x00000000
-#define UART1_MODE_REG0_NBSTOP_SHIFT                           6
-#define UART1_MODE_REG0_NBSTOP_MASK                            0x000000C0U
-
-/*
-* Parity type select: Defines the expected parity to check on receive and
-    * the parity to generate on transmit. 000: even parity 001: odd parity 010
-    * : forced to 0 parity (space) 011: forced to 1 parity (mark) 1xx: no pari
-    * ty
-*/
-#undef UART1_MODE_REG0_PAR_DEFVAL 
-#undef UART1_MODE_REG0_PAR_SHIFT 
-#undef UART1_MODE_REG0_PAR_MASK 
-#define UART1_MODE_REG0_PAR_DEFVAL                             0x00000000
-#define UART1_MODE_REG0_PAR_SHIFT                              3
-#define UART1_MODE_REG0_PAR_MASK                               0x00000038U
-
-/*
-* Character length select: Defines the number of bits in each character. 1
-    * 1: 6 bits 10: 7 bits 0x: 8 bits
-*/
-#undef UART1_MODE_REG0_CHRL_DEFVAL 
-#undef UART1_MODE_REG0_CHRL_SHIFT 
-#undef UART1_MODE_REG0_CHRL_MASK 
-#define UART1_MODE_REG0_CHRL_DEFVAL                            0x00000000
-#define UART1_MODE_REG0_CHRL_SHIFT                             1
-#define UART1_MODE_REG0_CHRL_MASK                              0x00000006U
-
-/*
-* Clock source select: This field defines whether a pre-scalar of 8 is app
-    * lied to the baud rate generator input clock. 0: clock source is uart_ref
-    * _clk 1: clock source is uart_ref_clk/8
-*/
-#undef UART1_MODE_REG0_CLKS_DEFVAL 
-#undef UART1_MODE_REG0_CLKS_SHIFT 
-#undef UART1_MODE_REG0_CLKS_MASK 
-#define UART1_MODE_REG0_CLKS_DEFVAL                            0x00000000
-#define UART1_MODE_REG0_CLKS_SHIFT                             0
-#define UART1_MODE_REG0_CLKS_MASK                              0x00000001U
 
 /*
 * Block level reset
@@ -37026,14 +36782,10 @@
 #define AFIFM2_AFIFM_RDCTRL_OFFSET                                                 0XFD380000
 #undef AFIFM3_AFIFM_RDCTRL_OFFSET 
 #define AFIFM3_AFIFM_RDCTRL_OFFSET                                                 0XFD390000
-#undef AFIFM4_AFIFM_RDCTRL_OFFSET 
-#define AFIFM4_AFIFM_RDCTRL_OFFSET                                                 0XFD3A0000
 #undef AFIFM2_AFIFM_WRCTRL_OFFSET 
 #define AFIFM2_AFIFM_WRCTRL_OFFSET                                                 0XFD380014
 #undef AFIFM3_AFIFM_WRCTRL_OFFSET 
 #define AFIFM3_AFIFM_WRCTRL_OFFSET                                                 0XFD390014
-#undef AFIFM4_AFIFM_WRCTRL_OFFSET 
-#define AFIFM4_AFIFM_WRCTRL_OFFSET                                                 0XFD3A0014
 
 /*
 * AF_FM0 block level reset
@@ -37118,6 +36870,18 @@
 #define FPD_SLCR_AFI_FS_DW_SS0_SEL_MASK                        0x00000300U
 
 /*
+* Select the 32/64/128-bit data width selection for the Slave 1 00: 32-bit
+    *  AXI data width (default) 01: 64-bit AXI data width 10: 128-bit AXI data
+    *  width 11: reserved
+*/
+#undef FPD_SLCR_AFI_FS_DW_SS1_SEL_DEFVAL 
+#undef FPD_SLCR_AFI_FS_DW_SS1_SEL_SHIFT 
+#undef FPD_SLCR_AFI_FS_DW_SS1_SEL_MASK 
+#define FPD_SLCR_AFI_FS_DW_SS1_SEL_DEFVAL                      0x00000A00
+#define FPD_SLCR_AFI_FS_DW_SS1_SEL_SHIFT                       10
+#define FPD_SLCR_AFI_FS_DW_SS1_SEL_MASK                        0x00000C00U
+
+/*
 * Configures the Read Channel Fabric interface width. 2'b11 : Reserved 2'b
     * 10 : 32-bit Fabric 2'b01 : 64-bit enabled 2'b00 : 128-bit enabled
 */
@@ -37140,17 +36904,6 @@
 #define AFIFM3_AFIFM_RDCTRL_FABRIC_WIDTH_MASK                  0x00000003U
 
 /*
-* Configures the Read Channel Fabric interface width. 2'b11 : Reserved 2'b
-    * 10 : 32-bit Fabric 2'b01 : 64-bit enabled 2'b00 : 128-bit enabled
-*/
-#undef AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_DEFVAL 
-#undef AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_SHIFT 
-#undef AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_MASK 
-#define AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_DEFVAL                0x000003B0
-#define AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_SHIFT                 0
-#define AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_MASK                  0x00000003U
-
-/*
 * Configures the Write Channel Fabric interface width. 2'b11 : Reserved 2'
     * b10 : 32-bit Fabric 2'b01 : 64-bit enabled 2'b00 : 128-bit enabled
 */
@@ -37171,17 +36924,6 @@
 #define AFIFM3_AFIFM_WRCTRL_FABRIC_WIDTH_DEFVAL                0x000003B0
 #define AFIFM3_AFIFM_WRCTRL_FABRIC_WIDTH_SHIFT                 0
 #define AFIFM3_AFIFM_WRCTRL_FABRIC_WIDTH_MASK                  0x00000003U
-
-/*
-* Configures the Write Channel Fabric interface width. 2'b11 : Reserved 2'
-    * b10 : 32-bit Fabric 2'b01 : 64-bit enabled 2'b00 : 128-bit enabled
-*/
-#undef AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_DEFVAL 
-#undef AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_SHIFT 
-#undef AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_MASK 
-#define AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_DEFVAL                0x000003B0
-#define AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_SHIFT                 0
-#define AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_MASK                  0x00000003U
 #undef GPIO_MASK_DATA_5_MSW_OFFSET 
 #define GPIO_MASK_DATA_5_MSW_OFFSET                                                0XFF0A002C
 #undef GPIO_DIRM_5_OFFSET 

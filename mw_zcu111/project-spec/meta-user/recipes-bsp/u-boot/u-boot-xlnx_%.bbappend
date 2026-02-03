@@ -1,12 +1,15 @@
-SRC_URI_append = " file://platform-top.h"
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
-SRC_URI_append += "file://mw_xilinx_common.h"
-SRC_URI_append += "file://bsp.cfg"
 
-do_copy_configs () {
- cp ${WORKDIR}/mw_xilinx_common.h ${S}/include/configs/mw_xilinx_common.h
+SRC_URI_append = " file://platform-top.h file://bsp.cfg"
+
+do_configure_append () {
+	install ${WORKDIR}/platform-top.h ${S}/include/configs/
 }
 
-do_patch_append() {
-    bb.build.exec_func('do_copy_configs', d)
+do_configure_append_microblaze () {
+	if [ "${U_BOOT_AUTO_CONFIG}" = "1" ]; then
+		install ${WORKDIR}/platform-auto.h ${S}/include/configs/
+		install -d ${B}/source/board/xilinx/microblaze-generic/
+		install ${WORKDIR}/config.mk ${B}/source/board/xilinx/microblaze-generic/
+	fi
 }

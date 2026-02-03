@@ -5,6 +5,9 @@ KernelCommandLine=!nfsroot
 KernelCommandLine=!ip
 
 [Network]
-Address=192.168.1.101
-DNS=255.255.255.0
-Gateway=192.168.1.1
+DHCP=yes
+
+[DHCP]
+UseMTU=yes
+RouteMetric=10
+ClientIdentifier=mac

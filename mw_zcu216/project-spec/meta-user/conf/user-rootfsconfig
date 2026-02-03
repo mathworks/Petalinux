@@ -3,11 +3,19 @@
 
 CONFIG_gpio-demo
 CONFIG_peekpoke
+CONFIG_rfdc
+CONFIG_rfdc-read-write
+CONFIG_rfdc-selftest
+CONFIG_rfclk
 CONFIG_libserialport
 CONFIG_libiio
 CONFIG_boost
+CONFIG_boost-dev
 CONFIG_lttng-ust
-CONFIG_rftool
+CONFIG_lttng-ust-bin
 CONFIG_mw-fs-overlay
+CONFIG_libsdfecusrintf
+CONFIG_sdfec-demo
+CONFIG_mw-refdesign-dtb
 CONFIG_mw-rf-init
-
+CONFIG_rftool-zcu216

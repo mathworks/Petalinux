@@ -44,7 +44,7 @@ This section explains how you can setup the MathWorks Petalinux repository and a
 1. Clone the MathWorks Petalinux repository.
 
     ```
-	git clone https://insidelabs-git.mathworks.com/EmbeddedLinux/Petalinux.git
+	git clone https://github.com/mathworks/Petalinux.git
 	```
 
 2. Checkout the latest branch after navigating to Petalinux directory.    

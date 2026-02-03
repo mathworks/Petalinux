@@ -1,29 +1,7 @@
 /******************************************************************************
 *
-* Copyright (C) 2018 Xilinx, Inc.  All rights reserved.
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in
-* all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* XILINX CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-* WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
-* OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-* SOFTWARE.
-*
-* Except as contained in this notice, the name of the Xilinx shall not be used
-* in advertising or otherwise to promote the sale, use or other dealings in
-* this Software without prior written authorization from Xilinx.
-*
+* Copyright (C) 2010-2020 Xilinx, Inc.  All rights reserved.
+* SPDX-License-Identifier: MIT
 ******************************************************************************/
 /****************************************************************************/
 /**
@@ -925,8 +903,6 @@
 #define IOU_SLCR_SDIO_CLK_CTRL_OFFSET                                              0XFF18030C
 #undef CRL_APB_UART0_REF_CTRL_OFFSET 
 #define CRL_APB_UART0_REF_CTRL_OFFSET                                              0XFF5E0074
-#undef CRL_APB_UART1_REF_CTRL_OFFSET 
-#define CRL_APB_UART1_REF_CTRL_OFFSET                                              0XFF5E0078
 #undef CRL_APB_I2C0_REF_CTRL_OFFSET 
 #define CRL_APB_I2C0_REF_CTRL_OFFSET                                               0XFF5E0120
 #undef CRL_APB_I2C1_REF_CTRL_OFFSET 
@@ -967,8 +943,6 @@
 #define CRF_APB_DBG_FPD_CTRL_OFFSET                                                0XFD1A0068
 #undef CRF_APB_DDR_CTRL_OFFSET 
 #define CRF_APB_DDR_CTRL_OFFSET                                                    0XFD1A0080
-#undef CRF_APB_GPU_REF_CTRL_OFFSET 
-#define CRF_APB_GPU_REF_CTRL_OFFSET                                                0XFD1A0084
 #undef CRF_APB_GDMA_REF_CTRL_OFFSET 
 #define CRF_APB_GDMA_REF_CTRL_OFFSET                                               0XFD1A00B8
 #undef CRF_APB_DPDMA_REF_CTRL_OFFSET 
@@ -1302,48 +1276,6 @@
 #define CRL_APB_UART0_REF_CTRL_SRCSEL_DEFVAL                   0x01001800
 #define CRL_APB_UART0_REF_CTRL_SRCSEL_SHIFT                    0
 #define CRL_APB_UART0_REF_CTRL_SRCSEL_MASK                     0x00000007U
-
-/*
-* Clock active signal. Switch to 0 to disable the clock
-*/
-#undef CRL_APB_UART1_REF_CTRL_CLKACT_DEFVAL 
-#undef CRL_APB_UART1_REF_CTRL_CLKACT_SHIFT 
-#undef CRL_APB_UART1_REF_CTRL_CLKACT_MASK 
-#define CRL_APB_UART1_REF_CTRL_CLKACT_DEFVAL                   0x01001800
-#define CRL_APB_UART1_REF_CTRL_CLKACT_SHIFT                    24
-#define CRL_APB_UART1_REF_CTRL_CLKACT_MASK                     0x01000000U
-
-/*
-* 6 bit divider
-*/
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR1_DEFVAL 
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR1_SHIFT 
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR1_MASK 
-#define CRL_APB_UART1_REF_CTRL_DIVISOR1_DEFVAL                 0x01001800
-#define CRL_APB_UART1_REF_CTRL_DIVISOR1_SHIFT                  16
-#define CRL_APB_UART1_REF_CTRL_DIVISOR1_MASK                   0x003F0000U
-
-/*
-* 6 bit divider
-*/
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR0_DEFVAL 
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR0_SHIFT 
-#undef CRL_APB_UART1_REF_CTRL_DIVISOR0_MASK 
-#define CRL_APB_UART1_REF_CTRL_DIVISOR0_DEFVAL                 0x01001800
-#define CRL_APB_UART1_REF_CTRL_DIVISOR0_SHIFT                  8
-#define CRL_APB_UART1_REF_CTRL_DIVISOR0_MASK                   0x00003F00U
-
-/*
-* 000 = IOPLL; 010 = RPLL; 011 = DPLL; (This signal may only be toggled af
-    * ter 4 cycles of the old clock and 4 cycles of the new clock. This is not
-    *  usually an issue, but designers must be aware.)
-*/
-#undef CRL_APB_UART1_REF_CTRL_SRCSEL_DEFVAL 
-#undef CRL_APB_UART1_REF_CTRL_SRCSEL_SHIFT 
-#undef CRL_APB_UART1_REF_CTRL_SRCSEL_MASK 
-#define CRL_APB_UART1_REF_CTRL_SRCSEL_DEFVAL                   0x01001800
-#define CRL_APB_UART1_REF_CTRL_SRCSEL_SHIFT                    0
-#define CRL_APB_UART1_REF_CTRL_SRCSEL_MASK                     0x00000007U
 
 /*
 * Clock active signal. Switch to 0 to disable the clock
@@ -2040,61 +1972,6 @@
 #define CRF_APB_DDR_CTRL_SRCSEL_DEFVAL                         0x01000500
 #define CRF_APB_DDR_CTRL_SRCSEL_SHIFT                          0
 #define CRF_APB_DDR_CTRL_SRCSEL_MASK                           0x00000007U
-
-/*
-* 6 bit divider
-*/
-#undef CRF_APB_GPU_REF_CTRL_DIVISOR0_DEFVAL 
-#undef CRF_APB_GPU_REF_CTRL_DIVISOR0_SHIFT 
-#undef CRF_APB_GPU_REF_CTRL_DIVISOR0_MASK 
-#define CRF_APB_GPU_REF_CTRL_DIVISOR0_DEFVAL                   0x00001500
-#define CRF_APB_GPU_REF_CTRL_DIVISOR0_SHIFT                    8
-#define CRF_APB_GPU_REF_CTRL_DIVISOR0_MASK                     0x00003F00U
-
-/*
-* 000 = IOPLL_TO_FPD; 010 = VPLL; 011 = DPLL; (This signal may only be tog
-    * gled after 4 cycles of the old clock and 4 cycles of the new clock. This
-    *  is not usually an issue, but designers must be aware.)
-*/
-#undef CRF_APB_GPU_REF_CTRL_SRCSEL_DEFVAL 
-#undef CRF_APB_GPU_REF_CTRL_SRCSEL_SHIFT 
-#undef CRF_APB_GPU_REF_CTRL_SRCSEL_MASK 
-#define CRF_APB_GPU_REF_CTRL_SRCSEL_DEFVAL                     0x00001500
-#define CRF_APB_GPU_REF_CTRL_SRCSEL_SHIFT                      0
-#define CRF_APB_GPU_REF_CTRL_SRCSEL_MASK                       0x00000007U
-
-/*
-* Clock active signal. Switch to 0 to disable the clock, which will stop c
-    * lock for GPU (and both Pixel Processors).
-*/
-#undef CRF_APB_GPU_REF_CTRL_CLKACT_DEFVAL 
-#undef CRF_APB_GPU_REF_CTRL_CLKACT_SHIFT 
-#undef CRF_APB_GPU_REF_CTRL_CLKACT_MASK 
-#define CRF_APB_GPU_REF_CTRL_CLKACT_DEFVAL                     0x00001500
-#define CRF_APB_GPU_REF_CTRL_CLKACT_SHIFT                      24
-#define CRF_APB_GPU_REF_CTRL_CLKACT_MASK                       0x01000000U
-
-/*
-* Clock active signal for Pixel Processor. Switch to 0 to disable the cloc
-    * k only to this Pixel Processor
-*/
-#undef CRF_APB_GPU_REF_CTRL_PP0_CLKACT_DEFVAL 
-#undef CRF_APB_GPU_REF_CTRL_PP0_CLKACT_SHIFT 
-#undef CRF_APB_GPU_REF_CTRL_PP0_CLKACT_MASK 
-#define CRF_APB_GPU_REF_CTRL_PP0_CLKACT_DEFVAL                 0x00001500
-#define CRF_APB_GPU_REF_CTRL_PP0_CLKACT_SHIFT                  25
-#define CRF_APB_GPU_REF_CTRL_PP0_CLKACT_MASK                   0x02000000U
-
-/*
-* Clock active signal for Pixel Processor. Switch to 0 to disable the cloc
-    * k only to this Pixel Processor
-*/
-#undef CRF_APB_GPU_REF_CTRL_PP1_CLKACT_DEFVAL 
-#undef CRF_APB_GPU_REF_CTRL_PP1_CLKACT_SHIFT 
-#undef CRF_APB_GPU_REF_CTRL_PP1_CLKACT_MASK 
-#define CRF_APB_GPU_REF_CTRL_PP1_CLKACT_DEFVAL                 0x00001500
-#define CRF_APB_GPU_REF_CTRL_PP1_CLKACT_SHIFT                  26
-#define CRF_APB_GPU_REF_CTRL_PP1_CLKACT_MASK                   0x04000000U
 
 /*
 * 6 bit divider
@@ -2844,8 +2721,6 @@
 #define DDR_PHY_DX8SL4DXCTL2_OFFSET                                                0XFD08152C
 #undef DDR_PHY_DX8SL4IOCR_OFFSET 
 #define DDR_PHY_DX8SL4IOCR_OFFSET                                                  0XFD081530
-#undef DDR_PHY_DX8SLBPLLCR0_OFFSET 
-#define DDR_PHY_DX8SLBPLLCR0_OFFSET                                                0XFD0817C4
 #undef DDR_PHY_DX8SLBDQSCTL_OFFSET 
 #define DDR_PHY_DX8SLBDQSCTL_OFFSET                                                0XFD0817DC
 
@@ -23152,136 +23027,6 @@
 #define DDR_PHY_DX8SL4IOCR_DXRXM_MASK                          0x000007FFU
 
 /*
-* PLL Bypass
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_PLLBYP_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_PLLBYP_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_PLLBYP_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_PLLBYP_DEFVAL                     0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_PLLBYP_SHIFT                      31
-#define DDR_PHY_DX8SLBPLLCR0_PLLBYP_MASK                       0x80000000U
-
-/*
-* PLL Reset
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_PLLRST_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_PLLRST_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_PLLRST_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_PLLRST_DEFVAL                     0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_PLLRST_SHIFT                      30
-#define DDR_PHY_DX8SLBPLLCR0_PLLRST_MASK                       0x40000000U
-
-/*
-* PLL Power Down
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_PLLPD_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_PLLPD_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_PLLPD_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_PLLPD_DEFVAL                      0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_PLLPD_SHIFT                       29
-#define DDR_PHY_DX8SLBPLLCR0_PLLPD_MASK                        0x20000000U
-
-/*
-* Reference Stop Mode
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_RSTOPM_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_RSTOPM_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_RSTOPM_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_RSTOPM_DEFVAL                     0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_RSTOPM_SHIFT                      28
-#define DDR_PHY_DX8SLBPLLCR0_RSTOPM_MASK                       0x10000000U
-
-/*
-* PLL Frequency Select
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_FRQSEL_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_FRQSEL_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_FRQSEL_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_FRQSEL_DEFVAL                     0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_FRQSEL_SHIFT                      24
-#define DDR_PHY_DX8SLBPLLCR0_FRQSEL_MASK                       0x0F000000U
-
-/*
-* Relock Mode
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_RLOCKM_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_RLOCKM_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_RLOCKM_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_RLOCKM_DEFVAL                     0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_RLOCKM_SHIFT                      23
-#define DDR_PHY_DX8SLBPLLCR0_RLOCKM_MASK                       0x00800000U
-
-/*
-* Charge Pump Proportional Current Control
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_CPPC_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_CPPC_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_CPPC_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_CPPC_DEFVAL                       0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_CPPC_SHIFT                        17
-#define DDR_PHY_DX8SLBPLLCR0_CPPC_MASK                         0x007E0000U
-
-/*
-* Charge Pump Integrating Current Control
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_CPIC_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_CPIC_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_CPIC_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_CPIC_DEFVAL                       0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_CPIC_SHIFT                        13
-#define DDR_PHY_DX8SLBPLLCR0_CPIC_MASK                         0x0001E000U
-
-/*
-* Gear Shift
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_GSHIFT_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_GSHIFT_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_GSHIFT_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_GSHIFT_DEFVAL                     0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_GSHIFT_SHIFT                      12
-#define DDR_PHY_DX8SLBPLLCR0_GSHIFT_MASK                       0x00001000U
-
-/*
-* Reserved. Return zeroes on reads.
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_RESERVED_11_9_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_RESERVED_11_9_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_RESERVED_11_9_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_RESERVED_11_9_DEFVAL              0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_RESERVED_11_9_SHIFT               9
-#define DDR_PHY_DX8SLBPLLCR0_RESERVED_11_9_MASK                0x00000E00U
-
-/*
-* Analog Test Enable (ATOEN)
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_ATOEN_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_ATOEN_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_ATOEN_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_ATOEN_DEFVAL                      0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_ATOEN_SHIFT                       8
-#define DDR_PHY_DX8SLBPLLCR0_ATOEN_MASK                        0x00000100U
-
-/*
-* Analog Test Control
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_ATC_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_ATC_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_ATC_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_ATC_DEFVAL                        0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_ATC_SHIFT                         4
-#define DDR_PHY_DX8SLBPLLCR0_ATC_MASK                          0x000000F0U
-
-/*
-* Digital Test Control
-*/
-#undef DDR_PHY_DX8SLBPLLCR0_DTC_DEFVAL 
-#undef DDR_PHY_DX8SLBPLLCR0_DTC_SHIFT 
-#undef DDR_PHY_DX8SLBPLLCR0_DTC_MASK 
-#define DDR_PHY_DX8SLBPLLCR0_DTC_DEFVAL                        0x00000000
-#define DDR_PHY_DX8SLBPLLCR0_DTC_SHIFT                         0
-#define DDR_PHY_DX8SLBPLLCR0_DTC_MASK                          0x0000000FU
-
-/*
 * Reserved. Return zeroes on reads.
 */
 #undef DDR_PHY_DX8SLBDQSCTL_RESERVED_31_25_DEFVAL 
@@ -23420,6 +23165,188 @@
 #define DDR_PHY_DX8SLBDQSCTL_DQSRES_DEFVAL                     0x00000000
 #define DDR_PHY_DX8SLBDQSCTL_DQSRES_SHIFT                      0
 #define DDR_PHY_DX8SLBDQSCTL_DQSRES_MASK                       0x0000000FU
+#undef AFIFM0_AFIFM_RDQOS_OFFSET 
+#define AFIFM0_AFIFM_RDQOS_OFFSET                                                  0XFD360008
+#undef AFIFM0_AFIFM_WRQOS_OFFSET 
+#define AFIFM0_AFIFM_WRQOS_OFFSET                                                  0XFD36001C
+#undef AFIFM1_AFIFM_RDQOS_OFFSET 
+#define AFIFM1_AFIFM_RDQOS_OFFSET                                                  0XFD370008
+#undef AFIFM1_AFIFM_WRQOS_OFFSET 
+#define AFIFM1_AFIFM_WRQOS_OFFSET                                                  0XFD37001C
+#undef AFIFM2_AFIFM_RDQOS_OFFSET 
+#define AFIFM2_AFIFM_RDQOS_OFFSET                                                  0XFD380008
+#undef AFIFM2_AFIFM_WRQOS_OFFSET 
+#define AFIFM2_AFIFM_WRQOS_OFFSET                                                  0XFD38001C
+#undef AFIFM3_AFIFM_RDQOS_OFFSET 
+#define AFIFM3_AFIFM_RDQOS_OFFSET                                                  0XFD390008
+#undef AFIFM3_AFIFM_WRQOS_OFFSET 
+#define AFIFM3_AFIFM_WRQOS_OFFSET                                                  0XFD39001C
+#undef AFIFM4_AFIFM_RDQOS_OFFSET 
+#define AFIFM4_AFIFM_RDQOS_OFFSET                                                  0XFD3A0008
+#undef AFIFM4_AFIFM_WRQOS_OFFSET 
+#define AFIFM4_AFIFM_WRQOS_OFFSET                                                  0XFD3A001C
+#undef AFIFM5_AFIFM_RDQOS_OFFSET 
+#define AFIFM5_AFIFM_RDQOS_OFFSET                                                  0XFD3B0008
+#undef AFIFM5_AFIFM_WRQOS_OFFSET 
+#define AFIFM5_AFIFM_WRQOS_OFFSET                                                  0XFD3B001C
+#undef AFIFM6_AFIFM_RDQOS_OFFSET 
+#define AFIFM6_AFIFM_RDQOS_OFFSET                                                  0XFF9B0008
+#undef AFIFM6_AFIFM_WRQOS_OFFSET 
+#define AFIFM6_AFIFM_WRQOS_OFFSET                                                  0XFF9B001C
+
+/*
+* Sets the level of the QoS field to be used for the read channel 4'b0000:
+    *  Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM0_AFIFM_RDQOS_VALUE_DEFVAL 
+#undef AFIFM0_AFIFM_RDQOS_VALUE_SHIFT 
+#undef AFIFM0_AFIFM_RDQOS_VALUE_MASK 
+#define AFIFM0_AFIFM_RDQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM0_AFIFM_RDQOS_VALUE_SHIFT                         0
+#define AFIFM0_AFIFM_RDQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the write channel 4'b0000
+    * : Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM0_AFIFM_WRQOS_VALUE_DEFVAL 
+#undef AFIFM0_AFIFM_WRQOS_VALUE_SHIFT 
+#undef AFIFM0_AFIFM_WRQOS_VALUE_MASK 
+#define AFIFM0_AFIFM_WRQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM0_AFIFM_WRQOS_VALUE_SHIFT                         0
+#define AFIFM0_AFIFM_WRQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the read channel 4'b0000:
+    *  Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM1_AFIFM_RDQOS_VALUE_DEFVAL 
+#undef AFIFM1_AFIFM_RDQOS_VALUE_SHIFT 
+#undef AFIFM1_AFIFM_RDQOS_VALUE_MASK 
+#define AFIFM1_AFIFM_RDQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM1_AFIFM_RDQOS_VALUE_SHIFT                         0
+#define AFIFM1_AFIFM_RDQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the write channel 4'b0000
+    * : Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM1_AFIFM_WRQOS_VALUE_DEFVAL 
+#undef AFIFM1_AFIFM_WRQOS_VALUE_SHIFT 
+#undef AFIFM1_AFIFM_WRQOS_VALUE_MASK 
+#define AFIFM1_AFIFM_WRQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM1_AFIFM_WRQOS_VALUE_SHIFT                         0
+#define AFIFM1_AFIFM_WRQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the read channel 4'b0000:
+    *  Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM2_AFIFM_RDQOS_VALUE_DEFVAL 
+#undef AFIFM2_AFIFM_RDQOS_VALUE_SHIFT 
+#undef AFIFM2_AFIFM_RDQOS_VALUE_MASK 
+#define AFIFM2_AFIFM_RDQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM2_AFIFM_RDQOS_VALUE_SHIFT                         0
+#define AFIFM2_AFIFM_RDQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the write channel 4'b0000
+    * : Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM2_AFIFM_WRQOS_VALUE_DEFVAL 
+#undef AFIFM2_AFIFM_WRQOS_VALUE_SHIFT 
+#undef AFIFM2_AFIFM_WRQOS_VALUE_MASK 
+#define AFIFM2_AFIFM_WRQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM2_AFIFM_WRQOS_VALUE_SHIFT                         0
+#define AFIFM2_AFIFM_WRQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the read channel 4'b0000:
+    *  Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM3_AFIFM_RDQOS_VALUE_DEFVAL 
+#undef AFIFM3_AFIFM_RDQOS_VALUE_SHIFT 
+#undef AFIFM3_AFIFM_RDQOS_VALUE_MASK 
+#define AFIFM3_AFIFM_RDQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM3_AFIFM_RDQOS_VALUE_SHIFT                         0
+#define AFIFM3_AFIFM_RDQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the write channel 4'b0000
+    * : Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM3_AFIFM_WRQOS_VALUE_DEFVAL 
+#undef AFIFM3_AFIFM_WRQOS_VALUE_SHIFT 
+#undef AFIFM3_AFIFM_WRQOS_VALUE_MASK 
+#define AFIFM3_AFIFM_WRQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM3_AFIFM_WRQOS_VALUE_SHIFT                         0
+#define AFIFM3_AFIFM_WRQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the read channel 4'b0000:
+    *  Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM4_AFIFM_RDQOS_VALUE_DEFVAL 
+#undef AFIFM4_AFIFM_RDQOS_VALUE_SHIFT 
+#undef AFIFM4_AFIFM_RDQOS_VALUE_MASK 
+#define AFIFM4_AFIFM_RDQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM4_AFIFM_RDQOS_VALUE_SHIFT                         0
+#define AFIFM4_AFIFM_RDQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the write channel 4'b0000
+    * : Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM4_AFIFM_WRQOS_VALUE_DEFVAL 
+#undef AFIFM4_AFIFM_WRQOS_VALUE_SHIFT 
+#undef AFIFM4_AFIFM_WRQOS_VALUE_MASK 
+#define AFIFM4_AFIFM_WRQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM4_AFIFM_WRQOS_VALUE_SHIFT                         0
+#define AFIFM4_AFIFM_WRQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the read channel 4'b0000:
+    *  Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM5_AFIFM_RDQOS_VALUE_DEFVAL 
+#undef AFIFM5_AFIFM_RDQOS_VALUE_SHIFT 
+#undef AFIFM5_AFIFM_RDQOS_VALUE_MASK 
+#define AFIFM5_AFIFM_RDQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM5_AFIFM_RDQOS_VALUE_SHIFT                         0
+#define AFIFM5_AFIFM_RDQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the write channel 4'b0000
+    * : Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM5_AFIFM_WRQOS_VALUE_DEFVAL 
+#undef AFIFM5_AFIFM_WRQOS_VALUE_SHIFT 
+#undef AFIFM5_AFIFM_WRQOS_VALUE_MASK 
+#define AFIFM5_AFIFM_WRQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM5_AFIFM_WRQOS_VALUE_SHIFT                         0
+#define AFIFM5_AFIFM_WRQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the read channel 4'b0000:
+    *  Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM6_AFIFM_RDQOS_VALUE_DEFVAL 
+#undef AFIFM6_AFIFM_RDQOS_VALUE_SHIFT 
+#undef AFIFM6_AFIFM_RDQOS_VALUE_MASK 
+#define AFIFM6_AFIFM_RDQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM6_AFIFM_RDQOS_VALUE_SHIFT                         0
+#define AFIFM6_AFIFM_RDQOS_VALUE_MASK                          0x0000000FU
+
+/*
+* Sets the level of the QoS field to be used for the write channel 4'b0000
+    * : Lowest Priority' ' '4'b1111: Highest Priority
+*/
+#undef AFIFM6_AFIFM_WRQOS_VALUE_DEFVAL 
+#undef AFIFM6_AFIFM_WRQOS_VALUE_SHIFT 
+#undef AFIFM6_AFIFM_WRQOS_VALUE_MASK 
+#define AFIFM6_AFIFM_WRQOS_VALUE_DEFVAL                        0x00000007
+#define AFIFM6_AFIFM_WRQOS_VALUE_SHIFT                         0
+#define AFIFM6_AFIFM_WRQOS_VALUE_MASK                          0x0000000FU
 #undef IOU_SLCR_MIO_PIN_0_OFFSET 
 #define IOU_SLCR_MIO_PIN_0_OFFSET                                                  0XFF180000
 #undef IOU_SLCR_MIO_PIN_1_OFFSET 
@@ -30754,8 +30681,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_0_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_0_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_0_DEFVAL          
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_0_SHIFT           12
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_0_MASK            0x00001000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_0_SHIFT           14
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_0_MASK            0x00004000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30764,8 +30691,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_1_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_1_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_1_DEFVAL          
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_1_SHIFT           13
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_1_MASK            0x00002000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_1_SHIFT           15
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_1_MASK            0x00008000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30774,8 +30701,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_2_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_2_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_2_DEFVAL          
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_2_SHIFT           14
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_2_MASK            0x00004000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_2_SHIFT           16
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_2_MASK            0x00010000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30784,8 +30711,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_3_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_3_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_3_DEFVAL          
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_3_SHIFT           15
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_3_MASK            0x00008000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_3_SHIFT           17
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_3_MASK            0x00020000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30794,8 +30721,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_4_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_4_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_4_DEFVAL          
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_4_SHIFT           16
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_4_MASK            0x00010000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_4_SHIFT           18
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_4_MASK            0x00040000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30804,8 +30731,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_5_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_5_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_5_DEFVAL          
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_5_SHIFT           17
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_5_MASK            0x00020000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_5_SHIFT           19
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_5_MASK            0x00080000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30814,8 +30741,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_6_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_6_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_6_DEFVAL          
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_6_SHIFT           18
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_6_MASK            0x00040000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_6_SHIFT           20
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_6_MASK            0x00100000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30824,8 +30751,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_7_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_7_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_7_DEFVAL          
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_7_SHIFT           19
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_7_MASK            0x00080000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_7_SHIFT           21
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_7_MASK            0x00200000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30834,8 +30761,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_8_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_8_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_8_DEFVAL          
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_8_SHIFT           20
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_8_MASK            0x00100000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_8_SHIFT           22
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_8_MASK            0x00400000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30844,8 +30771,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_9_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_9_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_9_DEFVAL          
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_9_SHIFT           21
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_9_MASK            0x00200000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_9_SHIFT           23
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_9_MASK            0x00800000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30854,8 +30781,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_10_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_10_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_10_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_10_SHIFT          22
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_10_MASK           0x00400000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_10_SHIFT          24
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_10_MASK           0x01000000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30864,8 +30791,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_11_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_11_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_11_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_11_SHIFT          23
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_11_MASK           0x00800000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_11_SHIFT          25
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_11_MASK           0x02000000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30874,8 +30801,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_12_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_12_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_12_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_12_SHIFT          24
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_12_MASK           0x01000000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_12_SHIFT          0
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_12_MASK           0x00000001U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30884,8 +30811,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_13_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_13_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_13_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_13_SHIFT          25
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_13_MASK           0x02000000U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_13_SHIFT          1
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_13_MASK           0x00000002U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30894,8 +30821,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_14_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_14_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_14_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_14_SHIFT          0
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_14_MASK           0x00000001U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_14_SHIFT          2
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_14_MASK           0x00000004U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30904,8 +30831,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_15_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_15_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_15_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_15_SHIFT          1
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_15_MASK           0x00000002U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_15_SHIFT          3
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_15_MASK           0x00000008U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30914,8 +30841,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_16_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_16_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_16_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_16_SHIFT          2
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_16_MASK           0x00000004U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_16_SHIFT          4
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_16_MASK           0x00000010U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30924,8 +30851,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_17_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_17_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_17_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_17_SHIFT          3
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_17_MASK           0x00000008U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_17_SHIFT          5
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_17_MASK           0x00000020U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30934,8 +30861,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_18_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_18_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_18_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_18_SHIFT          4
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_18_MASK           0x00000010U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_18_SHIFT          6
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_18_MASK           0x00000040U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30944,8 +30871,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_19_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_19_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_19_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_19_SHIFT          5
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_19_MASK           0x00000020U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_19_SHIFT          7
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_19_MASK           0x00000080U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30954,8 +30881,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_20_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_20_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_20_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_20_SHIFT          6
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_20_MASK           0x00000040U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_20_SHIFT          8
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_20_MASK           0x00000100U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30964,8 +30891,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_21_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_21_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_21_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_21_SHIFT          7
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_21_MASK           0x00000080U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_21_SHIFT          9
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_21_MASK           0x00000200U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30974,8 +30901,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_22_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_22_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_22_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_22_SHIFT          8
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_22_MASK           0x00000100U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_22_SHIFT          10
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_22_MASK           0x00000400U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30984,8 +30911,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_23_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_23_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_23_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_23_SHIFT          9
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_23_MASK           0x00000200U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_23_SHIFT          11
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_23_MASK           0x00000800U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -30994,8 +30921,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_24_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_24_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_24_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_24_SHIFT          10
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_24_MASK           0x00000400U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_24_SHIFT          12
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_24_MASK           0x00001000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -31004,8 +30931,8 @@
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_25_SHIFT 
 #undef IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_25_MASK 
 #define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_25_DEFVAL         
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_25_SHIFT          11
-#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_25_MASK           0x00000800U
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_25_SHIFT          13
+#define IOU_SLCR_BANK1_CTRL5_PULL_ENABLE_BIT_25_MASK           0x00002000U
 
 /*
 * Each bit applies to a single IO. Bit 0 for MIO[26].
@@ -32876,6 +32803,8 @@
 #define IOU_SLCR_MIO_LOOPBACK_SPI0_LOOP_SPI1_MASK              0x00000001U
 #undef CRL_APB_AMS_REF_CTRL_OFFSET 
 #define CRL_APB_AMS_REF_CTRL_OFFSET                                                0XFF5E0108
+#undef CRL_APB_RST_LPD_IOU2_OFFSET 
+#define CRL_APB_RST_LPD_IOU2_OFFSET                                                0XFF5E0238
 
 /*
 * 6 bit divider
@@ -32918,6 +32847,16 @@
 #define CRL_APB_AMS_REF_CTRL_CLKACT_DEFVAL                     0x01001800
 #define CRL_APB_AMS_REF_CTRL_CLKACT_SHIFT                      24
 #define CRL_APB_AMS_REF_CTRL_CLKACT_MASK                       0x01000000U
+
+/*
+* Block level reset
+*/
+#undef CRL_APB_RST_LPD_IOU2_QSPI_RESET_DEFVAL 
+#undef CRL_APB_RST_LPD_IOU2_QSPI_RESET_SHIFT 
+#undef CRL_APB_RST_LPD_IOU2_QSPI_RESET_MASK 
+#define CRL_APB_RST_LPD_IOU2_QSPI_RESET_DEFVAL                 0x0017FFFF
+#define CRL_APB_RST_LPD_IOU2_QSPI_RESET_SHIFT                  0
+#define CRL_APB_RST_LPD_IOU2_QSPI_RESET_MASK                   0x00000001U
 #undef CRF_APB_RST_FPD_TOP_OFFSET 
 #define CRF_APB_RST_FPD_TOP_OFFSET                                                 0XFD1A0100
 #undef CRL_APB_RST_LPD_IOU2_OFFSET 
@@ -32960,14 +32899,6 @@
 #define UART0_CONTROL_REG0_OFFSET                                                  0XFF000000
 #undef UART0_MODE_REG0_OFFSET 
 #define UART0_MODE_REG0_OFFSET                                                     0XFF000004
-#undef UART1_BAUD_RATE_DIVIDER_REG0_OFFSET 
-#define UART1_BAUD_RATE_DIVIDER_REG0_OFFSET                                        0XFF010034
-#undef UART1_BAUD_RATE_GEN_REG0_OFFSET 
-#define UART1_BAUD_RATE_GEN_REG0_OFFSET                                            0XFF010018
-#undef UART1_CONTROL_REG0_OFFSET 
-#define UART1_CONTROL_REG0_OFFSET                                                  0XFF010000
-#undef UART1_MODE_REG0_OFFSET 
-#define UART1_MODE_REG0_OFFSET                                                     0XFF010004
 #undef CRL_APB_RST_LPD_IOU2_OFFSET 
 #define CRL_APB_RST_LPD_IOU2_OFFSET                                                0XFF5E0238
 #undef LPD_SLCR_SECURE_SLCR_ADMA_OFFSET 
@@ -33018,36 +32949,6 @@
 #define CRF_APB_RST_FPD_TOP_GDMA_RESET_DEFVAL                  0x000F9FFE
 #define CRF_APB_RST_FPD_TOP_GDMA_RESET_SHIFT                   6
 #define CRF_APB_RST_FPD_TOP_GDMA_RESET_MASK                    0x00000040U
-
-/*
-* Pixel Processor (submodule of GPU) block level reset
-*/
-#undef CRF_APB_RST_FPD_TOP_GPU_PP0_RESET_DEFVAL 
-#undef CRF_APB_RST_FPD_TOP_GPU_PP0_RESET_SHIFT 
-#undef CRF_APB_RST_FPD_TOP_GPU_PP0_RESET_MASK 
-#define CRF_APB_RST_FPD_TOP_GPU_PP0_RESET_DEFVAL               0x000F9FFE
-#define CRF_APB_RST_FPD_TOP_GPU_PP0_RESET_SHIFT                4
-#define CRF_APB_RST_FPD_TOP_GPU_PP0_RESET_MASK                 0x00000010U
-
-/*
-* Pixel Processor (submodule of GPU) block level reset
-*/
-#undef CRF_APB_RST_FPD_TOP_GPU_PP1_RESET_DEFVAL 
-#undef CRF_APB_RST_FPD_TOP_GPU_PP1_RESET_SHIFT 
-#undef CRF_APB_RST_FPD_TOP_GPU_PP1_RESET_MASK 
-#define CRF_APB_RST_FPD_TOP_GPU_PP1_RESET_DEFVAL               0x000F9FFE
-#define CRF_APB_RST_FPD_TOP_GPU_PP1_RESET_SHIFT                5
-#define CRF_APB_RST_FPD_TOP_GPU_PP1_RESET_MASK                 0x00000020U
-
-/*
-* GPU block level reset
-*/
-#undef CRF_APB_RST_FPD_TOP_GPU_RESET_DEFVAL 
-#undef CRF_APB_RST_FPD_TOP_GPU_RESET_SHIFT 
-#undef CRF_APB_RST_FPD_TOP_GPU_RESET_MASK 
-#define CRF_APB_RST_FPD_TOP_GPU_RESET_DEFVAL                   0x000F9FFE
-#define CRF_APB_RST_FPD_TOP_GPU_RESET_SHIFT                    3
-#define CRF_APB_RST_FPD_TOP_GPU_RESET_MASK                     0x00000008U
 
 /*
 * GT block level reset
@@ -33417,16 +33318,6 @@
 #define CRL_APB_RST_LPD_IOU2_UART0_RESET_MASK                  0x00000002U
 
 /*
-* Block level reset
-*/
-#undef CRL_APB_RST_LPD_IOU2_UART1_RESET_DEFVAL 
-#undef CRL_APB_RST_LPD_IOU2_UART1_RESET_SHIFT 
-#undef CRL_APB_RST_LPD_IOU2_UART1_RESET_MASK 
-#define CRL_APB_RST_LPD_IOU2_UART1_RESET_DEFVAL                0x0017FFFF
-#define CRL_APB_RST_LPD_IOU2_UART1_RESET_SHIFT                 2
-#define CRL_APB_RST_LPD_IOU2_UART1_RESET_MASK                  0x00000004U
-
-/*
 * Baud rate divider value: 0 - 3: ignored 4 - 255: Baud rate
 */
 #undef UART0_BAUD_RATE_DIVIDER_REG0_BDIV_DEFVAL 
@@ -33607,188 +33498,6 @@
 #define UART0_MODE_REG0_CLKS_DEFVAL                            0x00000000
 #define UART0_MODE_REG0_CLKS_SHIFT                             0
 #define UART0_MODE_REG0_CLKS_MASK                              0x00000001U
-
-/*
-* Baud rate divider value: 0 - 3: ignored 4 - 255: Baud rate
-*/
-#undef UART1_BAUD_RATE_DIVIDER_REG0_BDIV_DEFVAL 
-#undef UART1_BAUD_RATE_DIVIDER_REG0_BDIV_SHIFT 
-#undef UART1_BAUD_RATE_DIVIDER_REG0_BDIV_MASK 
-#define UART1_BAUD_RATE_DIVIDER_REG0_BDIV_DEFVAL               0x0000000F
-#define UART1_BAUD_RATE_DIVIDER_REG0_BDIV_SHIFT                0
-#define UART1_BAUD_RATE_DIVIDER_REG0_BDIV_MASK                 0x000000FFU
-
-/*
-* Baud Rate Clock Divisor Value: 0: Disables baud_sample 1: Clock divisor
-    * bypass (baud_sample = sel_clk) 2 - 65535: baud_sample
-*/
-#undef UART1_BAUD_RATE_GEN_REG0_CD_DEFVAL 
-#undef UART1_BAUD_RATE_GEN_REG0_CD_SHIFT 
-#undef UART1_BAUD_RATE_GEN_REG0_CD_MASK 
-#define UART1_BAUD_RATE_GEN_REG0_CD_DEFVAL                     0x0000028B
-#define UART1_BAUD_RATE_GEN_REG0_CD_SHIFT                      0
-#define UART1_BAUD_RATE_GEN_REG0_CD_MASK                       0x0000FFFFU
-
-/*
-* Stop transmitter break: 0: no affect 1: stop transmission of the break a
-    * fter a minimum of one character length and transmit a high level during
-    * 12 bit periods. It can be set regardless of the value of STTBRK.
-*/
-#undef UART1_CONTROL_REG0_STPBRK_DEFVAL 
-#undef UART1_CONTROL_REG0_STPBRK_SHIFT 
-#undef UART1_CONTROL_REG0_STPBRK_MASK 
-#define UART1_CONTROL_REG0_STPBRK_DEFVAL                       0x00000128
-#define UART1_CONTROL_REG0_STPBRK_SHIFT                        8
-#define UART1_CONTROL_REG0_STPBRK_MASK                         0x00000100U
-
-/*
-* Start transmitter break: 0: no affect 1: start to transmit a break after
-    *  the characters currently present in the FIFO and the transmit shift reg
-    * ister have been transmitted. It can only be set if STPBRK (Stop transmit
-    * ter break) is not high.
-*/
-#undef UART1_CONTROL_REG0_STTBRK_DEFVAL 
-#undef UART1_CONTROL_REG0_STTBRK_SHIFT 
-#undef UART1_CONTROL_REG0_STTBRK_MASK 
-#define UART1_CONTROL_REG0_STTBRK_DEFVAL                       0x00000128
-#define UART1_CONTROL_REG0_STTBRK_SHIFT                        7
-#define UART1_CONTROL_REG0_STTBRK_MASK                         0x00000080U
-
-/*
-* Restart receiver timeout counter: 1: receiver timeout counter is restart
-    * ed. This bit is self clearing once the restart has completed.
-*/
-#undef UART1_CONTROL_REG0_RSTTO_DEFVAL 
-#undef UART1_CONTROL_REG0_RSTTO_SHIFT 
-#undef UART1_CONTROL_REG0_RSTTO_MASK 
-#define UART1_CONTROL_REG0_RSTTO_DEFVAL                        0x00000128
-#define UART1_CONTROL_REG0_RSTTO_SHIFT                         6
-#define UART1_CONTROL_REG0_RSTTO_MASK                          0x00000040U
-
-/*
-* Transmit disable: 0: enable transmitter 1: disable transmitter
-*/
-#undef UART1_CONTROL_REG0_TXDIS_DEFVAL 
-#undef UART1_CONTROL_REG0_TXDIS_SHIFT 
-#undef UART1_CONTROL_REG0_TXDIS_MASK 
-#define UART1_CONTROL_REG0_TXDIS_DEFVAL                        0x00000128
-#define UART1_CONTROL_REG0_TXDIS_SHIFT                         5
-#define UART1_CONTROL_REG0_TXDIS_MASK                          0x00000020U
-
-/*
-* Transmit enable: 0: disable transmitter 1: enable transmitter, provided
-    * the TXDIS field is set to 0.
-*/
-#undef UART1_CONTROL_REG0_TXEN_DEFVAL 
-#undef UART1_CONTROL_REG0_TXEN_SHIFT 
-#undef UART1_CONTROL_REG0_TXEN_MASK 
-#define UART1_CONTROL_REG0_TXEN_DEFVAL                         0x00000128
-#define UART1_CONTROL_REG0_TXEN_SHIFT                          4
-#define UART1_CONTROL_REG0_TXEN_MASK                           0x00000010U
-
-/*
-* Receive disable: 0: enable 1: disable, regardless of the value of RXEN
-*/
-#undef UART1_CONTROL_REG0_RXDIS_DEFVAL 
-#undef UART1_CONTROL_REG0_RXDIS_SHIFT 
-#undef UART1_CONTROL_REG0_RXDIS_MASK 
-#define UART1_CONTROL_REG0_RXDIS_DEFVAL                        0x00000128
-#define UART1_CONTROL_REG0_RXDIS_SHIFT                         3
-#define UART1_CONTROL_REG0_RXDIS_MASK                          0x00000008U
-
-/*
-* Receive enable: 0: disable 1: enable When set to one, the receiver logic
-    *  is enabled, provided the RXDIS field is set to zero.
-*/
-#undef UART1_CONTROL_REG0_RXEN_DEFVAL 
-#undef UART1_CONTROL_REG0_RXEN_SHIFT 
-#undef UART1_CONTROL_REG0_RXEN_MASK 
-#define UART1_CONTROL_REG0_RXEN_DEFVAL                         0x00000128
-#define UART1_CONTROL_REG0_RXEN_SHIFT                          2
-#define UART1_CONTROL_REG0_RXEN_MASK                           0x00000004U
-
-/*
-* Software reset for Tx data path: 0: no affect 1: transmitter logic is re
-    * set and all pending transmitter data is discarded This bit is self clear
-    * ing once the reset has completed.
-*/
-#undef UART1_CONTROL_REG0_TXRES_DEFVAL 
-#undef UART1_CONTROL_REG0_TXRES_SHIFT 
-#undef UART1_CONTROL_REG0_TXRES_MASK 
-#define UART1_CONTROL_REG0_TXRES_DEFVAL                        0x00000128
-#define UART1_CONTROL_REG0_TXRES_SHIFT                         1
-#define UART1_CONTROL_REG0_TXRES_MASK                          0x00000002U
-
-/*
-* Software reset for Rx data path: 0: no affect 1: receiver logic is reset
-    *  and all pending receiver data is discarded. This bit is self clearing o
-    * nce the reset has completed.
-*/
-#undef UART1_CONTROL_REG0_RXRES_DEFVAL 
-#undef UART1_CONTROL_REG0_RXRES_SHIFT 
-#undef UART1_CONTROL_REG0_RXRES_MASK 
-#define UART1_CONTROL_REG0_RXRES_DEFVAL                        0x00000128
-#define UART1_CONTROL_REG0_RXRES_SHIFT                         0
-#define UART1_CONTROL_REG0_RXRES_MASK                          0x00000001U
-
-/*
-* Channel mode: Defines the mode of operation of the UART. 00: normal 01:
-    * automatic echo 10: local loopback 11: remote loopback
-*/
-#undef UART1_MODE_REG0_CHMODE_DEFVAL 
-#undef UART1_MODE_REG0_CHMODE_SHIFT 
-#undef UART1_MODE_REG0_CHMODE_MASK 
-#define UART1_MODE_REG0_CHMODE_DEFVAL                          0x00000000
-#define UART1_MODE_REG0_CHMODE_SHIFT                           8
-#define UART1_MODE_REG0_CHMODE_MASK                            0x00000300U
-
-/*
-* Number of stop bits: Defines the number of stop bits to detect on receiv
-    * e and to generate on transmit. 00: 1 stop bit 01: 1.5 stop bits 10: 2 st
-    * op bits 11: reserved
-*/
-#undef UART1_MODE_REG0_NBSTOP_DEFVAL 
-#undef UART1_MODE_REG0_NBSTOP_SHIFT 
-#undef UART1_MODE_REG0_NBSTOP_MASK 
-#define UART1_MODE_REG0_NBSTOP_DEFVAL                          0x00000000
-#define UART1_MODE_REG0_NBSTOP_SHIFT                           6
-#define UART1_MODE_REG0_NBSTOP_MASK                            0x000000C0U
-
-/*
-* Parity type select: Defines the expected parity to check on receive and
-    * the parity to generate on transmit. 000: even parity 001: odd parity 010
-    * : forced to 0 parity (space) 011: forced to 1 parity (mark) 1xx: no pari
-    * ty
-*/
-#undef UART1_MODE_REG0_PAR_DEFVAL 
-#undef UART1_MODE_REG0_PAR_SHIFT 
-#undef UART1_MODE_REG0_PAR_MASK 
-#define UART1_MODE_REG0_PAR_DEFVAL                             0x00000000
-#define UART1_MODE_REG0_PAR_SHIFT                              3
-#define UART1_MODE_REG0_PAR_MASK                               0x00000038U
-
-/*
-* Character length select: Defines the number of bits in each character. 1
-    * 1: 6 bits 10: 7 bits 0x: 8 bits
-*/
-#undef UART1_MODE_REG0_CHRL_DEFVAL 
-#undef UART1_MODE_REG0_CHRL_SHIFT 
-#undef UART1_MODE_REG0_CHRL_MASK 
-#define UART1_MODE_REG0_CHRL_DEFVAL                            0x00000000
-#define UART1_MODE_REG0_CHRL_SHIFT                             1
-#define UART1_MODE_REG0_CHRL_MASK                              0x00000006U
-
-/*
-* Clock source select: This field defines whether a pre-scalar of 8 is app
-    * lied to the baud rate generator input clock. 0: clock source is uart_ref
-    * _clk 1: clock source is uart_ref_clk/8
-*/
-#undef UART1_MODE_REG0_CLKS_DEFVAL 
-#undef UART1_MODE_REG0_CLKS_SHIFT 
-#undef UART1_MODE_REG0_CLKS_MASK 
-#define UART1_MODE_REG0_CLKS_DEFVAL                            0x00000000
-#define UART1_MODE_REG0_CLKS_SHIFT                             0
-#define UART1_MODE_REG0_CLKS_MASK                              0x00000001U
 
 /*
 * Block level reset
@@ -34059,6 +33768,50 @@
 #define CRL_APB_BOOT_PIN_CTRL_OUT_EN_DEFVAL                    0x00000000
 #define CRL_APB_BOOT_PIN_CTRL_OUT_EN_SHIFT                     0
 #define CRL_APB_BOOT_PIN_CTRL_OUT_EN_MASK                      0x0000000FU
+#undef PMU_GLOBAL_REQ_PWRDWN_INT_EN_OFFSET 
+#define PMU_GLOBAL_REQ_PWRDWN_INT_EN_OFFSET                                        0XFFD80218
+#undef PMU_GLOBAL_REQ_PWRDWN_TRIG_OFFSET 
+#define PMU_GLOBAL_REQ_PWRDWN_TRIG_OFFSET                                          0XFFD80220
+
+/*
+* Power-down Request Interrupt Enable for GPU PP0
+*/
+#undef PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP0_DEFVAL 
+#undef PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP0_SHIFT 
+#undef PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP0_MASK 
+#define PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP0_DEFVAL                0x00000000
+#define PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP0_SHIFT                 4
+#define PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP0_MASK                  0x00000010U
+
+/*
+* Power-down Request Interrupt Enable for GPU PP1
+*/
+#undef PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP1_DEFVAL 
+#undef PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP1_SHIFT 
+#undef PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP1_MASK 
+#define PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP1_DEFVAL                0x00000000
+#define PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP1_SHIFT                 5
+#define PMU_GLOBAL_REQ_PWRDWN_INT_EN_PP1_MASK                  0x00000020U
+
+/*
+* Power-down Request Trigger for GPU PP0
+*/
+#undef PMU_GLOBAL_REQ_PWRDWN_TRIG_PP0_DEFVAL 
+#undef PMU_GLOBAL_REQ_PWRDWN_TRIG_PP0_SHIFT 
+#undef PMU_GLOBAL_REQ_PWRDWN_TRIG_PP0_MASK 
+#define PMU_GLOBAL_REQ_PWRDWN_TRIG_PP0_DEFVAL                  0x00000000
+#define PMU_GLOBAL_REQ_PWRDWN_TRIG_PP0_SHIFT                   4
+#define PMU_GLOBAL_REQ_PWRDWN_TRIG_PP0_MASK                    0x00000010U
+
+/*
+* Power-down Request Trigger for GPU PP1
+*/
+#undef PMU_GLOBAL_REQ_PWRDWN_TRIG_PP1_DEFVAL 
+#undef PMU_GLOBAL_REQ_PWRDWN_TRIG_PP1_SHIFT 
+#undef PMU_GLOBAL_REQ_PWRDWN_TRIG_PP1_MASK 
+#define PMU_GLOBAL_REQ_PWRDWN_TRIG_PP1_DEFVAL                  0x00000000
+#define PMU_GLOBAL_REQ_PWRDWN_TRIG_PP1_SHIFT                   5
+#define PMU_GLOBAL_REQ_PWRDWN_TRIG_PP1_MASK                    0x00000020U
 #undef FPD_SLCR_SECURE_SLCR_DPDMA_OFFSET 
 #define FPD_SLCR_SECURE_SLCR_DPDMA_OFFSET                                          0XFD690040
 #undef FPD_SLCR_SECURE_SLCR_PCIE_OFFSET 
@@ -37029,14 +36782,10 @@
 #define AFIFM2_AFIFM_RDCTRL_OFFSET                                                 0XFD380000
 #undef AFIFM3_AFIFM_RDCTRL_OFFSET 
 #define AFIFM3_AFIFM_RDCTRL_OFFSET                                                 0XFD390000
-#undef AFIFM4_AFIFM_RDCTRL_OFFSET 
-#define AFIFM4_AFIFM_RDCTRL_OFFSET                                                 0XFD3A0000
 #undef AFIFM2_AFIFM_WRCTRL_OFFSET 
 #define AFIFM2_AFIFM_WRCTRL_OFFSET                                                 0XFD380014
 #undef AFIFM3_AFIFM_WRCTRL_OFFSET 
 #define AFIFM3_AFIFM_WRCTRL_OFFSET                                                 0XFD390014
-#undef AFIFM4_AFIFM_WRCTRL_OFFSET 
-#define AFIFM4_AFIFM_WRCTRL_OFFSET                                                 0XFD3A0014
 
 /*
 * AF_FM0 block level reset
@@ -37121,6 +36870,18 @@
 #define FPD_SLCR_AFI_FS_DW_SS0_SEL_MASK                        0x00000300U
 
 /*
+* Select the 32/64/128-bit data width selection for the Slave 1 00: 32-bit
+    *  AXI data width (default) 01: 64-bit AXI data width 10: 128-bit AXI data
+    *  width 11: reserved
+*/
+#undef FPD_SLCR_AFI_FS_DW_SS1_SEL_DEFVAL 
+#undef FPD_SLCR_AFI_FS_DW_SS1_SEL_SHIFT 
+#undef FPD_SLCR_AFI_FS_DW_SS1_SEL_MASK 
+#define FPD_SLCR_AFI_FS_DW_SS1_SEL_DEFVAL                      0x00000A00
+#define FPD_SLCR_AFI_FS_DW_SS1_SEL_SHIFT                       10
+#define FPD_SLCR_AFI_FS_DW_SS1_SEL_MASK                        0x00000C00U
+
+/*
 * Configures the Read Channel Fabric interface width. 2'b11 : Reserved 2'b
     * 10 : 32-bit Fabric 2'b01 : 64-bit enabled 2'b00 : 128-bit enabled
 */
@@ -37143,17 +36904,6 @@
 #define AFIFM3_AFIFM_RDCTRL_FABRIC_WIDTH_MASK                  0x00000003U
 
 /*
-* Configures the Read Channel Fabric interface width. 2'b11 : Reserved 2'b
-    * 10 : 32-bit Fabric 2'b01 : 64-bit enabled 2'b00 : 128-bit enabled
-*/
-#undef AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_DEFVAL 
-#undef AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_SHIFT 
-#undef AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_MASK 
-#define AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_DEFVAL                0x000003B0
-#define AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_SHIFT                 0
-#define AFIFM4_AFIFM_RDCTRL_FABRIC_WIDTH_MASK                  0x00000003U
-
-/*
 * Configures the Write Channel Fabric interface width. 2'b11 : Reserved 2'
     * b10 : 32-bit Fabric 2'b01 : 64-bit enabled 2'b00 : 128-bit enabled
 */
@@ -37174,17 +36924,6 @@
 #define AFIFM3_AFIFM_WRCTRL_FABRIC_WIDTH_DEFVAL                0x000003B0
 #define AFIFM3_AFIFM_WRCTRL_FABRIC_WIDTH_SHIFT                 0
 #define AFIFM3_AFIFM_WRCTRL_FABRIC_WIDTH_MASK                  0x00000003U
-
-/*
-* Configures the Write Channel Fabric interface width. 2'b11 : Reserved 2'
-    * b10 : 32-bit Fabric 2'b01 : 64-bit enabled 2'b00 : 128-bit enabled
-*/
-#undef AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_DEFVAL 
-#undef AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_SHIFT 
-#undef AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_MASK 
-#define AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_DEFVAL                0x000003B0
-#define AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_SHIFT                 0
-#define AFIFM4_AFIFM_WRCTRL_FABRIC_WIDTH_MASK                  0x00000003U
 #undef GPIO_MASK_DATA_5_MSW_OFFSET 
 #define GPIO_MASK_DATA_5_MSW_OFFSET                                                0XFF0A002C
 #undef GPIO_DIRM_5_OFFSET 
