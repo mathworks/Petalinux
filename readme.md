@@ -20,7 +20,6 @@ MathWorks PetaLinux projects and helper scripts for building SD-card images targ
 | ZCU216 RFSoC | [mw_zcu216/README.md](mw_zcu216/README.md) | 2023.1 | [mw_zcu216/mw_build_zcu216.sh](mw_zcu216/mw_build_zcu216.sh) |
 | ZCU670 RFSoC DFE | [mw_zcu670/README.md](mw_zcu670/README.md) | 2023.2 | [mw_zcu670/mw_build_zcu670.sh](mw_zcu670/mw_build_zcu670.sh) |
 | Trenz TE0820 | [mw_te0820/README.md](mw_te0820/README.md) | 2022.2 | (manual steps) |
-| Legacy ZCU216 BSP template | [mw_zcu216/README](mw_zcu216/README) | (Xilinx BSP reference) | (manual steps) |
 
 
 ## When building manually
