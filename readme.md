@@ -15,9 +15,9 @@ MathWorks PetaLinux projects and helper scripts for building SD-card images targ
 | ZC706 Zynq-7000 | [mw_zc706/README.md](mw_zc706/README.md) | 2023.1 | [mw_zc706/mw_build_zc706.sh](mw_zc706/mw_build_zc706.sh) |
 | ZCU102 MPSoC | [mw_zcu102/README.md](mw_zcu102/README.md) | 2023.1 | [mw_zcu102/mw_build_zcu102.sh](mw_zcu102/mw_build_zcu102.sh) |
 | ZCU104 MPSoC | [mw_zcu104/README.md](mw_zcu104/README.md) | 2023.1 | (manual steps) |
-| ZCU111 RFSoC | [mw_zcu111_v2021.2/README.md](mw_zcu111_v2021.2/README.md) | 2021.2 | [mw_zcu111_v2021.2/mw_build_zcu111.sh](mw_zcu111_v2021.2/mw_build_zcu111.sh) |
+| ZCU111 RFSoC | [mw_zcu111/README.md](mw_zcu111/README.md) | 2021.2 | [mw_zcu111/mw_build_zcu111.sh](mw_zcu111/mw_build_zcu111.sh) |
 | ZCU208 RFSoC | [mw_zcu208/README.md](mw_zcu208/README.md) | 2023.1 | [mw_zcu208/mw_build_zcu208.sh](mw_zcu208/mw_build_zcu208.sh) |
-| ZCU216 RFSoC | [mw_zcu216_v2023.1/README.md](mw_zcu216_v2023.1/README.md) | 2023.1 | [mw_zcu216_v2023.1/mw_build_zcu216.sh](mw_zcu216_v2023.1/mw_build_zcu216.sh) |
+| ZCU216 RFSoC | [mw_zcu216/README.md](mw_zcu216/README.md) | 2023.1 | [mw_zcu216/mw_build_zcu216.sh](mw_zcu216/mw_build_zcu216.sh) |
 | ZCU670 RFSoC DFE | [mw_zcu670/README.md](mw_zcu670/README.md) | 2023.2 | [mw_zcu670/mw_build_zcu670.sh](mw_zcu670/mw_build_zcu670.sh) |
 | Trenz TE0820 | [mw_te0820/README.md](mw_te0820/README.md) | 2022.2 | (manual steps) |
 | Legacy ZCU216 BSP template | [mw_zcu216/README](mw_zcu216/README) | (Xilinx BSP reference) | (manual steps) |
