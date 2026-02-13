@@ -55,6 +55,14 @@ fi
 PLNXHOME=$1
 PLNXPRJ=$2
 
+# Canonicalize paths to absolute paths
+if command -v realpath >/dev/null 2>&1; then
+    PLNXHOME=$(realpath "$PLNXHOME")
+    PLNXPRJ=$(realpath "$PLNXPRJ")
+else
+    PLNXHOME=$(readlink -f "$PLNXHOME")
+    PLNXPRJ=$(readlink -f "$PLNXPRJ")
+fi
 # PetaLinux folder validation
 if [ ! -f "$PLNXHOME/settings.sh" ]; then
     echo "First argument must be a valid PetaLinux installation folder"
