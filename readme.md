@@ -1,4 +1,4 @@
-# MathWorks&reg; Zynq PetaLinux Projects
+# MathWorks&reg; PetaLinux Projects
 
 MathWorks PetaLinux projects and helper scripts for building SD-card images targeting AMD/ADI reference boards. Each board directory contains a ready-to-build PetaLinux project plus utilities (init scripts, env configs, device-tree overlays, packaging helpers) tailored for MathWorks workflows.
 
