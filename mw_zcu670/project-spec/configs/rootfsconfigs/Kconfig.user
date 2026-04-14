@@ -1,0 +1,98 @@
+menu "user packages " 
+config libiio  
+	 bool "libiio"
+	 help
+	
+config libsdfecusrintf  
+	 bool "libsdfecusrintf"
+	 help
+	
+config libserialport  
+	 bool "libserialport"
+	 help
+	
+config boost  
+	 bool "boost"
+	 help
+	
+config boost-dev  
+	 bool "boost-dev"
+	 help
+	
+config dfeccf  
+	 bool "dfeccf"
+	 help
+	
+config dfeequ  
+	 bool "dfeequ"
+	 help
+	
+config dfemix  
+	 bool "dfemix"
+	 help
+	
+config dfeofdm  
+	 bool "dfeofdm"
+	 help
+	
+config dfeprach  
+	 bool "dfeprach"
+	 help
+	
+config gpio-demo  
+	 bool "gpio-demo"
+	 help
+	
+config lttng-ust  
+	 bool "lttng-ust"
+	 help
+	
+config lttng-ust-bin  
+	 bool "lttng-ust-bin"
+	 help
+	
+config mw-fs-overlay  
+	 bool "mw-fs-overlay"
+	 help
+	
+config mw-rf-init  
+	 bool "mw-rf-init"
+	 help
+	
+config peekpoke  
+	 bool "peekpoke"
+	 help
+	
+config python3-cffi  
+	 bool "python3-cffi"
+	 help
+	
+config python3-pyro4  
+	 bool "python3-pyro4"
+	 help
+	
+config rfclk  
+	 bool "rfclk"
+	 help
+	
+config rfdc  
+	 bool "rfdc"
+	 help
+	
+config rfdc-read-write  
+	 bool "rfdc-read-write"
+	 help
+	
+config rfdc-selftest  
+	 bool "rfdc-selftest"
+	 help
+	
+config rftool-zcu670  
+	 bool "rftool-zcu670"
+	 help
+	
+config sdfec-demo  
+	 bool "sdfec-demo"
+	 help
+	
+endmenu

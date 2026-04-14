@@ -1,0 +1,39 @@
+/ {
+
+    chosen {
+		bootargs = "earlycon root=/dev/ram rw";
+    };
+
+    core_clkwiz: clockwiz0{
+        compatible = "fixed-factor-clock";
+        #clock-cells = <1>;
+        clock-frequency = <50023973>;
+    };
+
+    fpd_hpm0_32: fpd-hpm0-32 {
+        compatible = "simple-bus";
+        interrupt-names = "irq";
+        interrupt-parent = <&gic>;
+        #address-cells = <1>;
+        #size-cells = <1>;
+        ranges = <0xA0000000 0x0 0xA0000000 0x10000000>;
+
+        mwipcore0: mwipcore@A0000000 {
+            compatible = "mathworks,mwipcore-v3.00";
+            #address-cells = <1>;
+            #size-cells = <1>;
+
+            mmrd-channel@0 {
+                reg = <0x0>;
+                compatible = "mathworks,mm-read-channel-v1.00";
+                mathworks,dev-name = "mmrd0";
+            };
+
+            mmwr-channel@1 {
+                reg = <0x1>;
+                compatible = "mathworks,mm-write-channel-v1.00";
+                mathworks,dev-name = "mmwr0";
+            };
+        };
+    };
+};

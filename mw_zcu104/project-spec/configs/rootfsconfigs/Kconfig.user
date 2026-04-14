@@ -1,0 +1,30 @@
+menu "user packages " 
+config gpio-demo  
+	 bool "gpio-demo"
+	 help
+	
+config gstreamer-vcu-examples  
+	 bool "gstreamer-vcu-examples"
+	 help
+	
+config gstreamer-vcu-notebooks  
+	 bool "gstreamer-vcu-notebooks"
+	 help
+	
+config mw-fs-overlay  
+	 bool "mw-fs-overlay"
+	 help
+	
+config packagegroup-petalinux-audio  
+	 bool "packagegroup-petalinux-audio"
+	 help
+	
+config packagegroup-petalinux-v4lutils  
+	 bool "packagegroup-petalinux-v4lutils"
+	 help
+	
+config peekpoke  
+	 bool "peekpoke"
+	 help
+	
+endmenu

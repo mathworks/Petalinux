@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "xrfdc.h": "c",
+        "device.h": "c"
+    }
+}

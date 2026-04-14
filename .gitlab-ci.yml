@@ -1,0 +1,138 @@
+# you can delete this line if you're not using Docker
+image: busybox:latest
+
+workflow:
+  rules:
+    - changes:
+      - mw_kria_kr260/**/*
+      - mw_kria_kv260/**/*
+      - mw_te0820/**/*
+      - mw_ultra96v2/**/*
+      - mw_zcu104/**/*
+      - mw_zcu111/**/*
+      - mw_zcu216/**/*
+
+.rules_kr260: &rules_kr260
+  rules:
+    - changes:
+      - mw_kria_kr260/**/*
+
+.rules_kv260: &rules_kv260
+  rules:
+    - changes:
+      - mw_kria_kv260/**/*
+
+.rules_te0820: &rules_te0820
+  rules:
+    - changes:
+      - mw_te0820/**/*
+
+.rules_ultra96v2: &rules_ultra96v2
+  rules:
+    - changes:
+      - mw_ultra96v2/**/*
+
+.rules_zcu104: &rules_zcu104
+  rules:
+    - changes:
+      - mw_zcu104/**/*
+
+.rules_zcu111: &rules_zcu111
+  rules:
+    - changes:
+      - mw_zcu111/**/*
+
+.rules_zcu216: &rules_zcu216
+  rules:
+    - changes:
+      - mw_zcu216/**/*
+
+build kr260:
+  stage: build
+  <<: *rules_kr260
+  script:
+    - echo "Starting Petalinux Build for Kria KR260"
+
+test kr260:
+  stage: test
+  <<: *rules_kr260
+  needs: ["build kr260"]
+  script:
+    - echo "Running test to validate behaviour of Kria KR260 Image"
+
+build kv260:
+  stage: build
+  <<: *rules_kv260
+  script:
+    - echo "Starting Petalinux Build for Kria KV260"
+
+test kv260:
+  stage: test
+  <<: *rules_kv260
+  needs: ["build kv260"]
+  script:
+    - echo "Running test to validate behaviour of Kria KV260 Image"
+
+build te0820:
+  stage: build
+  <<: *rules_te0820
+  script:
+    - echo "Starting Petalinux Build for Trenz TE0820"
+
+test te0820:
+  stage: test
+  <<: *rules_te0820
+  script:
+    - echo "Running test to validate behaviour of Trenz TE0820 Image"
+
+build ultra96v2:
+  stage: build
+  <<: *rules_ultra96v2
+  script:
+    - echo "Starting Petalinux Build for Avnet Ultra96-v2"
+
+test ultra96v2:
+  stage: test
+  <<: *rules_ultra96v2
+  needs: ["build ultra96v2"]
+  script:
+    - echo "Running test to validate behaviour of Avnet Ultra96-v2 Image"
+
+build zcu104:
+  stage: build
+  <<: *rules_zcu104
+  script:
+    - echo "Starting Petalinux Build for Zynq ZCU104"
+
+test zcu104:
+  stage: test
+  <<: *rules_zcu104
+  needs: ["build zcu104"]
+  script:
+    - echo "Running test to validate behaviour of Zynq ZCU104 Image"
+
+build zcu111:
+  stage: build
+  <<: *rules_zcu111
+  script:
+    - echo "Starting Petalinux Build for Zynq ZCU111"
+
+test zcu111:
+  stage: test
+  <<: *rules_zcu111
+  needs: ["build zcu111"]
+  script:
+    - echo "Running test to validate behaviour of Zynq ZCU111 Image"
+
+build zcu216:
+  stage: build
+  <<: *rules_zcu216
+  script:
+    - echo "Starting Petalinux Build for Zynq ZCU216"
+
+test zcu216:
+  stage: test
+  <<: *rules_zcu216
+  needs: ["build zcu216"]
+  script:
+    - echo "Running test to validate behaviour of Zynq ZCU216 Image"

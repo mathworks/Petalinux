@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# Create symbolic links in /usr/bin
+#
+
+ln -s /usr/sbin/fw_getbitstream /usr/bin/fw_getbitstream 
+ln -s /usr/sbin/fw_getdevicetree /usr/bin/fw_getdevicetree 
+ln -s /usr/sbin/fw_getrdname /usr/bin/fw_getrdname 
+ln -s /usr/sbin/fw_setbitstream /usr/bin/fw_setbitstream 
+ln -s /usr/sbin/fw_setdevicetree /usr/bin/fw_setdevicetree 
+ln -s /usr/sbin/fw_setdtoverlay /usr/bin/fw_setdtoverlay
+ln -s /usr/sbin/fw_setrdname /usr/bin/fw_setrdname 
+ln -s /usr/sbin/fw_updatedtoverlay /usr/bin/fw_updatedtoverlay
+ln -s /usr/sbin/_mw_backup_network /usr/bin/_mw_backup_network 
+ln -s /usr/sbin/_mw_getbootdev /usr/bin/_mw_getbootdev 
+ln -s /usr/sbin/_mw_reboot_mode /usr/bin/_mw_reboot_mode 
+ln -s /usr/sbin/_mw_restore_network /usr/bin/_mw_restore_network 
+ln -s /usr/sbin/mw_setboot /usr/bin/mw_setboot 
+ln -s /usr/sbin/_mw_setboot_default /usr/bin/_mw_setboot_default 
+ln -s /usr/sbin/_mw_setbootfile /usr/bin/_mw_setbootfile 
+ln -s /sbin/fw_printenv /usr/bin/fw_printenv
+ln -s /sbin/fw_setenv /usr/bin/fw_setenv
+ln -s /sbin/reboot /usr/bin/reboot

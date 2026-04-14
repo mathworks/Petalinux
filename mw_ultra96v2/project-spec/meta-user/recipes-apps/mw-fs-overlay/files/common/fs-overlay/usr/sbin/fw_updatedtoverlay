@@ -1,0 +1,56 @@
+#!/bin/sh
+# Update device-tree overlay at run-time
+# Syntax: fw_updatedtoverlay <path to dts>
+export PATH="/sbin/:/usr/sbin/:$PATH"
+OVLY_LOC="/sys/kernel/config/device-tree/overlays/mw_overlay"
+DTB_DST_LOC="/tmp/mw_overlay.dtbo"
+DTS_SRC_LOC=$1
+
+
+if [ ! -f ${DTS_SRC_LOC}  ] || [ "$DTS_SRC_LOC" == ""  ]; then
+    echo "Error: Devicetree overlay file '${DTS_SRC_LOC}' not found"
+    exit
+fi
+
+if [ -e $OVLY_LOC ]; then
+    echo "Deleting existing overlay in $OVLY_LOC"
+    rm -rf $OVLY_LOC > /dev/null 2>&1
+fi
+
+dtc -o dtb -o $DTB_DST_LOC -@ $DTS_SRC_LOC
+
+if [ ! -e ${DTB_DST_LOC} ]; then
+    echo "Error: Could not create device-tree overlay file!"
+    exit
+fi
+
+mkdir -p $OVLY_LOC
+cat $DTB_DST_LOC > $OVLY_LOC/dtbo
+DTO_STATUS="$(cat ${OVLY_LOC}/status)"
+
+if [ "$DTO_STATUS" != "applied" ]; then
+    echo "Error: Devicetree overlay file could NOT be applied!"
+    exit
+else
+    echo "Devicetree overlay applied succesfully"
+fi
+
+# disable IIOD
+echo "Disable IIOD"
+killall -9 iiod
+
+# Restart MathWorks drivers
+echo "Disabling mwipcore drivers"
+rmmod mwipcore
+rmmod mwipcore_iio_streaming
+rmmod mathworks_ip_common
+
+modprobe mwipcore
+modprobe mwipcore_iio_streaming
+modprobe mathworks_ip_common
+echo "Restarted mwipcore drivers"
+
+echo "Enable IIOD"
+iiod &
+
+

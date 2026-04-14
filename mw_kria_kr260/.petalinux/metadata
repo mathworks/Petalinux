@@ -1,0 +1,5 @@
+PETALINUX_VER=2023.1
+VALIDATE_HW_CHKSUM=1
+HDF_EXT=xsa
+YOCTO_SDK=3f2dfd6df41ad64db386a88d6b89edd2
+HARDWARE_PATH=/home/sgannava/testKriaGit/Petalinux/mw_kria_kr260/system_top_wrapper.xsa

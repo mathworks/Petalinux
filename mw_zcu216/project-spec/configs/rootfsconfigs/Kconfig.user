@@ -1,0 +1,74 @@
+menu "user packages " 
+config libiio  
+	 bool "libiio"
+	 help
+	
+config libsdfecusrintf  
+	 bool "libsdfecusrintf"
+	 help
+	
+config libserialport  
+	 bool "libserialport"
+	 help
+	
+config boost  
+	 bool "boost"
+	 help
+	
+config boost-dev  
+	 bool "boost-dev"
+	 help
+	
+config gpio-demo  
+	 bool "gpio-demo"
+	 help
+	
+config lttng-ust  
+	 bool "lttng-ust"
+	 help
+	
+config lttng-ust-bin  
+	 bool "lttng-ust-bin"
+	 help
+	
+config mw-fs-overlay  
+	 bool "mw-fs-overlay"
+	 help
+	
+config mw-refdesign-dtb  
+	 bool "mw-refdesign-dtb"
+	 help
+	
+config mw-rf-init  
+	 bool "mw-rf-init"
+	 help
+	
+config peekpoke  
+	 bool "peekpoke"
+	 help
+	
+config rfclk  
+	 bool "rfclk"
+	 help
+	
+config rfdc  
+	 bool "rfdc"
+	 help
+	
+config rfdc-read-write  
+	 bool "rfdc-read-write"
+	 help
+	
+config rfdc-selftest  
+	 bool "rfdc-selftest"
+	 help
+	
+config rftool-zcu216  
+	 bool "rftool-zcu216"
+	 help
+	
+config sdfec-demo  
+	 bool "sdfec-demo"
+	 help
+	
+endmenu
