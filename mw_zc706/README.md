@@ -50,7 +50,7 @@ This section explains how you can setup the MathWorks Petalinux repository and a
 2. Checkout the latest branch after navigating to Petalinux directory.    
 
 	```
-	git checkout mathworks_R2026a
+	git checkout master
 	```
 Navigate to *mw_zc706* directory. You can use `mw_build_zc706.sh` script present in this folder to add the meta-mathworks layer to the Petalinux project and get the Linux image in a zip file directly in your working directory. Note that the script is run from its path only using below command.
 
