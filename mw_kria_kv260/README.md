@@ -50,7 +50,7 @@ This section explains how you can setup the MathWorks Petalinux repository and a
 2. Checkout the latest branch after navigating to Petalinux directory.    
 
 	```
-	git checkout mathworks_R2026b
+	git checkout mathworks_R2027a
 	```
 Navigate to *mw_kria_kv260* directory. You can run `mw_build_kv260.sh` script present in this folder to get the Linux image in a zip file directly in your working directory using the MathWorks Petalinux repository.  Note that the script is run from its path only using below command. 
 
