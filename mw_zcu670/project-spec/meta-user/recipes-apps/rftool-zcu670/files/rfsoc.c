@@ -383,7 +383,8 @@ newConn:
 				shutdown_sock(COMMAND);
 				shutdown_sock(DATA);
 				printf("Closed data and command sockets\n");
-				pthread_join(thread_id, NULL);
+				/* thread is never created (pthread_create is disabled); joining an uninitialized thread_id segfaults */
+				// pthread_join(thread_id, NULL);
 				break;
 			}
 			/* clear rcvBuf each time anew command is received and
